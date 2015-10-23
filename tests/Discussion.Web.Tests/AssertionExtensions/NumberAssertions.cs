@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using static Xunit.Assert;
 
 namespace Discussion.Web.Tests
 {
@@ -6,32 +6,32 @@ namespace Discussion.Web.Tests
     {
         public static void ShouldEqual(this int number, int expected)
         {
-            Assert.Equal(expected, number);
+            Equal(expected, number);
         }
 
         public static void ShouldNotEqual(this int number, int expected)
         {
-            Assert.NotEqual(expected, number);
+            NotEqual(expected, number);
         }
 
         public static void ShouldGreaterThan(this int number, int other)
         {
-            Assert.True(number > other, $"Expected {number} to be greater than {other}");
+            True(number > other, $"Expected {number} to be greater than {other}");
         }
 
         public static void ShouldLessThan(this int number, int other)
         {
-            Assert.True(number < other, $"Expected {number} to be less than {other}");
+            True(number < other, $"Expected {number} to be less than {other}");
         }
 
         public static void ShouldGreaterOrEquals(this int number, int other)
         {
-            Assert.True(number >= other, $"Expected {number} to be greater than or equal {other}");
+            True(number >= other, $"Expected {number} to be greater than or equal {other}");
         }
 
         public static void ShouldLessOrEquals(this int number, int other)
         {
-            Assert.True(number <= other, $"Expected {number} to be less than or equal {other}");
+            True(number <= other, $"Expected {number} to be less than or equal {other}");
         }
         
 
@@ -42,32 +42,32 @@ namespace Discussion.Web.Tests
 
         public static void ShouldEqual(this long number, long expected)
         {
-            Assert.Equal(expected, number);
+            Equal(expected, number);
         }
 
         public static void ShouldNotEqual(this long number, long expected)
         {
-            Assert.NotEqual(expected, number);
+            NotEqual(expected, number);
         }
 
         public static void ShouldGreaterThan(this long number, long other)
         {
-            Assert.True(number > other, $"Expected {number} to be greater than {other}");
+            True(number > other, $"Expected {number} to be greater than {other}");
         }
 
         public static void ShouldLessThan(this long number, long other)
         {
-            Assert.True(number < other, $"Expected {number} to be less than {other}");
+            True(number < other, $"Expected {number} to be less than {other}");
         }
 
         public static void ShouldGreaterOrEquals(this long number, long other)
         {
-            Assert.True(number >= other, $"Expected {number} to be greater than or equal {other}");
+            True(number >= other, $"Expected {number} to be greater than or equal {other}");
         }
 
         public static void ShouldLessOrEquals(this long number, long other)
         {
-            Assert.True(number <= other, $"Expected {number} to be less than or equal {other}");
+            True(number <= other, $"Expected {number} to be less than or equal {other}");
         }
 
     }
