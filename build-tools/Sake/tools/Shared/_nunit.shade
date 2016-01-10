@@ -1,0 +1,29 @@
+@{/*
+
+nunit 
+    Run unit tests in your project. Downloads and executes nunit console runner.
+
+testFile='' 
+    Required. Path to the test assembly to execute 
+
+extra=''
+    Additional commandline parameters for nunit
+
+nunitVersion='2.5.10.11092'
+    May be passed to override the nuget package version holding xunit console runner.
+
+nunitProgram='packages/NUnit.${nunitVersion}/tools/nunit-console.exe'
+    May be passed to override the path to the nunit program that will be executed
+
+*/}
+
+default nunitVersion='2.5.10.11092'
+default nunitProgram='packages/NUnit.${nunitVersion}/tools/nunit-console.exe'
+default extra=''
+
+-// Download nunit from nuget sources if not already present
+test if='!System.IO.File.Exists(nunitProgram)'
+  nuget-install package='NUnit' packageVersion='${nunitVersion}' outputDir='packages'
+
+exec-clr program='${nunitProgram}' commandline='${testFile} ${extra}'
+

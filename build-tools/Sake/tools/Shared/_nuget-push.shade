@@ -1,0 +1,13 @@
+
+default nugetPath='.nuget/NuGet.exe'
+
+default apiKey='${Environment.GetEnvironmentVariable("APIKEY")}'
+default source=''
+default extra=''
+
+var nugetArgs='push "${nupkgFile}"'
+set nugetArgs='${nugetArgs} -ApiKey ${apiKey}' if='!string.IsNullOrEmpty(apiKey)'
+set nugetArgs='${nugetArgs} -Source ${source}' if='!string.IsNullOrEmpty(source)'
+set nugetArgs='${nugetArgs} ${extra}' if='!string.IsNullOrEmpty(extra)'
+
+exec-clr program="${nugetPath}" commandline="${nugetArgs}"

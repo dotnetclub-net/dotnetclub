@@ -1,0 +1,67 @@
+
+use namespace="System.Diagnostics"
+use namespace="System.IO"
+use import="Environment"
+
+default workingdir="${Directory.GetCurrentDirectory()}"
+default commandline=""
+
+log info="Exec"
+log info="  program: ${program}"
+log info="  commandline: ${commandline}"
+log info="  workingdir: ${workingdir}"
+
+@{
+    var processStartInfo = new ProcessStartInfo {
+        UseShellExecute = false,
+        WorkingDirectory = workingdir,
+        FileName = program,
+        Arguments = commandline
+    };
+
+    if (IsMono)
+    {
+    	processStartInfo.Arguments =
+    		"--runtime=v4.0 " +
+    		processStartInfo.FileName +
+        	" " +
+    		processStartInfo.Arguments;
+    	processStartInfo.FileName = "mono";
+    }
+
+    if (__WriteExecOutputToLogger)
+    {
+        processStartInfo.RedirectStandardError = true;
+        processStartInfo.RedirectStandardOutput = true;
+    }
+
+    using (var process = Process.Start(processStartInfo))
+    {
+        if (__WriteExecOutputToLogger)
+        {
+            process.EnableRaisingEvents = true;
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            process.ErrorDataReceived += (sender, eventArgs) =>
+            {
+                if (!string.IsNullOrWhiteSpace(eventArgs.Data))
+                {
+                    Log.Error(eventArgs.Data);
+                }
+            };
+
+            process.OutputDataReceived += (sender, eventArgs) =>
+            {
+                Log.Info(eventArgs.Data);
+            };
+        }
+
+        process.WaitForExit();
+        if (process.ExitCode != 0)
+        {
+            throw new Exception(string.Format("Exit code {0} from {1}", process.ExitCode, program));
+        }
+    }
+}
+

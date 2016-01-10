@@ -1,0 +1,13 @@
+
+default nugetPath='.nuget/NuGet.exe'
+
+default outputDir=''
+default packageVersion=''
+default extra=''
+
+var nugetArgs='install "${package}"'
+set nugetArgs='${nugetArgs} -OutputDirectory "${outputDir}"' if='!string.IsNullOrEmpty(outputDir)'
+set nugetArgs='${nugetArgs} -Version ${packageVersion}' if='!string.IsNullOrEmpty(packageVersion)'
+set nugetArgs='${nugetArgs} ${extra}' if='!string.IsNullOrEmpty(extra)'
+
+exec-clr program="${nugetPath}" commandline="${nugetArgs}"

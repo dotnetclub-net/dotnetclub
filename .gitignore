@@ -27,7 +27,9 @@ PublishProfiles/
 *.vspx
 /.symbols
 nuget.exe
+!build-tools/NuGet.exe
 build/
+.nuget/
 *net45.csproj
 *k10.csproj
 App_Data/

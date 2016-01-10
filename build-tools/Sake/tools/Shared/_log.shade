@@ -1,0 +1,9 @@
+
+default info="" warn=""
+
+@{
+    if (!string.IsNullOrEmpty(info))
+        Log.Info(info);
+    if (!string.IsNullOrEmpty(warn))
+        Log.Warn(warn);
+}

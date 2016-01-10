@@ -1,0 +1,21 @@
+
+use namespace="System"
+
+functions
+  @{
+  	bool IsLinux
+  	{
+  		get 
+  		{
+	  		var platform = (int) Environment.OSVersion.Platform;
+    	    return (platform == 4) || (platform == 6) || (platform == 128);
+  		}
+  	}
+  	bool IsMono
+  	{
+  		get
+  		{
+  			return Type.GetType("Mono.Runtime") != null; 
+  		}
+  	}
+  }

@@ -1,0 +1,96 @@
+
+use import="PathResolver"
+use namespace="System.Collections"
+
+functions
+  @{
+    _Files Files {get {return new _Files(Log);}}
+    
+    static string ReplaceDirectorySeparatorChar(string path)
+    {
+        return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+    }
+    
+    class _Files : IEnumerable<string>
+    {
+        string _basePath;
+        IList<string> _include = new List<string>();
+        IList<string> _exclude = new List<string>();
+
+        Sake.Engine.Logging.ILog Log {get;set;}
+        public _Files(Sake.Engine.Logging.ILog log)
+        {
+            Log = log;
+            
+            _basePath = Directory.GetCurrentDirectory();
+        }
+        
+        public _Files BasePath(string basePath)
+        {
+            _basePath = Path.Combine(
+                Directory.GetCurrentDirectory(), 
+                ReplaceDirectorySeparatorChar(basePath));
+            return this;
+        }
+        
+        public _Files Include(params string[] patterns)
+        {
+            foreach(var pattern in patterns) 
+            {
+                _include.Add(ReplaceDirectorySeparatorChar(pattern));
+            }
+            return this;
+        }
+        
+        public _Files Exclude(params string[] patterns)
+        {
+            foreach(var pattern in patterns) 
+            {
+                _exclude.Add(ReplaceDirectorySeparatorChar(pattern));
+            }
+            return this;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Scan().GetEnumerator();
+        }
+
+        IEnumerator<string> IEnumerable<string>.GetEnumerator()
+        {
+            return Scan().GetEnumerator();
+        }
+
+        IEnumerable<string> Scan()
+        {
+            var exclude = _exclude
+                .SelectMany(PerformSearch)
+                .Distinct()
+                .ToList();
+
+            var include = _include;
+            if (!include.Any())
+            {
+                include = new[]{ReplaceDirectorySeparatorChar("**/*")};
+            }
+
+            var files = include
+                .SelectMany(PerformSearch)
+                .Distinct()
+                .Where(path => !exclude.Contains(path))
+                .Select(path => {if (path.StartsWith(_basePath)) {return path.Substring(_basePath.Length + 1);} return path;})
+                .ToList();
+
+            return files;
+        }
+
+        IEnumerable<string> PerformSearch(string pattern)
+        {
+            if (pattern.StartsWith(_basePath))
+            {
+                return PathResolver.PerformWildcardSearch(_basePath, pattern.Substring(_basePath.Length + 1));
+            }
+            return PathResolver.PerformWildcardSearch(_basePath, pattern);
+        }
+    }
+ }

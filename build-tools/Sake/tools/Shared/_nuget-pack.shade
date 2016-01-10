@@ -1,0 +1,34 @@
+@{/*
+
+nuget-pack 
+    Creates a nupkg file given a nuspec
+
+nuspecFile='' 
+    Required. Path to the nuspec file detailing package to build.
+
+packageVersion=''
+    Provides the resulting version explicitly. Overrides value in nuspec file if any.
+
+outputDir=''
+    Output directory for the resulting nupkg file.
+
+extra=''
+    Additional commandline parameters
+
+nugetPath='.nuget/NuGet.exe'
+    Overrides the path of the nuget.exe program to use
+
+*/}
+
+default nugetPath='.nuget/NuGet.exe'
+
+default outputDir=''
+default packageVersion=''
+default extra=''
+
+var nugetArgs='pack "${nuspecFile}"'
+set nugetArgs='${nugetArgs} -OutputDirectory "${outputDir}"' if='!string.IsNullOrEmpty(outputDir)'
+set nugetArgs='${nugetArgs} -Version ${packageVersion}' if='!string.IsNullOrEmpty(packageVersion)'
+set nugetArgs='${nugetArgs} ${extra}' if='!string.IsNullOrEmpty(extra)'
+
+exec-clr program="${nugetPath}" commandline="${nugetArgs}"

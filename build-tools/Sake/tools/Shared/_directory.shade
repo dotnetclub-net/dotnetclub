@@ -1,0 +1,20 @@
+
+default delete=''
+default create=''
+
+test if="!string.IsNullOrEmpty(delete) && Directory.Exists(delete)"
+  @{
+    try
+    {
+      Directory.Delete(delete, true);
+    }
+    catch
+    {
+      // blind catch and retry - delete throws "Directory is not empty" sometimes !?
+      Directory.Delete(delete, true);
+    }
+  }
+  
+test if="!string.IsNullOrEmpty(create) && !Directory.Exists(create)"
+  -Directory.CreateDirectory(create);
+  
