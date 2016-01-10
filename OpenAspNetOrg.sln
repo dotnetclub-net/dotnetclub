@@ -7,7 +7,7 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Discussion.Web", "src\Discu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9958F5A5-400C-428F-8DC8-B0EB9DE793FD}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Discussion.Web.Tests", "tests\Discussion.Web.Tests\Discussion.Web.Tests.xproj", "{6B1DCA02-EF62-42CA-8865-DA66600D84C1}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Discussion.Web.Tests", "test\Discussion.Web.Tests\Discussion.Web.Tests.xproj", "{6B1DCA02-EF62-42CA-8865-DA66600D84C1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A33C7FC9-7623-4663-AF97-070232AD70F0}"
 	ProjectSection(SolutionItems) = preProject
