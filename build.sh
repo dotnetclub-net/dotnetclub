@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export DNX_FEED=https://www.nuget.org/api/v2
 build_dnx_version=1.0.0-rc1-update1
 
 if test ! -f .nuget/nuget.exe; then

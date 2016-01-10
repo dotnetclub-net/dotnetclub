@@ -2,6 +2,7 @@
 cd %~dp0
 
 SETLOCAL
+SET DNX_FEED=https://www.nuget.org/api/v2
 SET BUILDCMD_DNX_VERSION=1.0.0-rc1-update1
 
 IF EXIST .nuget\nuget.exe goto build
