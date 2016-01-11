@@ -1,0 +1,17 @@
+
+use namespace='System'
+use namespace='System.IO'
+use import='Environment'
+
+default currentDir = '${Directory.GetCurrentDirectory()}'
+
+#default
+  log info='Please enter your target name'
+  -Environment.Exit(0);
+
+#build
+  exec program='build-tools\build.cmd' workingdir='${currentDir}\build-tools' if="!IsLinux"
+  exec program='build-tools\Sake\tools\Sake.exe' commandline='-I build-tools\KoreBuild\build -f build-tools\makefile.shade' workingdir='${currentDir}' if="!IsLinux"
+
+  exec program='build-tools/build.sh' workingdir='${currentDir}/build-tools' if="IsLinux"  
+  exec program='mono' commandline='build-tools/Sake/tools/Sake.exe -I KoreBuild/build -f build-tools/makefile.shade' workingdir='${currentDir}' if="IsLinux"
