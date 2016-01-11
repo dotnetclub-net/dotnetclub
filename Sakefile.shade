@@ -10,8 +10,8 @@ default currentDir = '${Directory.GetCurrentDirectory()}'
   -Environment.Exit(0);
 
 #build
-  exec program='build-tools\build.cmd' workingdir='${currentDir}\build-tools' if="!IsLinux"
+  exec program='build-tools\init-env.cmd' workingdir='${currentDir}' if="!IsLinux"
   exec program='build-tools\Sake\tools\Sake.exe' commandline='-I build-tools\KoreBuild\build -f build-tools\makefile.shade' workingdir='${currentDir}' if="!IsLinux"
 
-  exec program='build-tools/build.sh' workingdir='${currentDir}/build-tools' if="IsLinux"  
+  exec program='build-tools/init-env.sh' workingdir='${currentDir}' if="IsLinux"  
   exec program='mono' commandline='build-tools/Sake/tools/Sake.exe -I KoreBuild/build -f build-tools/makefile.shade' workingdir='${currentDir}' if="IsLinux"
