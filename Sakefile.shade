@@ -21,7 +21,7 @@ k-standard-goals
   -Environment.Exit(0);
 
 #build-all .default
-#help .targets
+div#help .targets
 
 
 @{
