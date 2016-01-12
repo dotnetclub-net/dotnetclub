@@ -5,13 +5,25 @@ use import='Environment'
 
 default currentDir = '${Directory.GetCurrentDirectory()}'
 
-#default
-  log info='Please enter your target name'
+
+var VERSION='0.1'
+var FULL_VERSION='0.1'
+var AUTHORS='Jijie Chen'
+
+use-standard-lifecycle
+k-standard-goals
+
+
+
+#sakedefault description='Replacement to the default build target. To build the solution, use Sake build-all'
+  log info='Please enter your target name.'
+  log info='To show all available targets, use Sake help'
   -Environment.Exit(0);
 
-#build
-  exec program='build-tools\init-env.cmd' workingdir='${currentDir}' if="!IsLinux"
-  exec program='build-tools\Sake\tools\Sake.exe' commandline='-I build-tools\KoreBuild\build -f build-tools\makefile.shade' workingdir='${currentDir}' if="!IsLinux"
+#build-all .default
+#help .targets
 
-  exec program='build-tools/init-env.sh' workingdir='${currentDir}' if="IsLinux"  
-  exec program='mono' commandline='build-tools/Sake/tools/Sake.exe -I KoreBuild/build -f build-tools/makefile.shade' workingdir='${currentDir}' if="IsLinux"
+
+@{
+	DefaultTarget = "sakedefault";
+}
