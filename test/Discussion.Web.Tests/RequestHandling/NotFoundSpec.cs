@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNet.Builder.Internal;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Discussion.Web.Tests.RequestHandling
@@ -12,17 +14,17 @@ namespace Discussion.Web.Tests.RequestHandling
         {
             // arrage
             var services = new ServiceCollection();
+            services.AddLogging();
             var startup = new Web.Startup();
             startup.ConfigureServices(services);
 
             var serviceProvider = services.BuildServiceProvider();
             var app = new ApplicationBuilder(serviceProvider);
-            startup.Configure(app);
-
+            startup.Configure(app, (new Mock<IHostingEnvironment>()).Object);
 
             // act
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Path = "/";
+            httpContext.Request.Path = "/something-not-defined";
 
             // assert
             httpContext.Response.StatusCode.ShouldEqual(200);

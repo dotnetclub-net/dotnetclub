@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Builder.Internal;
+﻿using Microsoft.AspNet.Builder.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Http.Internal;
 using Xunit;
 using Microsoft.AspNet.Http;
+using Moq;
+using Microsoft.AspNet.Hosting;
 
 namespace Discussion.Web.Tests.Startup
 {
@@ -22,7 +20,7 @@ namespace Discussion.Web.Tests.Startup
             var app = new ApplicationBuilder(services);
 
             // act
-            startup.Configure(app);
+            startup.Configure(app, (new Mock<IHostingEnvironment>()).Object);
             app.Build().Invoke(httpContext);
 
             // assert
