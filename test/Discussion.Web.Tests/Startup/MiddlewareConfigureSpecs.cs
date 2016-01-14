@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNet.Builder.Internal;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNet.Http.Internal;
 using Xunit;
 using Microsoft.AspNet.Http;
-using Moq;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Hosting.Startup;
+using System.Collections.Generic;
+using Microsoft.AspNet.TestHost;
+using Microsoft.AspNet.Builder;
+using System;
 
 namespace Discussion.Web.Tests.Startup
 {
@@ -14,14 +17,28 @@ namespace Discussion.Web.Tests.Startup
         public void should_add_iis_platform()
         {
             // arrange
-            var httpContext = GivenHttpContextFromIISPlatformHandler();
-            var startup = new Web.Startup();
-            var services = new ServiceCollection().BuildServiceProvider();
-            var app = new ApplicationBuilder(services);
+            Func<IServiceCollection, IServiceProvider> configureServices;
+            Action<IApplicationBuilder> configure;            
+            StartupMethods startup = null;
+            IApplicationBuilder bootingupApp = null;
+
+            configureServices = services => {
+                var loader = new StartupLoader(services.BuildServiceProvider(), new HostingEnvironment { EnvironmentName = "Production" });
+                startup = loader.LoadMethods(typeof(Web.Startup), new List<string>());
+
+                startup.ConfigureServicesDelegate(services);
+                return services.BuildServiceProvider();
+            };
+            configure = app => {
+                bootingupApp = app;
+                startup.ConfigureDelegate(app);
+            };
+
 
             // act
-            startup.Configure(app, (new Mock<IHostingEnvironment>()).Object);
-            app.Build().Invoke(httpContext);
+            new TestServer(TestServer.CreateBuilder().UseStartup(configure, configureServices));
+            var httpContext = GivenHttpContextFromIISPlatformHandler();
+            bootingupApp.Build().Invoke(httpContext);
 
             // assert
             AssertHttpContextAreProperlyRestored(httpContext);
