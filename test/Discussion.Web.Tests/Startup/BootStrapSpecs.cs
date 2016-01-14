@@ -42,8 +42,8 @@ namespace Discussion.Web.Tests.Startup
 
             var dnxPath = args[0];
             var appBaseIndex = Array.IndexOf(args, "--appbase");
-            var testPath = args[appBaseIndex + 1];
-            var webProject = Path.Combine(testPath, "../../src/Discussion.Web");
+            var testPath = appBaseIndex >= 0 ? args[appBaseIndex + 1] : Environment.CurrentDirectory;
+            var webProject = Path.Combine(testPath, "../../src/Discussion.Web").NormalizeSeparatorChars();
 
             var dnxWeb = new ProcessStartInfo
             {
@@ -55,7 +55,7 @@ namespace Discussion.Web.Tests.Startup
                 LoadUserProfile = true,
                 UseShellExecute = false
             };
-
+            Console.WriteLine($"dnx command is: {dnxPath}{Environment.NewLine}Try to start web site from directory {webProject}");
 
             string outputData = string.Empty, errorOutput = string.Empty;
             var startedSuccessfully = false;
@@ -94,6 +94,13 @@ namespace Discussion.Web.Tests.Startup
             dnxWebServer.BeginOutputReadLine();
             dnxWebServer.WaitForExit(20 * 1000);
         }
+    }
 
+    static class StringPathExtensions
+    {
+        public static string NormalizeSeparatorChars(this string path)
+        {
+            return path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+        }
     }
 }
