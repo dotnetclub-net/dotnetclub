@@ -10,7 +10,9 @@
     "xunit.runner.aspnet": "2.0.0-aspnet-rc1-final",
     "xunit": "2.1.0",
     "Moq": "4.2.1312.1622",
-    "Discussion.Web": "1.0.0-*"
+    "Discussion.Web": "1.0.0-*",
+    "Microsoft.AspNet.TestHost": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Hosting": "1.0.0-rc1-final"
   },
   "commands": {
     "test": "xunit.runner.aspnet"
