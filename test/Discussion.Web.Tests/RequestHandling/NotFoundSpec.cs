@@ -7,6 +7,8 @@ namespace Discussion.Web.Tests.RequestHandling
 {
     public class NotFoundSpec
     {
+        public const string NotFoundPath = "/something-not-defined";
+
         [Fact]
         public async void should_response_not_found_by_default()
         {
@@ -16,7 +18,7 @@ namespace Discussion.Web.Tests.RequestHandling
                    .UseEnvironment("Production"));
 
             // act
-            var response = await server.CreateRequest("/something-not-defined").GetAsync();
+            var response = await server.CreateRequest(NotFoundPath).GetAsync();
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.NotFound);

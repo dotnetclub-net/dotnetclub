@@ -21,6 +21,7 @@ namespace Discussion.Web.Tests.Startup
             services.ShouldContain(x => x.ServiceType.ToString().EndsWith("IControllerActivator"));
             services.ShouldContain(x => x.ServiceType.ToString().EndsWith("IControllerFactory"));
             services.ShouldContain(x => x.ServiceType.ToString().EndsWith("IApiDescriptionProvider"));
+            services.ShouldContain(x => x.ServiceType.ToString().EndsWith("MvcMarkerService"));
         }
     }
 }
