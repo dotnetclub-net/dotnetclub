@@ -14,8 +14,8 @@ if ! type dnvm > /dev/null 2>&1; then
 fi
 
 if ! type dnx > /dev/null 2>&1 || [ -z "$SKIP_DNX_INSTALL" ]; then
-    dnvm install %build_dnx_version -runtime coreclr -alias default
-    dnvm install %build_dnx_version -runtime mono -alias default
+    dnvm install %build_dnx_version -p -runtime coreclr -alias default
+    dnvm install %build_dnx_version -p -runtime mono -alias default
 else
-    dnvm use default -runtime mono
+    dnvm use default -p -runtime mono
 fi

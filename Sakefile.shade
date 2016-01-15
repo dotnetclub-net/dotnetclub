@@ -23,6 +23,10 @@ k-standard-goals
 #build-all .default
 div#help .targets
 
+#init-env
+  exec program='build-tools\init-env.cmd' workingdir='${currentDir}' if="!IsLinux"
+  exec program='build-tools\init-env.sh' workingdir='${currentDir}' if="IsLinux"
+
 
 @{
 	DefaultTarget = "sakedefault";
