@@ -29,6 +29,7 @@ PublishProfiles/
 nuget.exe
 !build-tools/NuGet.exe
 build/
+!build-tools/KoreBuild/build/
 .nuget/
 *net45.csproj
 *k10.csproj
