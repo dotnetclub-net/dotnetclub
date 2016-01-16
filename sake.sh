@@ -6,7 +6,7 @@ if test ! -f ./.nuget/nuget.exe; then
 	if test ! -e .nuget; then
 		mkdir .nuget
 	fi
-    cp ./build-tools/nuget.exe ./.nuget/nuget.exe
+    cp ./build-tools/NuGet.exe ./.nuget/nuget.exe
 fi
 
 if ! type dnx > /dev/null 2>&1 || [ -z "$SKIP_DNX_INSTALL" ]; then
@@ -18,4 +18,4 @@ else
     dnvm use default -p -runtime mono
 fi
 
-mono ./build-tools/Sake/tools/Sake.exe -I KoreBuild/build "$@"
+mono ./build-tools/Sake/tools/Sake.exe -I ./build-tools/KoreBuild/build "$@"
