@@ -12,7 +12,8 @@
     "Moq": "4.2.1312.1622",
     "Discussion.Web": "1.0.0-*",
     "Microsoft.AspNet.TestHost": "1.0.0-rc1-final",
-    "Microsoft.AspNet.Hosting": "1.0.0-rc1-final"
+    "Microsoft.AspNet.Hosting": "1.0.0-rc1-final",
+    "Jusfr.Persistent.Mongo": "1.0.0"
   },
   "commands": {
     "test": "xunit.runner.aspnet"
