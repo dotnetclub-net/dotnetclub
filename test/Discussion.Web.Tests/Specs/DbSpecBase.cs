@@ -7,19 +7,35 @@ using System.Linq;
 
 namespace Discussion.Web.Tests.Specs
 {
-    public class DbSpecBase: IDisposable
+    public sealed class DbSpec : IDisposable
     {
+        public static DbSpec Instance { get; private set; } = new DbSpec();
         string _connectionString;
-        public DbSpecBase()
+        private DbSpec()
         {
-            // _connectionString = CreateConnectionStringForTesting("127.0.0.1:27017");
+            //_connectionString = CreateConnectionStringForTesting("127.0.0.1:27017");
             _connectionString = CreateConnectionStringForTesting("192.168.1.178:27017");
-            DbContext = new MongoRepositoryContext(_connectionString);
+            Database = new MongoRepositoryContext(_connectionString);
+        } 
+
+        public MongoRepositoryContext Database { get; private set; }
+
+        ~DbSpec()
+        {
+            (this as IDisposable).Dispose();
+        }
+
+        void IDisposable.Dispose()
+        {
+            GC.SuppressFinalize(this);
+
+            var mongoUri = new MongoUrl(_connectionString);
+            //new MongoClient(mongoUri).DropDatabase(mongoUri.DatabaseName);
+            new MongoClient(mongoUri).DropDatabaseAsync(mongoUri.DatabaseName).Wait();
         }
 
 
-        public MongoRepositoryContext DbContext { get; private set; }
-
+        #region helpers for setting up database
 
         static string CreateConnectionStringForTesting(string host)
         {
@@ -54,11 +70,7 @@ namespace Discussion.Web.Tests.Specs
             }
         }
 
-        void IDisposable.Dispose()
-        {
-            var mongoUri = new MongoUrl(_connectionString);
-            var client = new MongoClient(mongoUri);
-            client.DropDatabase(mongoUri.DatabaseName);
-        }
+        #endregion
+
     }
 }

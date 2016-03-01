@@ -9,14 +9,14 @@ using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Repository
 {
-    public class ArticleRepoSpecs : DbSpecBase
+    public class ArticleRepoSpecs
     {
 
         [Fact]
         public void should_store_an_article()
         {
             var article = new Article() {Title = Guid.NewGuid().ToString() };
-            var repo = new ArticleRepository(DbContext);
+            var repo = new ArticleRepository(DbSpec.Instance.Database);
 
             repo.Create(article);
 
@@ -27,8 +27,6 @@ namespace Discussion.Web.Tests.Specs.Repository
             articleGot.ShouldNotBeNull();
             articleGot.Title.ShouldEqual(article.Title);
         }
-
-       
 
     }
 }
