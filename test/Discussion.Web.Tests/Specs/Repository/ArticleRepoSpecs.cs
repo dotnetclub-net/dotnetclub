@@ -1,10 +1,6 @@
 ﻿using Discussion.Web.Models;
 using Discussion.Web.Repositories;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Repository
