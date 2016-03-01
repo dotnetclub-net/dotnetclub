@@ -4,36 +4,54 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
 namespace Discussion.Web.Tests.Specs
 {
-    public sealed class DbSpec : IDisposable
+    public sealed class Database : IDisposable
     {
-        public static DbSpec Instance { get; private set; } = new DbSpec();
         string _connectionString;
-        private DbSpec()
+        public Database()
         {
             //_connectionString = CreateConnectionStringForTesting("127.0.0.1:27017");
             _connectionString = CreateConnectionStringForTesting("192.168.1.178:27017");
-            Database = new MongoRepositoryContext(_connectionString);
-        } 
+            Context = new MongoRepositoryContext(_connectionString);
+        }
 
-        public MongoRepositoryContext Database { get; private set; }
+        public MongoRepositoryContext Context { get; private set; }
+        
 
-        ~DbSpec()
+
+        #region Disposing
+
+        ~Database()
         {
-            (this as IDisposable).Dispose();
+            Dispose(false);
         }
 
         void IDisposable.Dispose()
         {
-            GC.SuppressFinalize(this);
-
-            var mongoUri = new MongoUrl(_connectionString);
-            //new MongoClient(mongoUri).DropDatabase(mongoUri.DatabaseName);
-            new MongoClient(mongoUri).DropDatabaseAsync(mongoUri.DatabaseName).Wait();
+            Dispose(true);
         }
 
+        void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                GC.SuppressFinalize(this);
+            }
+
+            try
+            {
+                Context.Dispose();
+                var mongoUri = new MongoUrl(_connectionString);
+                //new MongoClient(mongoUri).DropDatabase(mongoUri.DatabaseName);
+                new MongoClient(mongoUri).DropDatabaseAsync(mongoUri.DatabaseName).Wait();
+            }
+            catch { }
+        }
+
+        #endregion
 
         #region helpers for setting up database
 
@@ -72,5 +90,15 @@ namespace Discussion.Web.Tests.Specs
 
         #endregion
 
+    }
+
+    // Use shared context to maintain database fixture
+    // see https://xunit.github.io/docs/shared-context.html#collection-fixture
+    [CollectionDefinition("DbSpec")]
+    public class DatabaseCollection : ICollectionFixture<Database>
+    {
+        // This class has no code, and is never created. Its purpose is simply
+        // to be the place to apply [CollectionDefinition] and all the
+        // ICollectionFixture<> interfaces.
     }
 }
