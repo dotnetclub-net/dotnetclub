@@ -3,8 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using Xunit;
 using System;
-using System.Linq;
-using Microsoft.AspNet.Testing;
+using static Discussion.Web.Tests.Utils.TestEnv;
 
 namespace Discussion.Web.Tests.Startup
 {
@@ -44,8 +43,7 @@ namespace Discussion.Web.Tests.Startup
 
             var dnxPath = DnxPath();
             var appBaseIndex = Array.IndexOf(args, "--appbase");
-            var testPath = appBaseIndex >= 0 ? args[appBaseIndex + 1] : Environment.CurrentDirectory;
-            var webProject = Path.Combine(testPath, "../../src/Discussion.Web").NormalizeSeparatorChars();
+            var webProject = Path.Combine(TestProjectPath(), "../../src/Discussion.Web");
 
             var dnxWeb = new ProcessStartInfo
             {
@@ -95,32 +93,6 @@ namespace Discussion.Web.Tests.Startup
             dnxWebServer.BeginErrorReadLine();
             dnxWebServer.BeginOutputReadLine();
             dnxWebServer.WaitForExit(20 * 1000);
-        }
-
-        private static string DnxPath()
-        {
-            var dnxPathFragment = string.Concat(".dnx", Path.DirectorySeparatorChar, "runtimes");
-            var dnxCommand = TestPlatformHelper.IsWindows ? "dnx.exe" : "dnx";
-            var envPathSeparator = TestPlatformHelper.IsWindows ? ';' : ':';
-
-            var envPath = Environment.GetEnvironmentVariable("PATH");            
-            var runtimeBin = envPath.Split(new char[] { envPathSeparator }, StringSplitOptions.RemoveEmptyEntries)
-                .Where(c => c.Contains(dnxPathFragment)).FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(runtimeBin))
-            {
-                throw new Exception("Runtime not detected on the machine.");
-            }
-
-            return Path.Combine(runtimeBin, dnxCommand);
-        }
-    }
-
-    static class StringPathExtensions
-    {
-        public static string NormalizeSeparatorChars(this string path)
-        {
-            return path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
         }
     }
 }

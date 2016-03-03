@@ -19,8 +19,6 @@ namespace Discussion.Web.Tests.Specs
         }
 
         public MongoRepositoryContext Context { get; private set; }
-        
-
 
         #region Disposing
 
@@ -44,9 +42,7 @@ namespace Discussion.Web.Tests.Specs
             try
             {
                 Context.Dispose();
-                var mongoUri = new MongoUrl(_connectionString);
-                //new MongoClient(mongoUri).DropDatabase(mongoUri.DatabaseName);
-                new MongoClient(mongoUri).DropDatabaseAsync(mongoUri.DatabaseName).Wait();
+                DropDatabase(_connectionString);
             }
             catch { }
         }
@@ -86,6 +82,13 @@ namespace Discussion.Web.Tests.Specs
                     yield return item;
                 }
             }
+        }
+
+        static void DropDatabase(string connectionString)
+        {
+            var mongoUri = new MongoUrl(connectionString);
+            //new MongoClient(mongoUri).DropDatabase(mongoUri.DatabaseName);
+            new MongoClient(mongoUri).DropDatabaseAsync(mongoUri.DatabaseName).Wait();
         }
 
         #endregion
