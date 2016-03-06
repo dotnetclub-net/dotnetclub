@@ -1,5 +1,6 @@
 ﻿using Discussion.Web.Models;
 using Discussion.Web.Repositories;
+using Jusfr.Persistent.Mongo;
 using System;
 using Xunit;
 
@@ -20,14 +21,14 @@ namespace Discussion.Web.Tests.Specs.Repository
         public void should_store_an_article()
         {
             var article = new Article() {Title = Guid.NewGuid().ToString() };
-            var repo = new ArticleRepository(_database.Context);
+            var mongoRepo = new MongoRepository<Article>(_database.Context);
+            var repo = new BaseDataRepository<Article>(mongoRepo);
 
             repo.Create(article);
 
-            article.Id.ShouldGreaterThan(0);
-            
+            article.Id.ShouldGreaterThan(0);            
 
-            var articleGot = repo.Get(article.Id);
+            var articleGot = repo.Retrive(article.Id);
             articleGot.ShouldNotBeNull();
             articleGot.Title.ShouldEqual(article.Title);
         }
