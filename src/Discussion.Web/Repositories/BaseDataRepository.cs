@@ -7,8 +7,8 @@ namespace Discussion.Web.Repositories
 {
     public class BaseDataRepository<TEntity> : IDataRepository<TEntity> where TEntity : class, IEntry, IAggregate<int>
     {
-        IRepository<TEntity, TEntity, int> _repoImplemention;
-        public BaseDataRepository(IRepository<TEntity, TEntity, int> repoImplemention)
+        Repository<TEntity, int> _repoImplemention;
+        public BaseDataRepository(Repository<TEntity, int> repoImplemention)
         {
             _repoImplemention = repoImplemention;
         }

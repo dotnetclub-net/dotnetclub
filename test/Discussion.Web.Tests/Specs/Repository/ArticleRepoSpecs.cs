@@ -1,6 +1,8 @@
 ﻿using Discussion.Web.Models;
 using Discussion.Web.Repositories;
+using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit;
 
@@ -10,10 +12,13 @@ namespace Discussion.Web.Tests.Specs.Repository
     [Collection("DbSpec")]
     public class ArticleRepoSpecs
     {
-        private Database _database;
+        private readonly IServiceProvider _applicationServices;
         public ArticleRepoSpecs(Database database)
         {
-            _database = database;
+            _applicationServices = Startup.ServicesSpecs.CreateApplicationServices(services =>
+            {
+                services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => database.Context);
+            });
         }
 
 
@@ -21,8 +26,7 @@ namespace Discussion.Web.Tests.Specs.Repository
         public void should_store_an_article()
         {
             var article = new Article() {Title = Guid.NewGuid().ToString() };
-            var mongoRepo = new MongoRepository<Article>(_database.Context);
-            var repo = new BaseDataRepository<Article>(mongoRepo);
+            var repo = _applicationServices.GetRequiredService<IDataRepository<Article>>();
 
             repo.Create(article);
 
@@ -32,7 +36,6 @@ namespace Discussion.Web.Tests.Specs.Repository
             articleGot.ShouldNotBeNull();
             articleGot.Title.ShouldEqual(article.Title);
         }
-        
 
     }
     

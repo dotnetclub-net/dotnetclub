@@ -7,7 +7,8 @@
     "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
     "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
     "Microsoft.Extensions.Logging.Debug": "1.0.0-rc1-final",
-    "Jusfr.Persistent.Mongo": "1.0.0"
+    "Jusfr.Persistent.Mongo": "1.0.0",
+    "Moq": "4.2.1312.1622"
   },
 
   "commands": {

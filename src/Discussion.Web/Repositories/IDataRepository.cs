@@ -2,7 +2,7 @@
 
 namespace Discussion.Web.Repositories
 {
-    interface IDataRepository<TEntity> : IRepository<TEntity, TEntity> where TEntity: IEntry
+    public interface IDataRepository<TEntity> : IRepository<TEntity, TEntity> where TEntity: IEntry
     {
     }
 }

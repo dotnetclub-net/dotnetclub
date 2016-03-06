@@ -10,6 +10,10 @@ using System;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using Jusfr.Persistent;
+using Discussion.Web.Models;
+using Jusfr.Persistent.Mongo;
+using Discussion.Web.Repositories;
 
 namespace Discussion.Web.Tests.Startup
 {
@@ -50,8 +54,6 @@ namespace Discussion.Web.Tests.Startup
             loggerFactory.ShouldNotBeNull();
             loggerFactory.LogItems.ShouldContain(item => item.Message.Equals("Request did not match any routes."));
         }
-
-
 
         private void BuildRequestHandlerFromStartup()
         {
