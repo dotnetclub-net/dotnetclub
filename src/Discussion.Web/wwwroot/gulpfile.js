@@ -8,19 +8,7 @@ var gulp = require('gulp'),
 var paths = {
     webroot: "./"
 };
-
-definePathPattern('libSource', 'lib/source');
-definePathPattern('libDist', 'lib/dist');
-definePathPattern('nodeModules', 'node_modules');
-
-definePathPattern('es6Source', 'scripts/**/*.es6');
-definePathPattern('jsDist', 'scripts/js');
-definePathPattern('jsGenerated', 'scripts/js/**/*.js');
-definePathPattern('jsAll', 'scripts/**/*.js');
-
-definePathPattern('scssSource', 'stylesheets/scss/**/*.scss');
-definePathPattern('cssDist', 'stylesheets/css');
-definePathPattern('cssGenerated', 'stylesheets/css/**/*.css');
+definePaths();
 
 
 gulp.task('lint', function() {
@@ -75,6 +63,8 @@ gulp.task('clean', function(callback) {
     enumerateFiles(paths.cssGenerated).pipe(deleteRecursively(force));
     enumerateFiles(paths.libDist).pipe(deleteRecursively(force));
 
+    // use callback in synchronous tasks
+    // see http://schickling.me/synchronous-tasks-gulp/
     callback();
 });
 
@@ -94,12 +84,27 @@ function enumerateFiles(glob){
     return gulp.src(glob, { read: false });
 }
 
-function definePathPattern(name, glob){
-    if(glob[0] === '/'){
-        glob = glob.substr(1);
-    }
+function definePaths() {
+    definePathPattern('libSource', 'lib/source');
+    definePathPattern('libDist', 'lib/dist');
+    definePathPattern('nodeModules', 'node_modules');
 
-    paths[name] = paths.webroot + glob;
+    definePathPattern('es6Source', 'scripts/**/*.es6');
+    definePathPattern('jsDist', 'scripts/js');
+    definePathPattern('jsGenerated', 'scripts/js/**/*.js');
+    definePathPattern('jsAll', 'scripts/**/*.js');
+
+    definePathPattern('scssSource', 'stylesheets/scss/**/*.scss');
+    definePathPattern('cssDist', 'stylesheets/css');
+    definePathPattern('cssGenerated', 'stylesheets/css/**/*.css');
+
+    function definePathPattern(name, glob){
+        if(glob[0] === '/'){
+            glob = glob.substr(1);
+        }
+
+        paths[name] = paths.webroot + glob;
+    }
 }
 
 
