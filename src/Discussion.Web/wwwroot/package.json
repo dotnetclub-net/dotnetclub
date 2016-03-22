@@ -1,0 +1,18 @@
+{
+  "name": "openaspnet.org",
+  "version": "1.0.0",
+  "description": "Public web portal of open asp.net web site",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-eslint": "^2.0.0",
+    "gulp-rimraf": "^0.2.0",
+    "gulp-sass": "^2.2.0"
+  }
+}

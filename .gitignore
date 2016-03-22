@@ -1,6 +1,7 @@
 [Oo]bj/
 [Bb]in/
 .vs/
+.idea/
 *.xap
 *.user
 /TestResults
@@ -40,6 +41,8 @@ node_modules
 
 
 */*.Web/wwwroot/lib
+*/*.Web/wwwroot/stylesheets/css
+*/*.Web/wwwroot/scripts/js
 *.ng.ts
 *.sln.ide
 project.lock.json

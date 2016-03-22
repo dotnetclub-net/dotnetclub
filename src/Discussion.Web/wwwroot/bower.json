@@ -1,0 +1,9 @@
+{
+  "name": "openaspnet.org",
+  "description": "Public web portal of open asp.net web site",
+  "private": true,
+  "dependencies": {
+    "jquery": "~1.11.0",
+    "bootstrap-sass": "~3.3.6"
+  }
+}
