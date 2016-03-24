@@ -3,6 +3,7 @@ var gulp = require('gulp'),
     sass = require('gulp-sass'),
     eslint = require('gulp-eslint'),
     babel = require('gulp-babel'),
+    rename = require('gulp-rename'),
     deleteRecursively = require("gulp-rimraf");
 
 var paths = {
@@ -55,6 +56,32 @@ gulp.task('babel', function() {
         .pipe(gulp.dest(paths.jsDist));
 });
 
+gulp.task("publish-libs", function (callback) {
+    // bootstrap
+    var bootstrapDest = paths.libDist + '/bootstrap-sass';
+    gulp.src([paths.libSource + '/bootstrap-sass/assets/**/*' ])
+        .pipe(gulp.dest(bootstrapDest))
+        .on('end', function () {
+            // build bootstrap
+            gulp.src(bootstrapDest + '/stylesheets/_bootstrap.scss')
+                .pipe(rename('bootstrap.scss'))
+                .pipe(sass())
+                .pipe(gulp.dest(bootstrapDest + '/stylesheets'))
+                .on('end', function () {
+                    // clean useless files
+                    var force = {force: true};
+                    enumerateFiles(bootstrapDest + '/stylesheets/bootstrap').pipe(deleteRecursively(force));
+                    enumerateFiles(bootstrapDest + '/stylesheets/*.scss').pipe(deleteRecursively(force));
+                    enumerateFiles(bootstrapDest + '/javascripts/bootstrap').pipe(deleteRecursively(force));
+                });
+        });
+
+    // jquery
+    gulp.src([paths.libSource + '/jquery/dist/**/*' ]).pipe(gulp.dest(paths.libDist + '/jquery'));
+    callback();
+});
+
+
 gulp.task('clean', function(callback) {
     var force = {force: true};
 
@@ -78,7 +105,6 @@ gulp.task('clean:all', ['clean'], function(callback) {
 
     callback();
 });
-
 
 function enumerateFiles(glob){
     return gulp.src(glob, { read: false });
@@ -138,6 +164,7 @@ function definePaths() {
     - remove .idea
     - remove node_modules
     - remove lib/source
+    - remove lib/distributors
     - remove stylesheets/scss
     - remove scripts/es6
 *
