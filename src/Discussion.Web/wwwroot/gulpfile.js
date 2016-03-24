@@ -3,6 +3,8 @@ var gulp = require('gulp'),
     sass = require('gulp-sass'),
     eslint = require('gulp-eslint'),
     babel = require('gulp-babel'),
+    cssmin = require("gulp-cssmin"),
+    uglify = require("gulp-uglify"),
     rename = require('gulp-rename'),
     deleteRecursively = require("gulp-rimraf");
 
@@ -12,7 +14,7 @@ var paths = {
 definePaths();
 
 
-gulp.task('lint', function() {
+gulp.task('lint', function(callback) {
 
     // see eslint documation: http://eslint.org/docs/user-guide/configuring
     // see gulp-eslint project: https://github.com/adametry/gulp-eslint/
@@ -37,50 +39,91 @@ gulp.task('lint', function() {
 
 
     // ESLint ignores files with "js" path.
-    return gulp.src([paths.es6Source, paths.jsAll, '!' + paths.jsGenerated])
+    gulp.src([paths.es6Source, paths.jsAll, '!' + paths.jsGenerated])
         .pipe(eslint(eslintOptions))
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
+
+    callback();
 });
 
 
-gulp.task('sass', function() {
-    return gulp.src(paths.scssSource)
+gulp.task('sass', function(callback) {
+    gulp.src(paths.scssSource)
         .pipe(sass())
         .pipe(gulp.dest(paths.cssDist));
+
+    callback();
 });
 
-gulp.task('babel', function() {
-    return gulp.src(paths.es6Source)
+gulp.task('babel', function(callback) {
+    gulp.src(paths.es6Source)
         .pipe(babel())
         .pipe(gulp.dest(paths.jsDist));
+
+    callback();
 });
 
-gulp.task("publish-libs", function (callback) {
+gulp.task("use-libs", function (callback) {
     // bootstrap
     var bootstrapDest = paths.libDist + '/bootstrap-sass';
+    var bootstrapDestStyle = bootstrapDest + '/stylesheets';
+
     gulp.src([paths.libSource + '/bootstrap-sass/assets/**/*' ])
         .pipe(gulp.dest(bootstrapDest))
         .on('end', function () {
             // build bootstrap
-            gulp.src(bootstrapDest + '/stylesheets/_bootstrap.scss')
+            gulp.src(bootstrapDestStyle + '/_bootstrap.scss')
                 .pipe(rename('bootstrap.scss'))
                 .pipe(sass())
-                .pipe(gulp.dest(bootstrapDest + '/stylesheets'))
+                .pipe(gulp.dest(bootstrapDestStyle))
                 .on('end', function () {
+                    // minify css
+                    gulp.src(bootstrapDestStyle + '/bootstrap.css', { base: "./" })
+                        .pipe(cssmin())
+                        .pipe(rename(function (path) {
+                            path.extname = ".min.css";
+                        }))
+                        .pipe(gulp.dest('.'));
+
                     // clean useless files
                     var force = {force: true};
-                    enumerateFiles(bootstrapDest + '/stylesheets/bootstrap').pipe(deleteRecursively(force));
-                    enumerateFiles(bootstrapDest + '/stylesheets/*.scss').pipe(deleteRecursively(force));
+                    enumerateFiles(bootstrapDestStyle + '/bootstrap').pipe(deleteRecursively(force));
+                    enumerateFiles(bootstrapDestStyle + '/*.scss').pipe(deleteRecursively(force));
                     enumerateFiles(bootstrapDest + '/javascripts/bootstrap').pipe(deleteRecursively(force));
                 });
         });
 
     // jquery
     gulp.src([paths.libSource + '/jquery/dist/**/*' ]).pipe(gulp.dest(paths.libDist + '/jquery'));
+
+
+
     callback();
 });
 
+gulp.task("minify", function (callback) {
+    gulp.src([paths.cssGenerated, '!' + paths.cssMin],  { base: "./" })
+        .pipe(cssmin())
+        .pipe(rename(function (path) {
+            path.extname = ".min.css";
+        }))
+        .pipe(gulp.dest('.'));
+
+    gulp.src([paths.jsAll, '!' + paths.jsMin],  { base: "./" })
+        .pipe(uglify())
+        .pipe(rename(function (path) {
+            path.extname = ".min.js";
+        }))
+        .pipe(gulp.dest("."));
+
+    callback();
+});
+
+gulp.task('release', function (callback) {
+    // todo: add release logic (package; remove dev files)
+    callback();
+});
 
 gulp.task('clean', function(callback) {
     var force = {force: true};
@@ -95,7 +138,7 @@ gulp.task('clean', function(callback) {
     callback();
 });
 
-gulp.task('clean:all', ['clean'], function(callback) {
+gulp.task('clean-all', ['clean'], function(callback) {
     var force = {force: true};
 
     // clean all node_modules
@@ -119,10 +162,13 @@ function definePaths() {
     definePathPattern('jsDist', 'scripts/js');
     definePathPattern('jsGenerated', 'scripts/js/**/*.js');
     definePathPattern('jsAll', 'scripts/**/*.js');
+    definePathPattern('jsMin', 'scripts/**/*.min.js');
+
 
     definePathPattern('scssSource', 'stylesheets/scss/**/*.scss');
     definePathPattern('cssDist', 'stylesheets/css');
     definePathPattern('cssGenerated', 'stylesheets/css/**/*.css');
+    definePathPattern('cssMin', 'stylesheets/css/**/*.min.css');
 
     function definePathPattern(name, glob){
         if(glob[0] === '/'){
@@ -164,12 +210,12 @@ function definePaths() {
     - remove .idea
     - remove node_modules
     - remove lib/source
-    - remove lib/distributors
     - remove stylesheets/scss
     - remove scripts/es6
 *
 *
 * */
 
-// Default Task
-gulp.task('default', ['lint']);
+// Task chains
+gulp.task('compile', ['clean', 'use-libs', 'babel', 'sass']);
+gulp.task('release', ['lint', 'compile', 'minify', 'package']);
