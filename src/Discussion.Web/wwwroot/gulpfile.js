@@ -2,6 +2,7 @@
 var mergeStream = require('merge-stream'),
     onEndOfStream = require('end-of-stream'),
     consumeStream = require('stream-consume');
+var runSequence = require('run-sequence');
 
 var gulp = require('gulp'),
     sass = require('gulp-sass'),
@@ -117,7 +118,7 @@ defineTask('clean', function*() {
 
     // use callback in synchronous tasks
     // see http://schickling.me/synchronous-tasks-gulp/
-    yield mergeStream(deljs, delcss, dellibs);
+    return mergeStream(deljs, delcss, dellibs);
 });
 
 defineTask('clean-all', ['clean'], function(callback) {
@@ -226,5 +227,10 @@ function defineTask(name, dependencies, taskFn){
 * */
 
 // Task chains
-defineTask('compile', ['clean', 'use-libs', 'babel', 'sass']);
-defineTask('release', ['lint', 'compile', 'minify', 'package']);
+defineTask('compile', function (callback) {
+    runSequence('clean', ['babel', 'sass'], 'use-libs', callback);
+});
+defineTask('release', ['lint', 'compile'], function (callback) {
+    runSequence('minify', callback);
+    // todo: package
+});
