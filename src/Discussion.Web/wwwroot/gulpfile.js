@@ -109,7 +109,7 @@ defineTask('release', function (callback) {
     callback();
 });
 
-defineTask('clean', function() {
+defineTask('clean', function*() {
     // clean all generated files by compilers like babel, and sass
     var deljs = enumerateFiles(paths.jsGenerated).pipe(deleteRecursively());
     var delcss = enumerateFiles(paths.cssGenerated).pipe(deleteRecursively());
@@ -117,7 +117,7 @@ defineTask('clean', function() {
 
     // use callback in synchronous tasks
     // see http://schickling.me/synchronous-tasks-gulp/
-    return mergeStream(deljs, delcss, dellibs);
+    yield mergeStream(deljs, delcss, dellibs);
 });
 
 defineTask('clean-all', ['clean'], function(callback) {
