@@ -1,4 +1,10 @@
 ﻿@import "symbols";
 
 // define base style of my site here:
-
+.button{
+	background:red;
+	
+	&:hover{
+		text-decoration: underline;
+	}
+}

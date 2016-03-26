@@ -15,7 +15,15 @@ namespace Discussion.Web.Controllers
         [Route("/")]
         public ActionResult Index()
         {
-            return new HttpStatusCodeResult(200);
+            return View();
+        }
+
+
+
+        [Route("/Error")]
+        public IActionResult Error()
+        {
+            return View();
         }
     }
 }

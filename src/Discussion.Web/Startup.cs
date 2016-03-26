@@ -43,8 +43,18 @@ namespace Discussion.Web
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+               app.UseExceptionHandler("/error");
+            }
+
             // Add the platform handler to the request pipeline.
             app.UseIISPlatformHandler();
+            app.UseStaticFiles();
             app.UseMvc();
 
         }
@@ -56,11 +66,6 @@ namespace Discussion.Web
               .SetBasePath(appEnv.ApplicationBasePath)
               .AddJsonFile("appsettings.json", optional: true)
               .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
-
-            //if (env.IsDevelopment())
-            //{
-
-            //}
 
             builder.AddEnvironmentVariables();
             return builder.Build();
