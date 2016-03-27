@@ -30,7 +30,7 @@ namespace Discussion.Web.Tests.Startup
 
 
         [Fact]
-        public void should_add_iis_platform()
+        public void should_use_iis_platform()
         {
             // arrange
             var httpContext = GivenHttpContextFromIISPlatformHandler();
@@ -43,7 +43,7 @@ namespace Discussion.Web.Tests.Startup
         }
 
         [Fact]
-        public void should_add_mvc()
+        public void should_use_mvc()
         {
             var httpContext = CreateHttpContext();
             httpContext.Request.Path = RequestHandling.NotFoundSpec.NotFoundPath;
@@ -53,6 +53,21 @@ namespace Discussion.Web.Tests.Startup
             var loggerFactory = httpContext.ApplicationServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
             loggerFactory.ShouldNotBeNull();
             loggerFactory.LogItems.ShouldContain(item => item.Message.Equals("Request did not match any routes."));
+        }
+
+        [Fact]
+        public void should_use_static_files()
+        {
+            var staticFile = RequestHandling.NotFoundSpec.NotFoundStaticFile;
+            var httpContext = CreateHttpContext();
+            httpContext.Request.Method = "GET";
+            httpContext.Request.Path = staticFile;
+
+            RequestHandler.Invoke(httpContext);
+
+            var loggerFactory = httpContext.ApplicationServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
+            loggerFactory.ShouldNotBeNull();
+            loggerFactory.LogItems.ShouldContain(item => item.Message.Equals($"The request path {staticFile} does not match an existing file"));
         }
 
         private void BuildRequestHandlerFromStartup()
