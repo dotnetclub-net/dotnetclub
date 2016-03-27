@@ -54,9 +54,14 @@ defineTask('sass', function() {
 });
 
 defineTask('babel', function() {
-    return gulp.src(paths.es6Source)
+    var compileES6 = gulp.src(paths.es6Source)
         .pipe(babel())
         .pipe(gulp.dest(paths.jsDist));
+
+    var copyJS = gulp.src(paths.jsSource)
+        .pipe(gulp.dest(paths.jsDist));
+
+    return mergeStream(compileES6, copyJS);
 });
 
 defineTask("use-libs", function *() {
@@ -139,7 +144,8 @@ function definePaths() {
     definePathPattern('libDist', 'lib/dist');
     definePathPattern('nodeModules', 'node_modules');
 
-    definePathPattern('es6Source', 'scripts/**/*.es6');
+    definePathPattern('es6Source', 'scripts/es6/**/*.es6');
+    definePathPattern('jsSource', 'scripts/es6/**/*.js');
     definePathPattern('jsDist', 'scripts/js');
     definePathPattern('jsGenerated', 'scripts/js/**/*.js');
     definePathPattern('jsAll', 'scripts/**/*.js');
