@@ -1,11 +1,12 @@
 
-var mergeStream = require('merge-stream'),
-    onEndOfStream = require('end-of-stream'),
-    consumeStream = require('stream-consume');
+var gulp = require('gulp');
+var mergeStream = require('merge-stream');
 var runSequence = require('run-sequence');
+require('gulp-awaitable-tasks')(gulp);
 
-var gulp = require('gulp'),
-    sass = require('gulp-sass'),
+
+
+var sass = require('gulp-sass'),
     eslint = require('gulp-eslint'),
     babel = require('gulp-babel'),
     cssmin = require("gulp-cssmin"),
@@ -17,7 +18,7 @@ var paths = { webroot: "./" };
 definePaths();
 
 
-defineTask('lint', function() {
+gulp.task('lint', function() {
     // see eslint documation: http://eslint.org/docs/user-guide/configuring
     // see gulp-eslint project: https://github.com/adametry/gulp-eslint/
     var eslintOptions = {
@@ -47,13 +48,13 @@ defineTask('lint', function() {
 });
 
 
-defineTask('sass', function() {
+gulp.task('sass', function() {
     return gulp.src(paths.scssSource)
         .pipe(sass())
         .pipe(gulp.dest(paths.cssDist));
 });
 
-defineTask('babel', function() {
+gulp.task('babel', function() {
     var compileES6 = gulp.src(paths.es6Source)
         .pipe(babel())
         .pipe(gulp.dest(paths.jsDist));
@@ -64,7 +65,7 @@ defineTask('babel', function() {
     return mergeStream(compileES6, copyJS);
 });
 
-defineTask("use-libs", function *() {
+gulp.task("use-libs", function *() {
     // bootstrap
     var bootstrapDest = paths.libDist + '/bootstrap-sass';
     var bootstrapDestStyle = bootstrapDest + '/stylesheets';
@@ -94,7 +95,7 @@ defineTask("use-libs", function *() {
     yield gulp.src([paths.libSource + '/jquery/dist/**/*' ]).pipe(gulp.dest(paths.libDist + '/jquery'));
 });
 
-defineTask("minify", function *() {
+gulp.task("minify", function *() {
     yield gulp.src([paths.cssGenerated, '!' + paths.cssMin],  { base: "./" })
         .pipe(cssmin())
         .pipe(rename(function (path) {
@@ -110,12 +111,12 @@ defineTask("minify", function *() {
         .pipe(gulp.dest("."));
 });
 
-defineTask('release', function (callback) {
+gulp.task('release', function (callback) {
     // todo: add release logic (package; remove dev files)
     callback();
 });
 
-defineTask('clean', function*() {
+gulp.task('clean', function*() {
     // clean all generated files by compilers like babel, and sass
     var deljs = enumerateFiles(paths.jsGenerated).pipe(deleteRecursively());
     var delcss = enumerateFiles(paths.cssGenerated).pipe(deleteRecursively());
@@ -126,7 +127,7 @@ defineTask('clean', function*() {
     return mergeStream(deljs, delcss, dellibs);
 });
 
-defineTask('clean-all', ['clean'], function(callback) {
+gulp.task('clean-all', ['clean'], function(callback) {
     // clean all node_modules
     // clean all lib/source
     enumerateFiles(paths.libSource).pipe(deleteRecursively());
@@ -166,38 +167,6 @@ function definePaths() {
     }
 }
 
-function defineTask(name, dependencies, taskFn){
-    if(arguments.length < 3 && typeof dependencies === 'function'){
-        taskFn = dependencies;
-        dependencies = [];
-    }
-
-    if(!taskFn){
-        gulp.task(name, dependencies);
-    }else if(taskFn.constructor.name === 'GeneratorFunction'){
-        gulp.task(name, dependencies, function (callback) {
-            arrangeStreams(taskFn(), callback);
-        });
-    }else {
-        gulp.task(name, dependencies, taskFn);
-    }
-
-    function arrangeStreams(gen, cb){
-        var context = gen.next();
-        if(context.done){ cb(); return; }
-
-        var stream = context.value;
-        if (stream && typeof stream.pipe === 'function'){
-            // consume and wait for completion of a stream: https://github.com/robrich/orchestrator/blob/master/lib/runTask.js
-            onEndOfStream(stream, { error: true, readable: stream.readable, writable: stream.writable && !stream.readable }, function(err){
-                if(err){ cb(err); return; }
-                arrangeStreams(gen, cb);
-            });
-            consumeStream(stream);
-        }
-    }
-}
-
 
 /*
 *
@@ -233,10 +202,11 @@ function defineTask(name, dependencies, taskFn){
 * */
 
 // Task chains
-defineTask('compile', function (callback) {
+gulp.task('compile', function (callback) {
     runSequence('clean', ['babel', 'sass'], 'use-libs', callback);
 });
-defineTask('release', ['lint', 'compile'], function (callback) {
+gulp.task('release', ['lint', 'compile'], function (callback) {
     runSequence('minify', callback);
     // todo: package
 });
+
