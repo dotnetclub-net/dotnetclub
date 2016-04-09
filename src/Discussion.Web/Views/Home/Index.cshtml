@@ -3,3 +3,53 @@
 @{
     ViewData["Title"] = "My Discussion Site";
 }
+
+
+@section Head{
+<environment names="Development">
+    <link rel="stylesheet" href="~/stylesheets/css/index.css" />
+</environment>
+<environment names="Staging,Production">
+    <link rel="stylesheet" href="~/stylesheets/css/index.min.css" asp-append-version="true" />
+</environment>
+}
+
+
+<div class="row">
+    <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel-heading">
+            <a href="/?tab=all" class="topic-list-tab current-tab">全部</a>
+            <a href="/?tab=good" class="topic-tab">精华</a>
+        </div>
+
+        <div class="panel-body no-padding">
+            <div class='topic-item'>
+                <div class="topic-meta-primary pull-left">
+                    <span class="counts">10/596</span>
+                    <span class="category">问答</span>
+                </div>
+                <a class="topic-title" href='/topic/56f7a272e2d0ba0b323886e2' title='闭包的设计'>
+                    闭包的设计
+                </a>
+                <div class="topic-meta-secondary pull-right">
+                    3 小时前
+                </div>
+            </div>
+
+        </div>
+        <div class="panel-footer">
+            <!-- Pagination -->
+        </div>
+
+    </div>
+</div>
+
+
+@section Tail{
+    <script>
+        while ($('.topic-item').length < 20) {
+            console.log($('.topic-item').length % 3);
+            $('.topic-item').eq(0).clone().addClass(($('.topic-item').length % 3) ? '' : 'featured').insertAfter($('.topic-item:last-child'));
+        }
+    </script>
+}

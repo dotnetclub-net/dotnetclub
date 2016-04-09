@@ -1,10 +1,30 @@
 ﻿@import "symbols";
+// after overriding, import them again to apply values
+@import "../../lib/source/bootstrap-sass/assets/stylesheets/bootstrap/scaffolding";
 
-// define base style of my site here:
-.button{
-	background:red;
-	
-	&:hover{
-		text-decoration: underline;
-	}
+
+
+.no-padding{
+	padding: 0;
+}
+
+
+
+body.with-generic-nav {
+	padding-top: 65px;
+	background: $gray-body-background;
+}
+
+.navbar-inverse .navbar-brand{
+	color:white;
+}
+
+.panel {
+	margin-bottom: 13px;
+}
+
+.panel .panel-heading {
+	background-color: $gray-content-hover;
+	padding: 10px;
+	border-radius: 3px 3px 0 0;
 }

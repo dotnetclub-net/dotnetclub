@@ -50,7 +50,7 @@ gulp.task('lint', function() {
 
 gulp.task('sass', function() {
     return gulp.src(paths.scssSource)
-        .pipe(sass())
+        .pipe(sass({sourceComments: true}))
         .pipe(gulp.dest(paths.cssDist));
 });
 
@@ -75,7 +75,7 @@ gulp.task("use-libs", function *() {
     // build bootstrap
     yield gulp.src(bootstrapDestStyle + '/_bootstrap.scss')
         .pipe(rename('bootstrap.scss'))
-        .pipe(sass())
+        .pipe(sass({sourceComments: true}))
         .pipe(gulp.dest(bootstrapDestStyle));
     yield gulp.src(bootstrapDestStyle + '/bootstrap.css', { base: "./" })
         .pipe(cssmin())

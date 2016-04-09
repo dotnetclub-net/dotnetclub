@@ -1,0 +1,48 @@
+@import "symbols";
+
+.panel-topic-list .panel-body{
+  .topic-item {
+    height: 45px;
+    font-size: 1.2em;
+    padding: 13px 10px;
+    border-bottom: 1px solid $gray-inner-border;
+
+    &:hover{
+      background: $gray-content-hover;
+    }
+
+
+
+    .topic-meta-primary{
+      .category{
+        background: $gray-lighter;
+        color: $text-muted;
+        padding: 3px;
+        border-radius: 4px;
+        font-size: .8em;
+        position: relative;
+        top: -2px;
+      }
+    }
+
+    &.featured .topic-meta-primary {
+      .category {
+        background: $brand-primary;
+        color: white;
+      }
+    }
+
+    .topic-title{
+      color: $text-color;
+      padding: 0 15px;
+
+      &:hover{
+        color:$text-color
+      }
+      &:visited{
+        color:$text-muted
+      }
+    }
+  }
+}
+
