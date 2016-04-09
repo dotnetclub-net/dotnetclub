@@ -9,11 +9,13 @@ namespace Discussion.Web.Tests.Utils
     {
         public static string TestProjectPath()
         {
+            // PlatformServices.Default.Application.ApplicationBasePath
+
             var args = Environment.GetCommandLineArgs();
             var appBaseIndex = Array.IndexOf(args, "--appbase");
 
             var path = appBaseIndex >= 0 ? args[appBaseIndex + 1] : Environment.CurrentDirectory;
-            return path.NormalizeSeparatorChars();
+            return path.NormalizeToAbsolutePath();
         }
 
         public static string DnxPath()
@@ -31,12 +33,20 @@ namespace Discussion.Web.Tests.Utils
                 throw new Exception("Runtime not detected on the machine.");
             }
 
-            return Path.Combine(runtimeBin, dnxCommand);
+            return Path.Combine(runtimeBin, dnxCommand).NormalizeToAbsolutePath();
         }
-    }
 
-    static class StringPathExtensions
-    {
+        public static string WebProjectPath()
+        {
+            return Path.Combine(TestProjectPath(), "../../src/Discussion.Web").NormalizeToAbsolutePath();
+        }
+
+
+        private static string NormalizeToAbsolutePath(this string relativePath)
+        {
+            return Path.GetFullPath(relativePath.NormalizeSeparatorChars());
+        }
+
         public static string NormalizeSeparatorChars(this string path)
         {
             return path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);

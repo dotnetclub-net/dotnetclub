@@ -9,7 +9,7 @@ using Xunit;
 namespace Discussion.Web.Tests.Specs.Repository
 {
 
-    [Collection("DbSpec")]
+    [Collection("DbSpecs")]
     public class ArticleRepoSpecs
     {
         private readonly IServiceProvider _applicationServices;

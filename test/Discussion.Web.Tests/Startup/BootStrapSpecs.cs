@@ -43,7 +43,7 @@ namespace Discussion.Web.Tests.Startup
 
             var dnxPath = DnxPath();
             var appBaseIndex = Array.IndexOf(args, "--appbase");
-            var webProject = Path.Combine(TestProjectPath(), "../../src/Discussion.Web");
+            var webProject = WebProjectPath();
 
             var dnxWeb = new ProcessStartInfo
             {
@@ -55,7 +55,7 @@ namespace Discussion.Web.Tests.Startup
                 LoadUserProfile = true,
                 UseShellExecute = false
             };
-            Console.WriteLine($"dnx command is: {dnxPath}{Environment.NewLine}Try to start web site from directory {webProject}");
+            Console.WriteLine($"dnx command is: {dnxPath}{Environment.NewLine} Web site path is: {webProject}");
 
             string outputData = string.Empty, errorOutput = string.Empty;
             var startedSuccessfully = false;

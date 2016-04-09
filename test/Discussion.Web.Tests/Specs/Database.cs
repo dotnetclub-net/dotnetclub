@@ -97,7 +97,7 @@ namespace Discussion.Web.Tests.Specs
 
     // Use shared context to maintain database fixture
     // see https://xunit.github.io/docs/shared-context.html#collection-fixture
-    [CollectionDefinition("DbSpec")]
+    [CollectionDefinition("DbSpecs")]
     public class DatabaseCollection : ICollectionFixture<Database>
     {
         // This class has no code, and is never created. Its purpose is simply

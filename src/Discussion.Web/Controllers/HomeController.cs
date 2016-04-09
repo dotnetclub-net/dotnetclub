@@ -1,5 +1,6 @@
 ﻿using Discussion.Web.Models;
 using Microsoft.AspNet.Mvc;
+using System.Net;
 
 namespace Discussion.Web.Controllers
 {
@@ -23,6 +24,7 @@ namespace Discussion.Web.Controllers
         [Route("/Error")]
         public IActionResult Error()
         {
+            Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             return View();
         }
     }
