@@ -35,6 +35,12 @@
     .topic-title{
       color: $text-color;
       padding: 0 15px;
+      max-width: 60%;
+      max-width: calc(100% - 200px);
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
       &:hover{
         color:$text-color
