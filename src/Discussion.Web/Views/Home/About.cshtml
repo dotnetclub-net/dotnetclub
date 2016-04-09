@@ -1,0 +1,47 @@
+﻿
+
+@{
+    ViewData["Title"] = "My Discussion Site";
+}
+
+
+@section Head{
+<environment names="Development">
+    <link rel="stylesheet" href="~/stylesheets/css/index.css" />
+</environment>
+<environment names="Staging,Production">
+    <link rel="stylesheet" href="~/stylesheets/css/index.min.css" asp-append-version="true" />
+</environment>
+}
+
+
+<div class="row">
+    <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel-heading">
+            关于
+        </div>
+
+        <div class="panel-body">
+            关于
+
+            <p>OpenASPNET 社区为由国内热心社区人士运营的 OpenASPNET 开源技术社区，致力于 .NET Core 的技术研究。</p>
+            <p>
+                OpenASPNET 社区由一批热爱 .NET Core 技术的工程师发起，目前已经吸引了互联网各个公司的专业技术人员加入，我们非常欢迎更多对 .NET Core 感兴趣的朋友。
+            </p>
+
+            <p>
+                
+            </p>
+
+            <p>
+                社区目前由 @@jijiechen 在维护，有问题请联系：https://github.com/jijiechen
+            </p>
+
+            <p>
+                请关注我们的官方微博：http://weibo.com/openaspnet
+            </p>
+        </div>
+
+    </div>
+</div>
+

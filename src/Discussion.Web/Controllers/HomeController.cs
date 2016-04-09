@@ -21,6 +21,14 @@ namespace Discussion.Web.Controllers
 
 
 
+        [Route("/About")]
+        public ActionResult About()
+        {
+            return View();
+        }
+
+
+
         [Route("/Error")]
         public IActionResult Error()
         {

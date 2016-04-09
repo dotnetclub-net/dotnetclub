@@ -32,6 +32,20 @@ namespace Discussion.Web.Tests.RequestHandling
         }
 
 
+        [Fact]
+        public async void should_serve_about_page()
+        {
+            // arrange
+            var request = _server.CreateRequest("/about");
+
+            // act
+            var response = await request.GetAsync();
+
+            // assert
+            response.StatusCode.ShouldEqual(HttpStatusCode.OK);
+        }
+
+
 
         [Fact]
         public async void should_serve_error_as_error_response()
