@@ -20,12 +20,18 @@ namespace Discussion.Web.Tests.Startup
             {
                 try
                 {
+                    Console.WriteLine("Server started successfully, trying to request...");
                     var httpWebRequest = WebRequest.CreateHttp("http://localhost:" + httpListenPort.ToString());
                     response = httpWebRequest.GetResponse() as HttpWebResponse;
                 }
-                catch(WebException ex)
+                catch (WebException ex)
                 {
                     response = ex.Response as HttpWebResponse;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Exception thrown: {ex.Message}\n {ex.StackTrace}");
+                    throw;
                 }
                 finally
                 {
@@ -33,6 +39,11 @@ namespace Discussion.Web.Tests.Startup
                     dnxWebServer.Kill();
                 }
             }, () => testCompleted);
+
+            if(response == null)
+            {
+                Console.WriteLine("Error: Response object is not assigned.");
+            }
 
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
         }
@@ -55,7 +66,7 @@ namespace Discussion.Web.Tests.Startup
                 LoadUserProfile = true,
                 UseShellExecute = false
             };
-            Console.WriteLine($"dnx command is: {dnxPath}{Environment.NewLine} Web site path is: {webProject}");
+            Console.WriteLine($"dnx command is: {dnxPath}{Environment.NewLine}\nStarting web site at: {webProject}");
 
             string outputData = string.Empty, errorOutput = string.Empty;
             var startedSuccessfully = false;
@@ -86,7 +97,10 @@ namespace Discussion.Web.Tests.Startup
             dnxWebServer.Exited += (object sender, EventArgs e) =>
             {
                 if (!testSuccessed())
+                {
+                    Console.WriteLine($"Cannot launch a server for the website. \nError output:{errorOutput}\nStandard output:{outputData}");
                     throw new Exception("Server is down unexpectedly.");
+                }
             };
 
             dnxWebServer.Start();
