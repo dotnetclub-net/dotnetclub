@@ -196,7 +196,6 @@ namespace Discussion.Web
 
             public Stream CreateReadStream()
             {
-                Console.WriteLine("using replaced file provider");
                 // @jijiechen: replaced implemention from https://github.com/aspnet/FileSystem/blob/32822deef3fd59b848842a500a3e989182687318/src/Microsoft.Extensions.FileProviders.Physical/PhysicalFileInfo.cs#L30
                 //return new FileStream(
                 //    PhysicalPath,
