@@ -15,15 +15,20 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.Extensions.Primitives;
 using System.IO;
+using Microsoft.AspNet.Mvc.Razor.Directives;
 
 namespace Discussion.Web
 {
     public class Startup
     {
-        public IConfigurationRoot Configuration { get; private set; }
+        public IConfigurationRoot Configuration { get;  }
+        public IHostingEnvironment HostingEnvironment { get;  }
+        public IApplicationEnvironment ApplicationEnvironment { get;  }
 
         public Startup(IHostingEnvironment env, IApplicationEnvironment appEnv)
         {
+            HostingEnvironment = env;
+            ApplicationEnvironment = appEnv;
             Configuration = BuildConfiguration(env, appEnv);
         }
 
@@ -31,15 +36,7 @@ namespace Discussion.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
-
-            if (IsMono())
-            {
-                Console.WriteLine("Replaced mvc default ICompilerCacheProvider by SyncFileProviderCompilerCacheProvider. \n Since Mono has a bug on asynchronous filestream.\n See https://github.com/aspnet/Hosting/issues/604");
-                services.TryAddSingleton<ICompilerCacheProvider, SyncFileProviderCompilerCacheProvider>();
-            }
             services.AddMvc();
-
-
             services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
             {
                 var mongoConnectionString = Configuration["mongoConnectionString"];
@@ -52,7 +49,14 @@ namespace Discussion.Web
             });
             services.AddScoped(typeof(Repository<,>), typeof(MongoRepository<,>));
             services.AddScoped(typeof(IDataRepository<>), typeof(BaseDataRepository<>));
+
+            if (IsMono())
+            {
+                Console.WriteLine("Replaced default FileProvider with a wrapped synchronous one\n Since Mono has a bug on asynchronous filestream.\n See https://github.com/aspnet/Hosting/issues/604");
+                UseSynchronousFileProvider(services, ApplicationEnvironment);
+            }
         }
+
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
@@ -84,6 +88,16 @@ namespace Discussion.Web
             return builder.Build();
         }
 
+
+        static void UseSynchronousFileProvider(IServiceCollection services, IApplicationEnvironment appEnv)
+        {
+            services.Configure<RazorViewEngineOptions>(opt =>
+            {
+                var physicalFileProvider = new PhysicalFileProvider(appEnv.ApplicationBasePath);
+                opt.FileProvider = new WrappedSyncFileProvider(physicalFileProvider);
+            });
+        }
+
         static bool IsMono()
         {
             return Type.GetType("Mono.Runtime") != null;
@@ -91,127 +105,118 @@ namespace Discussion.Web
 
     }
 
-    //class CoreReplacement : DefaultRazorViewEngineFileProviderAccessor
-    //{
-
-    //}
-
-
-    public class SyncFileProviderCompilerCacheProvider : ICompilerCacheProvider
+    public class WrappedSyncFileProvider : IFileProvider
     {
-        public SyncFileProviderCompilerCacheProvider(IOptions<RazorViewEngineOptions> mvcViewOptions)
+        IFileProvider _original;
+        public WrappedSyncFileProvider(IFileProvider original)
         {
-            var fileProvider = new WrappedFileProvider(mvcViewOptions.Value.FileProvider);
-            Cache = new CompilerCache(fileProvider);
+            _original = original;
         }
 
-        public ICompilerCache Cache { get; }
 
-
-        public class WrappedFileProvider : IFileProvider
+        public IDirectoryContents GetDirectoryContents(string subpath)
         {
-            IFileProvider _original;
-            public WrappedFileProvider(IFileProvider original)
+            return _original.GetDirectoryContents(subpath);
+        }
+
+        public IFileInfo GetFileInfo(string subpath)
+        {
+            var originalFileInfo = _original.GetFileInfo(subpath);
+            var isPhysical = originalFileInfo.GetType().FullName.EndsWith("PhysicalFileInfo");
+            if (!isPhysical)
+            {
+                return originalFileInfo;
+            }
+
+            return new WrappedSynchronousFileInfo(originalFileInfo);
+        }
+
+        public IChangeToken Watch(string filter)
+        {
+            return _original.Watch(filter);
+        }
+
+
+        public class WrappedSynchronousFileInfo : IFileInfo
+        {
+            IFileInfo _original;
+            public WrappedSynchronousFileInfo(IFileInfo original)
             {
                 _original = original;
             }
 
 
-            public IDirectoryContents GetDirectoryContents(string subpath)
+            public bool Exists
             {
-                return _original.GetDirectoryContents(subpath);
+                get
+                {
+                    return _original.Exists;
+                }
             }
 
-            public IFileInfo GetFileInfo(string subpath)
+            public bool IsDirectory
             {
-                var originalFileInfo = _original.GetFileInfo(subpath);
-                var isPhysical = originalFileInfo.GetType().FullName.EndsWith("PhysicalFileInfo");
-                if (!isPhysical)
+                get
                 {
-                    return originalFileInfo;
+                    return _original.IsDirectory;
                 }
-
-                return new WrappedSynchronousFileInfo(originalFileInfo);
             }
 
-            public IChangeToken Watch(string filter)
+            public DateTimeOffset LastModified
             {
-                return _original.Watch(filter);
+                get
+                {
+                    return _original.LastModified;
+                }
             }
 
-
-            public class WrappedSynchronousFileInfo : IFileInfo
+            public long Length
             {
-                IFileInfo _original;
-                public WrappedSynchronousFileInfo(IFileInfo original)
+                get
                 {
-                    _original = original;
+                    return _original.Length;
                 }
+            }
+
+            public string Name
+            {
+                get
+                {
+                    return _original.Name;
+                }
+            }
+
+            public string PhysicalPath
+            {
+                get
+                {
+                    return _original.PhysicalPath;
+                }
+            }
+
+            public Stream CreateReadStream()
+            {
+                Console.WriteLine("using replaced file provider");
+                // @jijiechen: replaced implemention from https://github.com/aspnet/FileSystem/blob/32822deef3fd59b848842a500a3e989182687318/src/Microsoft.Extensions.FileProviders.Physical/PhysicalFileInfo.cs#L30
+                //return new FileStream(
+                //    PhysicalPath,
+                //    FileMode.Open,
+                //    FileAccess.Read,
+                //    FileShare.ReadWrite,
+                //    1024 * 64,
+                //    FileOptions.Asynchronous | FileOptions.SequentialScan);
 
 
-                public bool Exists
-                {
-                    get
-                    {
-                        return _original.Exists;
-                    }
-                }
-
-                public bool IsDirectory
-                {
-                    get
-                    {
-                        return _original.IsDirectory;
-                    }
-                }
-
-                public DateTimeOffset LastModified
-                {
-                    get
-                    {
-                        return _original.LastModified;
-                    }
-                }
-
-                public long Length
-                {
-                    get
-                    {
-                        return _original.Length;
-                    }
-                }
-
-                public string Name
-                {
-                    get
-                    {
-                        return _original.Name;
-                    }
-                }
-
-                public string PhysicalPath
-                {
-                    get
-                    {
-                        return _original.PhysicalPath;
-                    }
-                }
-
-                public Stream CreateReadStream()
-                {
-                    // Note: Buffer size must be greater than zero, even if the file size is zero.
-                    return new FileStream(
-                        PhysicalPath,
-                        FileMode.Open,
-                        FileAccess.Read,
-                        FileShare.ReadWrite,
-                        1024 * 64,
-                        FileOptions.SequentialScan);
-                }
+                // Note: Buffer size must be greater than zero, even if the file size is zero.
+                return new FileStream(
+                   PhysicalPath,
+                   FileMode.Open,
+                   FileAccess.Read,
+                   FileShare.ReadWrite,
+                   1024 * 64,
+                   FileOptions.SequentialScan);
             }
         }
     }
-
-
 
 }
