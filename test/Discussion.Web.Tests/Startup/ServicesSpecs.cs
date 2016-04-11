@@ -64,7 +64,6 @@ namespace Discussion.Web.Tests.Startup
             repo.GetType().ShouldEqual(typeof(BaseDataRepository<Article>));
         }
 
-
         public static IServiceProvider CreateApplicationServices()
         {
             return CreateApplicationServices((s)=> { });
@@ -72,7 +71,11 @@ namespace Discussion.Web.Tests.Startup
 
         public static IServiceProvider CreateApplicationServices(Action<IServiceCollection> configureServices) {
             var services = new ServiceCollection();
-            CreateMockStartup().ConfigureServices(services);
+            var startup = CreateMockStartup();
+
+            services.AddInstance<IApplicationEnvironment>(startup.ApplicationEnvironment);
+            services.AddInstance<IHostingEnvironment>(startup.HostingEnvironment);
+            startup.ConfigureServices(services);
 
             services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
             {
@@ -95,8 +98,6 @@ namespace Discussion.Web.Tests.Startup
 
             return new Web.Startup(hostingEnv.Object, appEnv.Object);
         }
-
-
 
     }
 }

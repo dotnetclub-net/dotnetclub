@@ -2,20 +2,16 @@
 using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
-using Microsoft.AspNet.Mvc.Razor.Compilation;
-using System;
-using Microsoft.Extensions.OptionsModel;
-using Microsoft.AspNet.Mvc.Razor;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.AspNet.FileProviders;
 using Microsoft.Extensions.Primitives;
+using System;
 using System.IO;
-using Microsoft.AspNet.Mvc.Razor.Directives;
 
 namespace Discussion.Web
 {
@@ -42,7 +38,7 @@ namespace Discussion.Web
                 var mongoConnectionString = Configuration["mongoConnectionString"];
                 if (string.IsNullOrWhiteSpace(mongoConnectionString))
                 {
-                    throw new System.ApplicationException("No configuration value set for key 'mongoConnectionString'");
+                    throw new ApplicationException("No configuration value set for key 'mongoConnectionString'");
                 }
 
                 return new MongoRepositoryContext(mongoConnectionString);
@@ -94,21 +90,21 @@ namespace Discussion.Web
             services.Configure<RazorViewEngineOptions>(opt =>
             {
                 var physicalFileProvider = new PhysicalFileProvider(appEnv.ApplicationBasePath);
-                opt.FileProvider = new WrappedSyncFileProvider(physicalFileProvider);
+                opt.FileProvider = new WrappedSynchronousFileProvider(physicalFileProvider);
             });
         }
 
         static bool IsMono()
         {
-            return Type.GetType("Mono.Runtime") != null;
+            var runtime = PlatformServices.Default.Runtime;
+            return runtime.RuntimeType.Equals("Mono", StringComparison.OrdinalIgnoreCase);
         }
-
     }
 
-    public class WrappedSyncFileProvider : IFileProvider
+    public class WrappedSynchronousFileProvider : IFileProvider
     {
         IFileProvider _original;
-        public WrappedSyncFileProvider(IFileProvider original)
+        public WrappedSynchronousFileProvider(IFileProvider original)
         {
             _original = original;
         }
