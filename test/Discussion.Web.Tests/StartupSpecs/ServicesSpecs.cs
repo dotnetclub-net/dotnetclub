@@ -46,7 +46,7 @@ namespace Discussion.Web.Tests.StartupSpecs
 
             // assert
             repo.ShouldNotBeNull();
-            repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(MongoRepository<, >));
+            repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(MongoRepository<,>));
         }
 
 
@@ -66,7 +66,7 @@ namespace Discussion.Web.Tests.StartupSpecs
 
         public static IServiceProvider CreateApplicationServices()
         {
-            return CreateApplicationServices((s)=> { });
+            return CreateApplicationServices((s) => { });
         }
 
         public static IServiceProvider CreateApplicationServices(Action<IServiceCollection> configureServices) {
@@ -86,7 +86,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             return services.BuildServiceProvider();
         }
 
-        public static Web.Startup CreateMockStartup()
+        public static Startup CreateMockStartup()
         {
             var appEnv = new Mock<IApplicationEnvironment>();
             appEnv.SetupGet(e => e.ApplicationBasePath)
@@ -96,7 +96,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             hostingEnv.SetupGet(e => e.EnvironmentName)
                 .Returns("Development");
 
-            return new Web.Startup(hostingEnv.Object, appEnv.Object);
+            return new Startup(hostingEnv.Object, appEnv.Object);
         }
 
     }

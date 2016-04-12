@@ -1,27 +1,24 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Hosting.Startup;
-using System.Collections.Generic;
-using Microsoft.AspNet.TestHost;
 using Microsoft.AspNet.Builder;
 using System;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
+using Discussion.Web.Tests.Specs;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
+    [Collection("AppSpecs")]
     public class MiddlewareConfigureSpecs
     {
 
         private RequestDelegate RequestHandler;
         private IServiceProvider ApplicationServices;
-
-        public MiddlewareConfigureSpecs()
+        public MiddlewareConfigureSpecs(Application app)
         {
-            BuildRequestHandlerFromStartup();
+            RequestHandler = app.RequestHandler;
+            ApplicationServices = app.ApplicationServices;
         }
 
 
@@ -65,35 +62,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             loggerFactory.ShouldNotBeNull();
             loggerFactory.LogItems.ShouldContain(item => item.Message.Equals($"The request path {staticFile} does not match an existing file"));
         }
-
-        private void BuildRequestHandlerFromStartup()
-        {
-            // arrange
-            Func<IServiceCollection, IServiceProvider> configureServices;
-            Action<IApplicationBuilder> configure;
-            StartupMethods startup = null;
-            IApplicationBuilder bootingupApp = null;
-
-            configureServices = services =>
-            {
-                var loader = new StartupLoader(services.BuildServiceProvider(), new HostingEnvironment { EnvironmentName = "Production" });
-                startup = loader.LoadMethods(typeof(Web.Startup), new List<string>());
-
-                services.AddSingleton<ILoggerFactory, StubLoggerFactory>();
-                startup.ConfigureServicesDelegate(services);
-
-                ApplicationServices = services.BuildServiceProvider();
-                return ApplicationServices;
-            };
-            configure = app =>
-            {
-                bootingupApp = app;
-                startup.ConfigureDelegate(app);
-            };
-            
-            new TestServer(TestServer.CreateBuilder().UseStartup(configure, configureServices));
-            RequestHandler = bootingupApp.Build();
-        }
+        
         
         private DefaultHttpContext CreateHttpContext()
         {
@@ -136,75 +105,4 @@ namespace Discussion.Web.Tests.StartupSpecs
         }
     }
 
-    class StubLoggerFactory : ILoggerFactory
-    {
-        public LogLevel MinimumLevel
-        {
-            get
-            {
-                return LogLevel.Debug;
-            }
-
-            set
-            {
-
-            }
-        }
-
-        public void AddProvider(ILoggerProvider provider)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new Logger { Factory = this };
-        }
-
-        public ConcurrentStack<LogItem> LogItems { get; private set; } = new ConcurrentStack<LogItem>();
-
-        public void Dispose()
-        {
-            LogItems.Clear();
-            LogItems = null;
-        }
-
-        public class Logger : ILogger
-        {
-            public StubLoggerFactory Factory { get; set; }
-
-
-            public IDisposable BeginScopeImpl(object state)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool IsEnabled(LogLevel logLevel)
-            {
-                return true;
-            }
-
-            public void Log(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
-            {
-                var log = new LogItem
-                {
-                    Level = logLevel,
-                    EventId = eventId,
-                    State = state,
-                    Exception = exception,
-                    Message = formatter.Invoke(state, exception)
-                };
-                Factory.LogItems.Push(log);
-            }
-        }
-
-        public class LogItem
-        {
-            public LogLevel Level { get; set; }
-            public Exception Exception { get; set; }
-            public int EventId { get; set; }
-            public object State { get; set; }
-            public string Message { get; set; }
-        }
-    }
 }

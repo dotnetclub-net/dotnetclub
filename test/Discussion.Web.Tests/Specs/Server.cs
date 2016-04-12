@@ -3,9 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
 using System.Net.Http;
-using System.Runtime.Versioning;
 using Xunit;
-using static Discussion.Web.Tests.Utils.TestEnv;
 
 namespace Discussion.Web.Tests.Specs
 {
@@ -48,14 +46,10 @@ namespace Discussion.Web.Tests.Specs
             return new TestServer(TestServer.CreateBuilder()
                  .UseServices(services =>
                  {
-                     var env = new TestApplicationEnvironment();
-                     env.ApplicationBasePath = WebProjectPath();
-                     env.ApplicationName = "Discussion.Web";
-
-                     services.AddInstance<IApplicationEnvironment>(env);
+                     services.AddInstance<IApplicationEnvironment>(Application.CreateApplicationEnvironment());
                  })
                  .UseEnvironment(environmentName)
-                 .UseStartup<Discussion.Web.Startup>());
+                 .UseStartup<Startup>());
         }
 
 
@@ -90,30 +84,6 @@ namespace Discussion.Web.Tests.Specs
 
         #endregion
     }
-
-    internal class TestApplicationEnvironment : IApplicationEnvironment
-    {
-        public string ApplicationBasePath { get; set; }
-
-        public string ApplicationName { get; set; }
-
-        public string ApplicationVersion => PlatformServices.Default.Application.ApplicationVersion;
-
-        public string Configuration => PlatformServices.Default.Application.Configuration;
-
-        public FrameworkName RuntimeFramework => PlatformServices.Default.Application.RuntimeFramework;
-
-        public object GetData(string name)
-        {
-            return PlatformServices.Default.Application.GetData(name);
-        }
-
-        public void SetData(string name, object value)
-        {
-            PlatformServices.Default.Application.SetData(name, value);
-        }
-    }
-
 
     // Use shared context to maintain database fixture
     // see https://xunit.github.io/docs/shared-context.html#collection-fixture
