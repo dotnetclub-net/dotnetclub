@@ -1,21 +1,26 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Jusfr.Persistent;
+using Jusfr.Persistent.Mongo;
+using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Hosting.Startup;
-using System.Collections.Generic;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Controllers;
+using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.TestHost;
-using Microsoft.AspNet.Builder;
-using System;
-using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
-using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Configuration;
-using System.Runtime.Versioning;
-using Jusfr.Persistent;
-using Xunit;
-using Jusfr.Persistent.Mongo;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.PlatformAbstractions;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Versioning;
+using Xunit;
 using static Discussion.Web.Tests.Utils.TestEnv;
 
 namespace Discussion.Web.Tests.Specs
@@ -430,5 +435,25 @@ namespace Discussion.Web.Tests.Specs
 
         #endregion
 
+    }
+
+    public static class ServiceProviderExtensions
+    {
+        public static T CreateController<T>(this IServiceProvider services) where T : class
+        {
+            var actionContext = new ActionContext(
+                new DefaultHttpContext
+                {
+                    RequestServices = services
+                },
+                new RouteData(),
+                new ControllerActionDescriptor
+                {
+                    ControllerTypeInfo = typeof(T).GetTypeInfo()
+                });
+
+            var controllerFactory = services.GetService<IControllerFactory>();
+            return controllerFactory.CreateController(actionContext) as T;
+        }
     }
 }

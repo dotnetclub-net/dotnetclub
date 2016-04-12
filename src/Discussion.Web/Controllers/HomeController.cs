@@ -13,16 +13,17 @@ namespace Discussion.Web.Controllers
 
         }
 
-        [Route("/")]
-        public ActionResult Index()
-        {
-            return View();
-        }
+        // Use Topic/List to host home page.
+        //[Route("/")]
+        //public ActionResult Index()
+        //{
+        //    return View();
+        //}
 
 
 
         [Route("/About")]
-        public ActionResult About()
+        public  ActionResult About()
         {
             return View();
         }
