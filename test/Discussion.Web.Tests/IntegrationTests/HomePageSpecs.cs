@@ -5,14 +5,13 @@ using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
 {
-    [Collection("ServerSpecs")]
+    [Collection("AppSpecs")]
     public class HomePageSpec
     {
-        private Server _server;
-        public HomePageSpec(Server server) {
-            _server = server;
+        private Application _theApp;
+        public HomePageSpec(Application theApp) {
+            _theApp = theApp;
         }
-
 
 
         public const string HomePagePath = "/";
@@ -22,7 +21,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async void should_handle_home_page_correctly()
         {
             // arrange
-            var request = _server.CreateRequest(HomePagePath);
+            var request = _theApp.Server.CreateRequest(HomePagePath);
 
             // act
             var response = await request.GetAsync();
@@ -36,7 +35,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async void should_serve_about_page()
         {
             // arrange
-            var request = _server.CreateRequest("/about");
+            var request = _theApp.Server.CreateRequest("/about");
 
             // act
             var response = await request.GetAsync();
@@ -51,7 +50,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async void should_serve_error_as_error_response()
         {
             // arrange
-            var request = _server.CreateRequest(ErrorPagePath);
+            var request = _theApp.Server.CreateRequest(ErrorPagePath);
 
             // act
             var response = await request.GetAsync();

@@ -1,7 +1,5 @@
 ﻿using Discussion.Web.Models;
 using Discussion.Web.Repositories;
-using Jusfr.Persistent;
-using Jusfr.Persistent.Mongo;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit;
@@ -9,16 +7,13 @@ using Xunit;
 namespace Discussion.Web.Tests.Specs.Repository
 {
 
-    [Collection("DbSpecs")]
+    [Collection("AppSpecs")]
     public class ArticleRepoSpecs
     {
         private readonly IServiceProvider _applicationServices;
-        public ArticleRepoSpecs(Database database)
+        public ArticleRepoSpecs(Application app)
         {
-            _applicationServices = StartupSpecs.ServicesSpecs.CreateApplicationServices(services =>
-            {
-                services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => database.Context);
-            });
+            _applicationServices = app.ApplicationServices;
         }
 
 

@@ -10,9 +10,13 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Configuration;
 using System.Runtime.Versioning;
-using static Discussion.Web.Tests.Utils.TestEnv;
 using Jusfr.Persistent;
 using Xunit;
+using Jusfr.Persistent.Mongo;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using System.Linq;
+using static Discussion.Web.Tests.Utils.TestEnv;
 
 namespace Discussion.Web.Tests.Specs
 {
@@ -31,11 +35,11 @@ namespace Discussion.Web.Tests.Specs
 
                 Action<IServiceCollection> setupServices = (services) =>
                 {
-                    _database = new Database();
+                    _database = Database.CreateDefault();
                     services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => _database.Context);
                 };
 
-                _applicationContext = BuildRequestHandlerFromStartup( (c)=> { }, setupServices, (a, h, l) => { } );
+                _applicationContext = BuildApplication( (c)=> { }, setupServices, (a, h, l) => { } );
                 return _applicationContext;
             }
         }
@@ -56,7 +60,7 @@ namespace Discussion.Web.Tests.Specs
         #endregion
 
 
-        public static TestApplicationContext BuildRequestHandlerFromStartup(Action<IConfigurationBuilder> customConfiguration, Action<IServiceCollection> serviceConfiguration, Action<IApplicationBuilder, IHostingEnvironment, ILoggerFactory> serviceCustomConfiguration)
+        public static TestApplicationContext BuildApplication(Action<IConfigurationBuilder> customConfiguration, Action<IServiceCollection> serviceConfiguration, Action<IApplicationBuilder, IHostingEnvironment, ILoggerFactory> serviceCustomConfiguration, string environmentName = "Production")
         {
             StartupMethods startup = null;
             IApplicationBuilder bootingupApp = null;
@@ -67,7 +71,7 @@ namespace Discussion.Web.Tests.Specs
             {
                 LoggerFactory = new StubLoggerFactory(),
                 ApplicationEnvironment = CreateApplicationEnvironment(),
-                HostingEnvironment = new HostingEnvironment { EnvironmentName = "Production" }
+                HostingEnvironment = new HostingEnvironment { EnvironmentName = environmentName }
             };
             testApp.Configuration = BuildConfiguration(testApp.HostingEnvironment, testApp.ApplicationEnvironment, customConfiguration);
 
@@ -93,7 +97,11 @@ namespace Discussion.Web.Tests.Specs
             };
 
 
-            var webHostBuilder = TestServer.CreateBuilder(testApp.Configuration).UseStartup(configure, configureServices);
+            var webHostBuilder = TestServer
+                                .CreateBuilder(testApp.Configuration)
+                                .UseEnvironment(environmentName)
+                                .UseStartup(configure, configureServices);
+
             testApp.Server = new TestServer(webHostBuilder);
             testApp.RequestHandler = bootingupApp.Build();
 
@@ -122,7 +130,6 @@ namespace Discussion.Web.Tests.Specs
             return env;
         }
 
-
         #region Disposing
 
         ~Application()
@@ -149,12 +156,9 @@ namespace Discussion.Web.Tests.Specs
                 _database = null;
             }
 
-            if (_applicationContext != null)
+            if(_applicationContext != null)
             {
-                _applicationContext.RequestHandler = null;
-                _applicationContext.ApplicationServices = null;
-                _applicationContext.LoggerFactory.LogItems.Clear();
-                _applicationContext.Server.Dispose();
+                (_applicationContext as IDisposable).Dispose();
                 _applicationContext = null;
             }
         }
@@ -172,8 +176,7 @@ namespace Discussion.Web.Tests.Specs
         // ICollectionFixture<> interfaces.
     }
 
-
-    public interface IApplicationContext
+    public interface IApplicationContext: IDisposable
     {
          StubLoggerFactory LoggerFactory { get;  }
          IApplicationEnvironment ApplicationEnvironment { get;  }
@@ -197,6 +200,46 @@ namespace Discussion.Web.Tests.Specs
 
         public IConfigurationRoot Configuration { get; set; }
         public TestServer Server { get; set; }
+
+
+
+
+        #region Disposing
+
+        ~TestApplicationContext()
+        {
+            Dispose(false);
+        }
+
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+
+        void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                GC.SuppressFinalize(this);
+            }
+
+            RequestHandler = null;
+            ApplicationServices = null;
+
+            if (LoggerFactory != null)
+            {
+                LoggerFactory.LogItems.Clear();
+                LoggerFactory = null;
+            }
+
+            if (Server != null)
+            {
+                Server.Dispose();
+                Server = null;
+            }
+        }
+
+        #endregion
     }
 
     public class StubLoggerFactory : ILoggerFactory
@@ -216,7 +259,7 @@ namespace Discussion.Web.Tests.Specs
 
         public void AddProvider(ILoggerProvider provider)
         {
-            throw new NotImplementedException();
+            
         }
 
         public ILogger CreateLogger(string categoryName)
@@ -239,7 +282,7 @@ namespace Discussion.Web.Tests.Specs
 
             public IDisposable BeginScopeImpl(object state)
             {
-                throw new NotImplementedException();
+                return null;
             }
 
             public bool IsEnabled(LogLevel logLevel)
@@ -292,5 +335,100 @@ namespace Discussion.Web.Tests.Specs
         {
             PlatformServices.Default.Application.SetData(name, value);
         }
+    }
+
+    public sealed class Database : IDisposable
+    {
+        string _connectionString;
+        private Database(string databaseServer)
+        {
+            _connectionString = CreateConnectionStringForTesting(databaseServer);
+            Context = new MongoRepositoryContext(_connectionString);
+        }
+
+        public MongoRepositoryContext Context { get; private set; }
+        public static Database Create(string databaseServer)
+        {
+            return new Database(databaseServer);
+        }
+        public static Database CreateDefault()
+        {
+            return Create("192.168.1.178:27017");
+        }
+
+
+        #region Disposing
+
+        ~Database()
+        {
+            Dispose(false);
+        }
+
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+
+        void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                GC.SuppressFinalize(this);
+            }
+
+            try
+            {
+                Context.Dispose();
+                DropDatabase(_connectionString);
+            }
+            catch { }
+        }
+
+        #endregion
+
+        #region helpers for setting up database
+
+        static string CreateConnectionStringForTesting(string host)
+        {
+            string connectionString;
+
+            do
+            {
+                var databaseName = string.Concat("ut_" + DateTime.UtcNow.ToString("yyyyMMddHHMMss") + Guid.NewGuid().ToString("N").Substring(0, 4));
+                connectionString = $"mongodb://{host}/{databaseName}";
+            }
+            while (DatabaseExists(connectionString));
+            return connectionString;
+        }
+
+        static bool DatabaseExists(string connectionString)
+        {
+            var mongoUri = new MongoUrl(connectionString);
+            var client = new MongoClient(mongoUri);
+
+            var dbList = Enumerate(client.ListDatabases()).Select(db => db.GetValue("name").AsString);
+            return dbList.Contains(mongoUri.DatabaseName);
+        }
+
+        static IEnumerable<BsonDocument> Enumerate(IAsyncCursor<BsonDocument> docs)
+        {
+            while (docs.MoveNext())
+            {
+                foreach (var item in docs.Current)
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        static void DropDatabase(string connectionString)
+        {
+            var mongoUri = new MongoUrl(connectionString);
+            //new MongoClient(mongoUri).DropDatabase(mongoUri.DatabaseName);
+            new MongoClient(mongoUri).DropDatabaseAsync(mongoUri.DatabaseName).Wait();
+        }
+
+        #endregion
+
     }
 }
