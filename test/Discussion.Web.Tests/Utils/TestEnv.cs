@@ -3,8 +3,8 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Discussion.Web.Tests.Utils
-{
+namespace Discussion.Web.Tests {
+
     public static class TestEnv
     {
         public static string TestProjectPath()

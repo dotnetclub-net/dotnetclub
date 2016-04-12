@@ -21,9 +21,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using Xunit;
-using static Discussion.Web.Tests.Utils.TestEnv;
+using static Discussion.Web.Tests.TestEnv;
 
-namespace Discussion.Web.Tests.Specs
+namespace Discussion.Web.Tests
 {
     public sealed class Application: IApplicationContext, IDisposable
     {

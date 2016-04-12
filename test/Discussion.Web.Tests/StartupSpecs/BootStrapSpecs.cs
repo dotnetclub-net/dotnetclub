@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using Xunit;
 using System;
-using static Discussion.Web.Tests.Utils.TestEnv;
+using static Discussion.Web.Tests.TestEnv;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
