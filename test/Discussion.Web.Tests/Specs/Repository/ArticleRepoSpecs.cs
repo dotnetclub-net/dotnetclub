@@ -15,7 +15,7 @@ namespace Discussion.Web.Tests.Specs.Repository
         private readonly IServiceProvider _applicationServices;
         public ArticleRepoSpecs(Database database)
         {
-            _applicationServices = Startup.ServicesSpecs.CreateApplicationServices(services =>
+            _applicationServices = StartupSpecs.ServicesSpecs.CreateApplicationServices(services =>
             {
                 services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => database.Context);
             });

@@ -3,7 +3,7 @@ using System.Net;
 using Xunit;
 
 
-namespace Discussion.Web.Tests.RequestHandling
+namespace Discussion.Web.Tests.IntegrationTests
 {
     [Collection("ServerSpecs")]
     public class HomePageSpec

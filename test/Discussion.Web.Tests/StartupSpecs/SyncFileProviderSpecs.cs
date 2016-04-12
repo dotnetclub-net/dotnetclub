@@ -4,7 +4,7 @@ using Microsoft.Extensions.OptionsModel;
 using Microsoft.Extensions.PlatformAbstractions;
 using Xunit;
 
-namespace Discussion.Web.Tests.Startup
+namespace Discussion.Web.Tests.StartupSpecs
 {
     public class SyncFileProviderSpecs
     {

@@ -1,25 +1,28 @@
-﻿using Microsoft.AspNet.TestHost;
+﻿using Discussion.Web.Tests.Specs;
 using System.Net;
 using Xunit;
 
 
-namespace Discussion.Web.Tests.RequestHandling
+namespace Discussion.Web.Tests.IntegrationTests
 {
+    [Collection("ServerSpecs")]
     public class NotFoundSpec
     {
         public const string NotFoundPath = "/something-not-defined";
         public const string NotFoundStaticFile = "/something-not-defined.css";
 
+
+        private Server _server;
+        public NotFoundSpec(Server server)
+        {
+            _server = server;
+        }
+
         [Fact]
         public async void should_response_not_found_by_default()
         {
-            // arrange
-            var server = new TestServer(TestServer.CreateBuilder()
-                   .UseStartup<Web.Startup>()
-                   .UseEnvironment("Production"));
-
             // act
-            var response = await server.CreateRequest(NotFoundPath).GetAsync();
+            var response = await _server.CreateRequest(NotFoundPath).GetAsync();
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.NotFound);
@@ -28,13 +31,8 @@ namespace Discussion.Web.Tests.RequestHandling
         [Fact]
         public async void should_response_not_found_for_a_static_file_path()
         {
-            // arrange
-            var server = new TestServer(TestServer.CreateBuilder()
-                   .UseStartup<Web.Startup>()
-                   .UseEnvironment("Production"));
-
             // act
-            var response = await server.CreateRequest(NotFoundStaticFile).GetAsync();
+            var response = await _server.CreateRequest(NotFoundStaticFile).GetAsync();
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.NotFound);

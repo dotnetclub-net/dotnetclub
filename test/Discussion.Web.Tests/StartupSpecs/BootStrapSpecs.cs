@@ -5,7 +5,7 @@ using Xunit;
 using System;
 using static Discussion.Web.Tests.Utils.TestEnv;
 
-namespace Discussion.Web.Tests.Startup
+namespace Discussion.Web.Tests.StartupSpecs
 {
     public class BootStrapSpecs
     {

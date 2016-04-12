@@ -10,12 +10,8 @@ using System;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using Jusfr.Persistent;
-using Discussion.Web.Models;
-using Jusfr.Persistent.Mongo;
-using Discussion.Web.Repositories;
 
-namespace Discussion.Web.Tests.Startup
+namespace Discussion.Web.Tests.StartupSpecs
 {
     public class MiddlewareConfigureSpecs
     {
@@ -46,7 +42,7 @@ namespace Discussion.Web.Tests.Startup
         public void should_use_mvc()
         {
             var httpContext = CreateHttpContext();
-            httpContext.Request.Path = RequestHandling.NotFoundSpec.NotFoundPath;
+            httpContext.Request.Path = IntegrationTests.NotFoundSpec.NotFoundPath;
 
             RequestHandler.Invoke(httpContext);
 
@@ -58,7 +54,7 @@ namespace Discussion.Web.Tests.Startup
         [Fact]
         public void should_use_static_files()
         {
-            var staticFile = RequestHandling.NotFoundSpec.NotFoundStaticFile;
+            var staticFile = IntegrationTests.NotFoundSpec.NotFoundStaticFile;
             var httpContext = CreateHttpContext();
             httpContext.Request.Method = "GET";
             httpContext.Request.Path = staticFile;

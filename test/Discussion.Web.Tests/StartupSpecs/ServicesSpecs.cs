@@ -10,7 +10,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace Discussion.Web.Tests.Startup
+namespace Discussion.Web.Tests.StartupSpecs
 {
     public class ServicesSpecs
     {
