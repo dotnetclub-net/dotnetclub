@@ -14,7 +14,9 @@
 
 
     .topic-meta-primary{
-      .category{
+      min-width: 50px;
+
+      .topic-type{
         background: $gray-lighter;
         color: $text-muted;
         padding: 3px;
@@ -26,7 +28,7 @@
     }
 
     &.featured .topic-meta-primary {
-      .category {
+      .topic-type {
         background: $brand-primary;
         color: white;
       }
@@ -34,7 +36,7 @@
 
     .topic-title{
       color: $text-color;
-      padding: 0 15px;
+      padding: 0 10px;
       max-width: 60%;
       max-width: calc(100% - 200px);
       display: inline-block;

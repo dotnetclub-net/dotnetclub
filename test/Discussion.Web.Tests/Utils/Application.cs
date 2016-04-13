@@ -1,4 +1,5 @@
-﻿using Jusfr.Persistent;
+﻿using Discussion.Web.Data;
+using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
@@ -12,12 +13,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using Xunit;
@@ -402,28 +401,8 @@ namespace Discussion.Web.Tests
                 var databaseName = string.Concat("ut_" + DateTime.UtcNow.ToString("yyyyMMddHHMMss") + Guid.NewGuid().ToString("N").Substring(0, 4));
                 connectionString = $"mongodb://{host}/{databaseName}";
             }
-            while (DatabaseExists(connectionString));
+            while (MongoDbUtils.DatabaseExists(connectionString));
             return connectionString;
-        }
-
-        static bool DatabaseExists(string connectionString)
-        {
-            var mongoUri = new MongoUrl(connectionString);
-            var client = new MongoClient(mongoUri);
-
-            var dbList = Enumerate(client.ListDatabases()).Select(db => db.GetValue("name").AsString);
-            return dbList.Contains(mongoUri.DatabaseName);
-        }
-
-        static IEnumerable<BsonDocument> Enumerate(IAsyncCursor<BsonDocument> docs)
-        {
-            while (docs.MoveNext())
-            {
-                foreach (var item in docs.Current)
-                {
-                    yield return item;
-                }
-            }
         }
 
         static void DropDatabase(string connectionString)
@@ -437,10 +416,12 @@ namespace Discussion.Web.Tests
 
     }
 
-    public static class ServiceProviderExtensions
+    public static class TestApplicationContextExtensions
     {
-        public static T CreateController<T>(this IServiceProvider services) where T : class
+        public static T CreateController<T>(this IApplicationContext app) where T : class
         {
+            var services = app.ApplicationServices;
+
             var actionContext = new ActionContext(
                 new DefaultHttpContext
                 {
@@ -454,6 +435,11 @@ namespace Discussion.Web.Tests
 
             var controllerFactory = services.GetService<IControllerFactory>();
             return controllerFactory.CreateController(actionContext) as T;
+        }
+
+        public static T GetService<T>(this IApplicationContext app) where T : class
+        {
+            return app.ApplicationServices.GetService<T>();
         }
     }
 }

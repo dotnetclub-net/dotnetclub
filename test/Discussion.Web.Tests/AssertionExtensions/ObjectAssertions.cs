@@ -76,7 +76,7 @@ namespace Discussion.Web.Tests
 
         public static void IsType<T>(this object obj)
         {
-            IsType<T>(obj);
+            Assert.IsType<T>(obj);
         }
 
         public static void IsNotType(this object obj, Type expectedType)
@@ -86,7 +86,7 @@ namespace Discussion.Web.Tests
 
         public static void IsNotType<T>(this object obj)
         {
-            IsNotType<T>(obj);
+            Assert.IsNotType<T>(obj);
         }
 
         public class ObjectComparer<T> : EqualityComparer<T>

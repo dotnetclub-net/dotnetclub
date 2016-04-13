@@ -1,5 +1,5 @@
 ﻿using Discussion.Web.Models;
-using Discussion.Web.Repositories;
+using Discussion.Web.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit;

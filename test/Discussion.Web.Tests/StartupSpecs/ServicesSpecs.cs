@@ -1,5 +1,5 @@
 ﻿using Discussion.Web.Models;
-using Discussion.Web.Repositories;
+using Discussion.Web.Data;
 using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
 using Microsoft.AspNet.Hosting;

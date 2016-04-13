@@ -1,18 +1,31 @@
-﻿using Microsoft.AspNet.Mvc;
-using System;
-using System.Collections.Generic;
+﻿using Discussion.Web.Models;
+using Microsoft.AspNet.Mvc;
 using System.Linq;
-using System.Threading.Tasks;
+using Discussion.Web.Data;
 
 namespace Discussion.Web.Controllers
 {
     public class TopicController : Controller
     {
 
+        private readonly IDataRepository<Topic> _topicRepo;
+        public TopicController(IDataRepository<Topic> topicRepo)
+        {
+            _topicRepo = topicRepo;
+        }
+
+
+
+
         [Route("/")]
+        [Route("/Topic/List")]
         public ActionResult List()
         {
-            return View();    
+            var topicList = _topicRepo.All.ToList();
+
+
+
+            return View(topicList);
         }
     }
 }

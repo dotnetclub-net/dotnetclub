@@ -31,7 +31,7 @@ namespace Discussion.Web.Tests.Specs.Web
         [Fact]
         public void should_serve_error_page_as_view_result()
         {
-            var homeController = _myApp.ApplicationServices.CreateController<HomeController>();
+            var homeController = _myApp.CreateController<HomeController>();
 
             var errorResult = homeController.Error();
 

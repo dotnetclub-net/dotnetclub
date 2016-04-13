@@ -1,4 +1,4 @@
-﻿
+﻿@model List<Topic>
 
 @{
     ViewData["Title"] = "My Discussion Site";
@@ -7,13 +7,27 @@
 
 @section Head{
 <environment names="Development">
-    <link rel="stylesheet" href="~/stylesheets/css/index.css" />
+    <link rel="stylesheet" href="~/stylesheets/css/topic-list.css" />
 </environment>
 <environment names="Staging,Production">
-    <link rel="stylesheet" href="~/stylesheets/css/index.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/stylesheets/css/topic-list.min.css" asp-append-version="true" />
 </environment>
 }
 
+
+@functions{
+    static string DescribeTopicType(TopicType topicType)
+    {
+        switch (topicType){
+            case TopicType.Sharing:
+                return "分享";
+            case TopicType.Question:
+                return "问答";
+        }
+        return null;
+
+    }
+}
 
 <div class="row">
     <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -22,19 +36,24 @@
         </div>
 
         <div class="panel-body no-padding">
-            <div class='topic-item'>
-                <div class="topic-meta-primary pull-left">
-                    <span class="counts">10/596</span>
-                    <span class="category">问答</span>
+            @foreach (var topicItem in Model)
+            {
+                <div class="topic-item">
+                    <div class="topic-meta-primary pull-left">
+                        <span class="counts">@topicItem.ReplyCount/@topicItem.ViewCount</span>
+                        <span class="topic-type">@DescribeTopicType(topicItem.TopicType)</span>
+                    </div>
+                    <a class="topic-title" href='/topic/56f7a272e2d0ba0b323886e2'>
+                        @topicItem.Title
+                    </a>
+                    @if (topicItem.LastRepliedAt.HasValue)
+                    {
+                        <div class="topic-meta-secondary pull-right">
+                            @topicItem.LastRepliedAt
+                        </div>
+                    }
                 </div>
-                <a class="topic-title" href='/topic/56f7a272e2d0ba0b323886e2'>
-                    和新年祝福 展望Nodejs 2016和新年祝福 展望Nodejs 2016和新年祝福
-                </a>
-                <div class="topic-meta-secondary pull-right">
-                    3 小时前
-                </div>
-            </div>
-
+            }
         </div>
         <div class="panel-footer">
             <!-- Pagination -->
@@ -42,13 +61,3 @@
 
     </div>
 </div>
-
-
-@section Tail{
-    <script>
-        while ($('.topic-item').length < 20) {
-            console.log($('.topic-item').length % 3);
-            $('.topic-item').eq(0).clone().addClass(($('.topic-item').length % 3) ? '' : 'featured').insertAfter($('.topic-item:last-child'));
-        }
-    </script>
-}

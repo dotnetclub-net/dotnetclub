@@ -1,4 +1,4 @@
-﻿using Discussion.Web.Repositories;
+﻿using Discussion.Web.Data;
 using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
 using Microsoft.AspNet.Builder;
@@ -39,6 +39,13 @@ namespace Discussion.Web
                 if (string.IsNullOrWhiteSpace(mongoConnectionString))
                 {
                     throw new ApplicationException("No configuration value set for key 'mongoConnectionString'");
+                }
+
+                // @jijiechen: detect at every time initate a new IRepositoryContext
+                // may cause a performance issue
+                if (!MongoDbUtils.DatabaseExists(mongoConnectionString))
+                {
+                    throw new ApplicationException("Could not find a database using specified connection string");
                 }
 
                 return new MongoRepositoryContext(mongoConnectionString);

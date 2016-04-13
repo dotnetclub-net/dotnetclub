@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Discussion.Web.Repositories
+namespace Discussion.Web.Data
 {
     public class BaseDataRepository<TEntity> : IDataRepository<TEntity> where TEntity : class, IEntry, IAggregate<int>
     {
