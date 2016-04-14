@@ -59,7 +59,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             var dnxWeb = new ProcessStartInfo
             {
                 FileName = dnxPath,
-                Arguments = "Microsoft.AspNet.Server.Kestrel --server.urls http://localhost:" + port.ToString(),
+                Arguments = "Microsoft.AspNet.Server.Kestrel --Hosting:Environment Integration --server.urls http://localhost:" + port.ToString(),
                 WorkingDirectory = webProject,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

@@ -33,7 +33,7 @@ namespace Discussion.Web.Tests.Specs.Web
         {
             var homeController = _myApp.CreateController<HomeController>();
 
-            var errorResult = homeController.Error();
+            var errorResult = homeController.Error().Result;
 
             Assert.NotNull(errorResult);
             Assert.IsType<ViewResult>(errorResult);
