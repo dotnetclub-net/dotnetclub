@@ -1,0 +1,46 @@
+﻿@section Head{
+    <environment names="Development">
+        <link rel="stylesheet" href="~/lib/dist/summernote/summernote.css" />
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="~/lib/dist/summernote/summernote.min.css" />
+    </environment>
+}
+
+
+    <div class="row clearfix">
+        <h2>创建新的话题: </h2>
+        <div class="col-sm-6 col-lg-6 col-md-6 col-xs-6 pull-left">
+            <div id="editor">
+                <p>请在这里输入内容</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-6 col-md-6 col-xs-6 pull-right">
+            <div id="editor-mapped">
+                <p>&nbsp;</p>                
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <h2>Markdown: </h2>
+        <textarea id="markdown" style="height:300px" class="col-sm-12 col-lg-12 col-md-12 col-xs-12"></textarea>
+    </div>
+    <p><br /></p>
+    <p><br /></p>
+
+
+
+@section Tail{
+<environment names="Development">
+    <script src="~/lib/dist/summernote/summernote.js"></script>
+    <script src="~/lib/dist/to-markdown/to-markdown.js"></script>
+    <script src="~/lib/dist/marked/marked.js"></script>
+</environment>
+<environment names="Staging,Production">
+    <script src="~/lib/dist/summernote/summernote.min.js"></script>
+    <script src="~/lib/dist/to-markdown/to-markdown.min.js"></script>
+    <script src="~/lib/dist/marked/marked.min.js"></script>
+</environment>
+
+<script src="~/scripts/js/markdown-editor.js"></script>
+}

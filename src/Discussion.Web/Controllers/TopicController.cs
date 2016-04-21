@@ -27,5 +27,12 @@ namespace Discussion.Web.Controllers
 
             return View(topicList);
         }
+
+
+        [Route("/Topic/Create")]
+        public ActionResult Create()
+        {
+            return View();
+        }
     }
 }

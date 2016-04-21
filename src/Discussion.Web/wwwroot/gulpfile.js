@@ -93,6 +93,27 @@ gulp.task("use-libs", function *() {
 
     // jquery
     yield gulp.src([paths.libSource + '/jquery/dist/**/*' ]).pipe(gulp.dest(paths.libDist + '/jquery'));
+
+    // summernote
+    yield gulp.src([paths.libSource + '/summernote/dist/**/*' ]).pipe(gulp.dest(paths.libDist + '/summernote'));
+
+    // to-markdown
+    yield gulp.src([paths.libSource + '/to-markdown/dist/**/*' ]).pipe(gulp.dest(paths.libDist + '/to-markdown'));
+    yield gulp.src(paths.libDist + '/to-markdown/to-markdown.js', { base: "./" })
+        .pipe(uglify())
+        .pipe(rename(function (path) {
+            path.extname = ".min.js";
+        }))
+        .pipe(gulp.dest('.'));
+
+    // marked
+    yield gulp.src([paths.libSource + '/marked/lib/**/*' ]).pipe(gulp.dest(paths.libDist + '/marked'));
+    yield gulp.src(paths.libDist + '/marked/marked.js', { base: "./" })
+        .pipe(uglify())
+        .pipe(rename(function (path) {
+            path.extname = ".min.js";
+        }))
+        .pipe(gulp.dest('.'));
 });
 
 gulp.task("minify", function *() {
