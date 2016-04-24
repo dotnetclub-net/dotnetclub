@@ -4,6 +4,8 @@ using Discussion.Web.Data;
 using Microsoft.AspNet.Mvc;
 using System.Collections.Generic;
 using Xunit;
+using System.Reflection;
+using System;
 
 namespace Discussion.Web.Tests.Specs.Web
 {
@@ -18,12 +20,14 @@ namespace Discussion.Web.Tests.Specs.Web
         }
 
 
-        [Fact]
-        public void should_serve_topic_list_page_as_view_result()
+        [Theory]
+        [InlineData("List")]
+        [InlineData("Create")]
+        public void should_serve_pages_as_view_result(string actionName)
         {
             var topicController = _myApp.CreateController<TopicController>();
 
-            var topicListResult = topicController.List();
+            var topicListResult = topicController.InvokeAction(actionName, null);
 
             topicListResult.ShouldNotBeNull();
             topicListResult.IsType<ViewResult>();
