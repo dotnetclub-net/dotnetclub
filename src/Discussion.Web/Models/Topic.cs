@@ -5,6 +5,7 @@ namespace Discussion.Web.Models
     public class Topic : Entity
     {
         public string Title { get; set; }
+        public string Content { get; set; }
         public TopicType TopicType { get; set; }
 
 

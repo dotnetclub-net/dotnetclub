@@ -4,7 +4,8 @@ using Discussion.Web.Data;
 using Microsoft.AspNet.Mvc;
 using System.Collections.Generic;
 using Xunit;
-using System.Reflection;
+using Discussion.Web.ViewModels;
+using System.Linq;
 using System;
 
 namespace Discussion.Web.Tests.Specs.Web
@@ -34,7 +35,6 @@ namespace Discussion.Web.Tests.Specs.Web
         }
 
 
-
         [Fact]
         public void should_serve_topic_list_on_page()
         {
@@ -57,10 +57,57 @@ namespace Discussion.Web.Tests.Specs.Web
             var topicList = topicListResult.ViewData.Model as IList<Topic>;
 
             topicList.ShouldNotBeNull();
-            topicList.Count.ShouldEqual(3);
             topicList.ShouldContain(t => t.Title == "dummy topic 1");
             topicList.ShouldContain(t => t.Title == "dummy topic 2");
             topicList.ShouldContain(t => t.Title == "dummy topic 3");
+        }
+
+        [Fact]
+        public void should_create_topic()
+        {
+            var topicController = _myApp.CreateController<TopicController>();
+
+
+            var model = new TopicCreationModel() { Title = "first topic you created", Content = "**This is the content of this markdown**\r\n* markdown content is greate*" };
+            topicController.CreateTopic(model);
+
+
+            var repo = _myApp.GetService<IDataRepository<Topic>>();
+            var allTopics = repo.All.ToList();
+
+            var createdTopic = allTopics.Find(topic => topic.Title == model.Title);
+
+            createdTopic.ShouldNotBeNull();
+            createdTopic.Title.ShouldEqual(model.Title);
+            createdTopic.Content.ShouldEqual(model.Content);
+
+            var createdAt = (DateTime.UtcNow - createdTopic.CreatedAt);
+            Assert.True(createdAt.TotalMilliseconds > 0);
+            Assert.True(createdAt.TotalMinutes < 2);
+
+            createdTopic.LastRepliedAt.ShouldBeNull();
+            createdTopic.ReplyCount.ShouldEqual(0);
+            createdTopic.ViewCount.ShouldEqual(0);
+        }
+
+        [Fact]
+        public void should_show_topic()
+        {
+            var topic = new Topic { Title = "dummy topic 1" };
+            var repo = _myApp.GetService<IDataRepository<Topic>>();
+            repo.Create(topic);
+
+
+            var topicController = _myApp.CreateController<TopicController>();
+            var result = topicController.Index(topic.Id) as ViewResult;
+
+
+            result.ShouldNotBeNull();
+
+            var viewModel = result.ViewData.Model;
+            var topicShown = viewModel as Topic;
+            topicShown.ShouldNotBeNull();
+            topicShown.Id.ShouldEqual(topic.Id);
         }
 
 

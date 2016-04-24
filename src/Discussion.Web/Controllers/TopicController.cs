@@ -2,6 +2,8 @@
 using Microsoft.AspNet.Mvc;
 using System.Linq;
 using Discussion.Web.Data;
+using Discussion.Web.ViewModels;
+using System;
 
 namespace Discussion.Web.Controllers
 {
@@ -15,6 +17,17 @@ namespace Discussion.Web.Controllers
         }
 
 
+        [Route("/Topic/{id}")]
+        public ActionResult Index(int id)
+        {
+            var topic = _topicRepo.Retrive(id);
+            if(topic == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(topic);
+        }
 
 
         [Route("/")]
@@ -22,8 +35,6 @@ namespace Discussion.Web.Controllers
         public ActionResult List()
         {
             var topicList = _topicRepo.All.ToList();
-
-
 
             return View(topicList);
         }
@@ -33,6 +44,21 @@ namespace Discussion.Web.Controllers
         public ActionResult Create()
         {
             return View();
+        }
+
+        [HttpPost]
+        [Route("/Topic/CreateTopic")]
+        public void CreateTopic(TopicCreationModel model)
+        {
+            var topic = new Topic
+            {
+                Title = model.Title,
+                Content = model.Content,
+                CreatedAt = DateTime.UtcNow
+            };
+
+
+            _topicRepo.Create(topic);
         }
     }
 }

@@ -334,7 +334,7 @@ function convertToMarkdown(){
             }
         ]
     });
-    $('#markdown').val(markdown);
+    $('#new-topic-content').val(markdown);
 
     var htmlConvertedBack = marked( markdown );
     $('#editor-mapped').data('summernote').code(htmlConvertedBack);

@@ -1,0 +1,17 @@
+﻿@model Topic
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="row">
+    <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel-heading">
+            @Model.Title  (创建于 @Model.CreatedAt UTC)
+        </div>
+
+        <div class="panel-body no-padding">
+            @Model.Content
+        </div>
+    </div>
+</div>

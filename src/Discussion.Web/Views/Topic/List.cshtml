@@ -43,8 +43,8 @@
                         <span class="counts">@topicItem.ReplyCount/@topicItem.ViewCount</span>
                         <span class="topic-type">@DescribeTopicType(topicItem.TopicType)</span>
                     </div>
-                    <a class="topic-title" href='/topic/56f7a272e2d0ba0b323886e2'>
-                        @topicItem.Title
+                    <a class="topic-title" href="@Url.Action("Index", "Topic", new { id = topicItem.Id})">
+                        @topicItem.Title Id: @topicItem.Id
                     </a>
                     @if (topicItem.LastRepliedAt.HasValue)
                     {
