@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.WebEncoders;
 using System;
 using System.IO;
 
@@ -32,6 +33,27 @@ namespace Discussion.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
+            // Configure runtime to enable specified characters to be rendered as is
+            // See https://github.com/aspnet/HttpAbstractions/issues/315
+            services.AddWebEncoders(option =>
+            {
+                var enabledChars = new[]
+                {
+                    UnicodeRanges.BasicLatin,
+                    UnicodeRanges.Latin1Supplement,
+                    UnicodeRanges.CJKUnifiedIdeographs,
+                    UnicodeRanges.HalfwidthandFullwidthForms,
+                    UnicodeRanges.LatinExtendedAdditional,
+                    UnicodeRanges.LatinExtendedA,
+                    UnicodeRanges.LatinExtendedB,
+                    UnicodeRanges.LatinExtendedC,
+                    UnicodeRanges.LatinExtendedD,
+                    UnicodeRanges.LatinExtendedE
+                };
+
+                option.CodePointFilter = new CodePointFilter(enabledChars);
+            });
+
             services.AddMvc();
             services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
             {
@@ -76,7 +98,6 @@ namespace Discussion.Web
             app.UseIISPlatformHandler();
             app.UseStaticFiles();
             app.UseMvc();
-
         }
 
 
