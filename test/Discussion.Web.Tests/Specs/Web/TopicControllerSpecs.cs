@@ -105,7 +105,7 @@ namespace Discussion.Web.Tests.Specs.Web
             result.ShouldNotBeNull();
 
             var viewModel = result.ViewData.Model;
-            var topicShown = viewModel as Topic;
+            var topicShown = viewModel as TopicShowModel;
             topicShown.ShouldNotBeNull();
             topicShown.Id.ShouldEqual(topic.Id);
         }
