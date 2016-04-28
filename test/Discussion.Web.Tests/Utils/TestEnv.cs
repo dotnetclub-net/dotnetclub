@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNet.Testing;
+using Microsoft.Extensions.PlatformAbstractions;
 using System;
 using System.IO;
 using System.Linq;
@@ -20,13 +21,8 @@ namespace Discussion.Web.Tests {
 
         public static string DnxPath()
         {
-            var dnxPathFragment = string.Concat(".dnx", Path.DirectorySeparatorChar, "runtimes");
             var dnxCommand = TestPlatformHelper.IsWindows ? "dnx.exe" : "dnx";
-            var envPathSeparator = TestPlatformHelper.IsWindows ? ';' : ':';
-
-            var envPath = Environment.GetEnvironmentVariable("PATH");
-            var runtimeBin = envPath.Split(new char[] { envPathSeparator }, StringSplitOptions.RemoveEmptyEntries)
-                .Where(c => c.Contains(dnxPathFragment)).FirstOrDefault();
+            var runtimeBin = PlatformServices.Default.Runtime.RuntimePath;
 
             if (string.IsNullOrWhiteSpace(runtimeBin))
             {

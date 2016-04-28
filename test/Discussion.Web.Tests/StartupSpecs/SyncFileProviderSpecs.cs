@@ -2,13 +2,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.OptionsModel;
 using Microsoft.Extensions.PlatformAbstractions;
+using System;
 using Xunit;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
-    public class SyncFileProviderSpecs
+    public class SyncFileProviderSpecs: IDisposable
     {
-
+        PlatformServices _defaultPlatformService;
+        public SyncFileProviderSpecs()
+        {
+            _defaultPlatformService = PlatformServices.Default;
+        }
 
         [Fact]
         public void should_use_synchronous_file_provider_on_mono()
@@ -44,22 +49,27 @@ namespace Discussion.Web.Tests.StartupSpecs
             Assert.Equal("Microsoft.AspNet.FileProviders.PhysicalFileProvider", fileProviderType);
         }
 
-        static void MockRuntime(string runtimeType)
+        void MockRuntime(string runtimeType)
         {
-            var currentPlatformService = PlatformServices.Default;
-            var runtime = new StubRuntimeEnvironment(runtimeType);
+            var runtime = new StubRuntimeEnvironment(runtimeType, _defaultPlatformService.Runtime);
 
-            var customPlatformService = PlatformServices.Create(currentPlatformService, currentPlatformService.Application, runtime);
+            var customPlatformService = PlatformServices.Create(_defaultPlatformService, _defaultPlatformService.Application, runtime);
             PlatformServices.SetDefault(customPlatformService);
         }
 
+        public void Dispose()
+        {
+            PlatformServices.SetDefault(_defaultPlatformService); 
+        }
 
         class StubRuntimeEnvironment : IRuntimeEnvironment
         {
             string _runtimeType;
-            public StubRuntimeEnvironment(string runtimeType)
+            IRuntimeEnvironment _originalEnv;
+            public StubRuntimeEnvironment(string runtimeType, IRuntimeEnvironment originalEnv)
             {
                 _runtimeType = runtimeType;
+                _originalEnv = originalEnv;
             }
 
 
@@ -67,7 +77,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             {
                 get
                 {
-                    return "Windows";
+                    return _originalEnv.OperatingSystem;
                 }
             }
 
@@ -75,7 +85,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             {
                 get
                 {
-                    return "10.0";
+                    return _originalEnv.OperatingSystemVersion;
                 }
             }
 
@@ -83,7 +93,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             {
                 get
                 {
-                    return "x86";
+                    return _originalEnv.RuntimeArchitecture;
                 }
             }
 
@@ -91,7 +101,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             {
                 get
                 {
-                    return "/mnt/C/dnx/bin";
+                    return _originalEnv.RuntimePath;
                 }
             }
 
@@ -107,7 +117,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             {
                 get
                 {
-                    return "1.0.0-rc1-16231";
+                    return _originalEnv.RuntimeVersion;
                 }
             }
         }
