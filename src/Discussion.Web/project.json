@@ -9,6 +9,7 @@
     "Microsoft.Extensions.Logging.Debug": "1.0.0-rc1-final",
     "Jusfr.Persistent.Mongo": "1.0.0",
     "Moq": "4.2.1312.1622",
+    "Markdown": "1.14.4",
     "Microsoft.AspNet.Diagnostics": "1.0.0-rc1-final",
     "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-rc1-final",
     "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final"

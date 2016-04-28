@@ -4,6 +4,7 @@ using System.Linq;
 using Discussion.Web.Data;
 using Discussion.Web.ViewModels;
 using System;
+using MarkdownSharp;
 
 namespace Discussion.Web.Controllers
 {
@@ -26,7 +27,18 @@ namespace Discussion.Web.Controllers
                 return HttpNotFound();
             }
 
-            return View(topic);
+
+            // Create new markdown instance
+            var markdownConverter = new Markdown();
+            var showModel = new TopicShowModel
+            {
+                Id = topic.Id,
+                Title = topic.Title,
+                MarkdownContent = topic.Content,
+                HtmlContent = markdownConverter.Transform(topic.Content)
+            };
+
+            return View(showModel);
         }
 
 

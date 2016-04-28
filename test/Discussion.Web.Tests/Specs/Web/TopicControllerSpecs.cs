@@ -111,5 +111,34 @@ namespace Discussion.Web.Tests.Specs.Web
         }
 
 
+        [Fact]
+        public void should_show_render_topic_content_from_markdown()
+        {
+            var topic = new Topic
+            {
+                Title = "dummy topic 1",
+                Content = @"标题哈
+###哈呵呵
+**功能**是*很好*的"
+            };
+            var repo = _myApp.GetService<IDataRepository<Topic>>();
+            repo.Create(topic);
+
+
+            var topicController = _myApp.CreateController<TopicController>();
+            var result = topicController.Index(topic.Id) as ViewResult;
+
+            result.ShouldNotBeNull();
+
+            var viewModel = result.ViewData.Model;
+            var topicShown = viewModel as TopicShowModel;
+            topicShown.ShouldNotBeNull();
+            topicShown.Id.ShouldEqual(topic.Id);
+            topicShown.Title.ShouldEqual(topic.Title);
+            topicShown.MarkdownContent.ShouldEqual(topic.Content);
+            topicShown.HtmlContent.ShouldEqual("<p>标题哈</p>\n\n<h3>哈呵呵</h3>\n\n<p><strong>功能</strong>是<em>很好</em>的</p>");
+        }
+
+
     }
 }
