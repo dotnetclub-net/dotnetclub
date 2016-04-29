@@ -1,4 +1,4 @@
-// 2. remove all illegal tags (or only allow tag white-list)
+// -2. remove all illegal tags (or only allow tag white-list)
 // 3. should remove all attributes & styles when paste
 // 4. handle image uploading...
 // 6. should not use keyboard shortcuts in PRE
@@ -19,13 +19,21 @@ $(document).ready(function() {
         button.attr('disabled', 'disabled');
 
         var contentEditor = $('#content-editor').data('summernote');
-        var mdContent = convertToMarkdown(contentEditor);
+        var htmlContent = contentEditor.code();
+
+        var element = $('<div>').append(htmlContent);
+        var htmlOptions = htmlFragmentOptions();
+        processTag(element[0], null, element[0], htmlOptions);
+
+        var mdContent = convertToMarkdown(element.html());
 
         var newTopic = {
             title: $('#new-topic-title').val(),
             content: mdContent
         };
 
+        //console.log(newTopic);
+        //return;
         $.post(window.createTopicUrl, newTopic)
             .done(function () {
                 location.replace("/");
@@ -308,7 +316,7 @@ function patchPreTag(ev){
     }
 }
 
-function convertToMarkdown(editor) {
+function convertToMarkdown(htmlContent) {
     var markdownOptions = {
         converters: [
             {
@@ -349,10 +357,198 @@ function convertToMarkdown(editor) {
         ]
     };
 
-
-    var htmlContent = editor.code();
     var markdown = toMarkdown(htmlContent, markdownOptions);
     return markdown;
+}
+
+function htmlFragmentOptions(){
+    var illegalTags = [
+        'script',
+        'style',
+        'link',
+        'iframe',
+        'frameset',
+        'object',
+        'embed',
+        'video',
+        'audio',
+        'canvas',
+        'svg',
+        'html',
+        'head',
+        'body',
+        'meta',
+        'input',
+        'select',
+        'option',
+        'button'
+    ];
+
+    var blockTags = [
+        'div',
+        'main',
+        'nav',
+        'aside',
+        'section',
+        'article',
+        'footer',
+        'header',
+        'figure',
+        'legend',
+        'fieldset',
+        'dd',
+        'h1',
+        'h2',
+        'h4',
+        'h5',
+        'h6'
+    ];
+
+    var allowedTags = [
+        'p',
+        'h3',
+        'blockquote',
+        'strong',
+        'b',
+        'em',
+        'i',
+        'strike',
+        'ul',
+        'ol',
+        'li',
+        'a',
+        'img',
+        'pre'
+    ];
+    var attributes = {
+        'a': ['href', 'title', 'name'],
+        'img': ['src', 'alt', 'title'],
+        'pre': ['language']
+    };
+
+    return {
+        allowEmptyParagraph: true,
+        illegalTags: illegalTags,
+        blockTags: blockTags,
+        allowedTags: allowedTags,
+        allowedAttributes: attributes
+    };
+}
+
+function processTag(node, parentNode, container, options){
+    if(node.childNodes.length){
+        processTag(node.childNodes[0], node, container, options);
+    }
+
+    if(!parentNode){
+        return;
+    }
+
+    if(node.nextSibling){
+        processTag(node.nextSibling, parentNode, container, options);
+    }
+
+    var transformedNode = processSingleTag(node, options.illegalTags, options.blockTags, options.allowedTags, options.allowedAttributes);
+    if(transformedNode !== node){
+        if (transformedNode.nodeName === 'P' && (options.allowEmptyParagraph || !!$.trim(transformedNode.textContent))){
+            var firstLevel = node;
+            while(firstLevel.parentNode !== container){
+                firstLevel = firstLevel.parentNode;
+            }
+
+            insertBefore(transformedNode, firstLevel);
+        } else {
+            parentNode.insertBefore(transformedNode, node);
+        }
+
+        parentNode.removeChild(node);
+    }
+
+    function insertBefore(newNode, refNode){
+        if (refNode.nextSibling) {
+            refNode.parentNode.insertBefore(newNode, refNode.nextSibling);
+        } else {
+            refNode.parentNode.appendChild(newNode);
+        }
+    }
+}
+
+function processSingleTag(node, illegalTags, blockTags, allowedTags, allowedAttributes){
+    if(node.nodeType === 3){
+        return node;
+    }
+
+    if(node.nodeType !== 1 || isIllegal(node.nodeName)){
+        return document.createTextNode("");
+    }
+
+    if(isAllowed(node.nodeName)){
+        stripAttributes(node);
+        return node;
+    }
+
+    if(isBlockTag(node.nodeName)){
+        var p = document.createElement('p');
+        $.each($.makeArray(node.childNodes), function (i, child) {
+            p.appendChild(child);
+        });
+        return p;
+    }
+
+    return document.createTextNode(node.textContent);
+
+
+    function isIllegal(tagName) {
+        var illegal = false;
+        $.each(illegalTags, function(i, tag){
+            if(equals(tagName, tag)){
+                illegal = true;
+                return false;
+            }
+        });
+        return illegal;
+    }
+
+    function isAllowed(tagName) {
+        var allowed = false;
+        $.each(allowedTags, function(i, tag){
+            if(equals(tagName, tag)){
+                allowed = true;
+                return false;
+            }
+        });
+        return allowed;
+    }
+
+    function isBlockTag(tagName){
+        var isBlock = false;
+        $.each(blockTags, function(i, tag){
+            if(equals(tagName, tag)){
+                isBlock = true;
+                return false;
+            }
+        });
+        return isBlock;
+    }
+
+    function stripAttributes(node){
+        var attributesToRemove = [];
+        $.each(node.attributes, function(i, attr){
+            var tag = node.nodeName.toLowerCase();
+
+            if(!allowedAttributes[tag] || allowedAttributes[tag].indexOf(attr.name) < 0){
+                attributesToRemove.push(attr.name);
+            }
+        });
+
+        $.each(attributesToRemove, function(i, attr){
+            node.removeAttribute(attr);
+        });
+    }
+
+    function equals(first, second){
+        return first.toUpperCase() === second.toUpperCase();
+    }
 }
 
 })();
