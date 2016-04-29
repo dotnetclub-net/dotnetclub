@@ -8,8 +8,35 @@
 // popover toolbar may be overflow editor height!
 // make this translatable: 选择语言
 
+(function(){
 
 $(document).ready(function() {
+    var editorOptions = defaultEditorOptions();
+
+    $('#content-editor').summernote(editorOptions);
+    $('#submit-create').on('click', function () {
+        var button = $(this);
+        button.attr('disabled', 'disabled');
+
+        var contentEditor = $('#content-editor').data('summernote');
+        var mdContent = convertToMarkdown(contentEditor);
+
+        var newTopic = {
+            title: $('#new-topic-title').val(),
+            content: mdContent
+        };
+
+        $.post(window.createTopicUrl, newTopic)
+            .done(function () {
+                location.replace("/");
+            }).fail(function(){
+                console.log('error on creating new topic');
+                button.removeAttr('disabled');
+            });
+    });
+});
+
+function defaultEditorOptions(){
     var defaultOptions = $.extend({}, $.summernote.options);
     var options = $.extend({}, defaultOptions, {
         toolbar: [
@@ -31,9 +58,7 @@ $(document).ready(function() {
         ],
         height: 300,
         callbacks: {
-            onChange: function () {
-                convertToMarkdown();
-            },
+            onChange: function () { },
             onEnter: patchPreTag
         },
         buttons:{
@@ -46,16 +71,8 @@ $(document).ready(function() {
         ['codeLang', ['chooseCodeLanguage']]
     ];
 
-    $('#editor').summernote(options);
-    $('#editor-mapped').summernote({
-        height: 300,
-        toolbar: [
-            ['format', ['bold', 'italic', 'strikethrough', 'clear']],
-            ['para', ['ul', 'ol']]
-        ],
-        callbacks: { }
-    });
-});
+    return options;
+}
 
 function CodeButton(context) {
     var ui = $.summernote.ui;
@@ -263,7 +280,7 @@ function closestPRE(el){
 }
 
 function patchPreTag(ev){
-    var editor = $('#editor').data('summernote');
+    var editor = $(this).data('summernote');
     var range = editor.invoke('editor.createRange');
     var $pre = $(range.sc).parents('pre');
 
@@ -291,11 +308,8 @@ function patchPreTag(ev){
     }
 }
 
-function convertToMarkdown(){
-    var editor = $('#editor').data('summernote');
-    var htmlContent = editor.code();
-
-    var markdown = toMarkdown(htmlContent, {
+function convertToMarkdown(editor) {
+    var markdownOptions = {
         converters: [
             {
                 filter: 'strike',
@@ -314,7 +328,7 @@ function convertToMarkdown(){
                 replacement: function (content) {
                     return '**' + content + '**';
                 }
-            },{
+            }, {
                 filter: 'br',
                 replacement: function () {
                     // http://stackoverflow.com/a/28633712/1817042
@@ -326,16 +340,19 @@ function convertToMarkdown(){
                 filter: function (node) {
                     return node.nodeName === 'PRE';
                 },
-                replacement: function(content, node) {
+                replacement: function (content, node) {
                     // to-markdown supports Syntax-highlighted code blocks (search 'Syntax-highlighted code blocks' in to-markdown.js)
                     var language = node.getAttribute('language') || '';
                     return '\n\n```' + language + '\n' + node.firstChild.textContent + '\n```\n\n';
                 }
             }
         ]
-    });
-    $('#new-topic-content').val(markdown);
+    };
 
-    var htmlConvertedBack = marked( markdown );
-    $('#editor-mapped').data('summernote').code(htmlConvertedBack);
+
+    var htmlContent = editor.code();
+    var markdown = toMarkdown(htmlContent, markdownOptions);
+    return markdown;
 }
+
+})();

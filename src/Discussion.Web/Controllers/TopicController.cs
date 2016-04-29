@@ -66,6 +66,7 @@ namespace Discussion.Web.Controllers
             {
                 Title = model.Title,
                 Content = model.Content,
+                TopicType = TopicType.Sharing,
                 CreatedAt = DateTime.UtcNow
             };
 

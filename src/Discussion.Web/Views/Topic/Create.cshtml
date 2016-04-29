@@ -9,27 +9,16 @@
 
 
     <div class="row clearfix">
-        <h2>创建新的话题: </h2>
-        <div class="topic-title-editor">
+        <h2>创建新的话题 </h2>
+        <div class="topic-title-container">
             <input id="new-topic-title" type="text" />
         </div>
-        <div class="col-sm-6 col-lg-6 col-md-6 col-xs-6 pull-left">
-            <div id="editor">
-                <p>请在这里输入内容</p>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-6 col-md-6 col-xs-6 pull-right">
-            <div id="editor-mapped">
-                <p>&nbsp;</p>                
-            </div>
+        <div class="topic-content-container">
+            <div id="content-editor"></div>
         </div>
     </div>
     <div class="row">
         <button id="submit-create">创建</button>
-    </div>
-    <div class="row">
-        <h2>Markdown: </h2>
-        <textarea id="new-topic-content" style="height:300px" class="col-sm-12 col-lg-12 col-md-12 col-xs-12"></textarea>
     </div>
     <p><br /></p>
     <p><br /></p>
@@ -48,22 +37,8 @@
     <script src="~/lib/dist/marked/marked.min.js"></script>
 </environment>
 
-<script src="~/scripts/markdown-editor.js"></script>
-
-<script type="text/javascript">
-    (function () {
-        $('#submit-create').on('click', function () {
-            var newTopicItem = {
-                title: $('#new-topic-title').val(),
-                content: content = $('#new-topic-content').val()
-            };
-
-            $.post('@Url.Action("CreateTopic")', newTopicItem)
-            .done(function () {
-                location.replace("/");
-            });
-        });
-
-    })();
+<script>
+    window.createTopicUrl = "@Url.Action("CreateTopic")";
 </script>
+<script src="~/scripts/markdown-editor.js"></script>
 }
