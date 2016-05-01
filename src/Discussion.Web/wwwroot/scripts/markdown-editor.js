@@ -49,7 +49,7 @@ $(document).ready(function() {
     $('#content-editor').summernote(editorOptions);
     $('#submit-create').on('click', function () {
         var button = $(this);
-        button.attr('disabled', 'disabled');
+        // button.attr('disabled', 'disabled');
 
         var contentEditor = $('#content-editor').data('summernote');
         var htmlContent = contentEditor.code();
@@ -65,7 +65,7 @@ $(document).ready(function() {
             content: mdContent
         };
 
-        //console.log(newTopic);
+        console.log(newTopic);
         //return;
         $.post(window.createTopicUrl, newTopic)
             .done(function () {
@@ -384,7 +384,7 @@ function convertToMarkdown(htmlContent) {
                 replacement: function (content, node) {
                     // to-markdown supports Syntax-highlighted code blocks (search 'Syntax-highlighted code blocks' in to-markdown.js)
                     var language = node.getAttribute('language') || '';
-                    return '\n\n```' + language + '\n' + node.firstChild.textContent + '\n```\n\n';
+                    return '\n\n``` ' + language + '\n' + node.firstChild.textContent + '\n```\n\n';
                 }
             }
         ]

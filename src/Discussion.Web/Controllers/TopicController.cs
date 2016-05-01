@@ -5,6 +5,10 @@ using Discussion.Web.Data;
 using Discussion.Web.ViewModels;
 using System;
 using MarkdownSharp;
+using System.Text.RegularExpressions;
+using System.Text;
+using MarkdownSharp.Extensions;
+using System.Reflection;
 
 namespace Discussion.Web.Controllers
 {
@@ -30,6 +34,7 @@ namespace Discussion.Web.Controllers
 
             // Create new markdown instance
             var markdownConverter = new Markdown();
+            markdownConverter.AddExtension(new GfmCodeBlocks(markdownConverter));
             var showModel = new TopicShowModel
             {
                 Id = topic.Id,
@@ -72,6 +77,54 @@ namespace Discussion.Web.Controllers
 
 
             _topicRepo.Create(topic);
+        }
+    }
+
+    public class GfmCodeBlocks : IExtensionInterface
+    {
+
+        private static Regex _codeBlock = new Regex(@"(?:\r?\n|^)(`{3,}|~{3,})([\u0020\t]*(?<lang>\S+))?[\u0020\t]*\r?\n
+	(?<code>[^\r^\n]*\r?\n)*
+	\1(?:\r?\n|$)",
+        RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
+        private readonly Markdown _converterIntance;
+
+        public GfmCodeBlocks(Markdown converterIntance)
+        {
+            _converterIntance = converterIntance;
+        }
+
+        public string Transform(string markdown)
+        {
+            var transformed = _codeBlock.Replace(markdown, new MatchEvaluator(CodeBlockEvaluator));
+
+            Type converterType = typeof(Markdown);
+            var hashHTMLBlocks = converterType.GetMethod("HashHTMLBlocks", BindingFlags.NonPublic | BindingFlags.Instance);
+            var afterHashed = hashHTMLBlocks.Invoke(_converterIntance, new[] { transformed }) as string;
+
+            return afterHashed;
+        }
+
+
+        private string CodeBlockEvaluator(Match match)
+        {
+            var preBuilder = new StringBuilder();
+            preBuilder.AppendLine();
+            preBuilder.Append("<pre");
+
+            var lang = match.Groups["lang"].Value;
+            if (!string.IsNullOrWhiteSpace(lang))
+            {
+                preBuilder.AppendFormat(@" class=""language-{0}""", lang);
+            }
+
+            preBuilder.Append("><code>\n");
+            foreach (Capture line in match.Groups["code"].Captures)
+            {
+                preBuilder.Append(line.Value);
+            }
+            preBuilder.Append("</code></pre>\n");
+            return preBuilder.ToString();
         }
     }
 }

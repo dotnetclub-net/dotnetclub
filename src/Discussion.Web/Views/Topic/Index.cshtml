@@ -4,14 +4,23 @@
     ViewData["Title"] = Model.Title;
 }
 
+
+@section Head{
+    <link rel="stylesheet" href="~/lib/source/prism/themes/prism.css" />
+}
 <div class="row">
     <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="panel-heading">
             @Model.Title
         </div>
 
-        <div class="panel-body no-padding">
+        <div class="panel-body">
             @Html.Raw(Model.HtmlContent)
         </div>
     </div>
 </div>
+
+
+@section Tail{
+ <script src="~/lib/source/prism/prism.js"></script>
+}
