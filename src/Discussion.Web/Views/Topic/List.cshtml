@@ -39,7 +39,7 @@
         </div>
 
         <div class="panel-body no-padding">
-            @foreach (var topicItem in Model)
+            @foreach (var topicItem in Model.OrderByDescending(topic => topic.Id))
             {
                 <div class="topic-item">
                     <div class="topic-meta-primary pull-left">

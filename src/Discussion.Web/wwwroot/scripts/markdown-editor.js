@@ -1,6 +1,7 @@
 // -2. remove all illegal tags (or only allow tag white-list)
 // -3. should remove all attributes & styles when paste
 // 4. handle image uploading...
+// 5. process pasting code with HTML tags...
 // 6. should not use keyboard shortcuts in PRE
 
 
@@ -100,7 +101,16 @@ function defaultEditorOptions(){
         height: 300,
         callbacks: {
             onChange: function () { },
-            onEnter: patchPreTag
+            onEnter: function(ev){
+                ev.preventDefault();
+                ev.stopPropagation();
+
+                var editor = $(this).data('summernote');
+                var patchedPre = patchPreTag.apply(this, [editor, ev]);
+                if(!patchedPre){
+                    editor.invoke('editor.insertParagraph');
+                }
+            }
         },
         buttons:{
             insertCode: CodeButton
@@ -320,8 +330,7 @@ function closestPRE(el){
     return $pre;
 }
 
-function patchPreTag(ev){
-    var editor = $(this).data('summernote');
+function patchPreTag(editor){
     var range = editor.invoke('editor.createRange');
     var $pre = $(range.sc).parents('pre');
 
@@ -329,7 +338,6 @@ function patchPreTag(ev){
         return;
     }
 
-    ev.preventDefault();
     appendLine();
 
     var isEdge = /Edge\/\d+/.test(navigator.userAgent);
@@ -342,6 +350,7 @@ function patchPreTag(ev){
             appendLine();
         }
     }
+    return true;
 
     function appendLine() {
         editor.invoke('editor.insertText', '\n ');
