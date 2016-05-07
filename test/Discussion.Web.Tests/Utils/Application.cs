@@ -7,11 +7,15 @@ using Microsoft.AspNet.Hosting.Startup;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Controllers;
+using Microsoft.AspNet.Mvc.Infrastructure;
+using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.OptionsModel;
 using Microsoft.Extensions.PlatformAbstractions;
 using MongoDB.Driver;
 using System;
@@ -418,7 +422,7 @@ namespace Discussion.Web.Tests
 
     public static class TestApplicationContextExtensions
     {
-        public static T CreateController<T>(this IApplicationContext app) where T : class
+        public static T CreateController<T>(this IApplicationContext app) where T : Controller
         {
             var services = app.ApplicationServices;
 
@@ -433,8 +437,26 @@ namespace Discussion.Web.Tests
                     ControllerTypeInfo = typeof(T).GetTypeInfo()
                 });
 
+            var actionBindingContext = GetActionBindingContext(services.GetService<IOptions<MvcOptions>>().Value, actionContext);
+            services.GetRequiredService<IActionBindingContextAccessor>().ActionBindingContext = actionBindingContext;
+
             var controllerFactory = services.GetService<IControllerFactory>();
             return controllerFactory.CreateController(actionContext) as T;
+        }
+
+        private static ActionBindingContext GetActionBindingContext(MvcOptions options, ActionContext actionContext)
+        {
+            var valueProviderFactoryContext = new ValueProviderFactoryContext(actionContext.HttpContext, actionContext.RouteData.Values);
+            var valueProvider = CompositeValueProvider.CreateAsync(options.ValueProviderFactories, valueProviderFactoryContext).Result;
+
+            return new ActionBindingContext()
+            {
+                InputFormatters = options.InputFormatters,
+                OutputFormatters = options.OutputFormatters,
+                ValidatorProvider = new CompositeModelValidatorProvider(options.ModelValidatorProviders),
+                ModelBinder = new CompositeModelBinder(options.ModelBinders),
+                ValueProvider = valueProvider
+            };
         }
 
         public static T GetService<T>(this IApplicationContext app) where T : class

@@ -8,7 +8,7 @@ using Discussion.Web.ViewModels;
 using System.Linq;
 using System;
 
-namespace Discussion.Web.Tests.Specs.Web
+namespace Discussion.Web.Tests.Specs
 {
 
     [Collection("AppSpecs")]

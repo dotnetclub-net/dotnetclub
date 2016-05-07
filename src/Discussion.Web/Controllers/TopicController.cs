@@ -75,7 +75,6 @@ namespace Discussion.Web.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-
             _topicRepo.Create(topic);
         }
     }
