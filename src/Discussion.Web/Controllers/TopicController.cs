@@ -65,8 +65,13 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/Topic/CreateTopic")]
-        public void CreateTopic(TopicCreationModel model)
+        public ActionResult CreateTopic(TopicCreationModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return HttpBadRequest();
+            }
+
             var topic = new Topic
             {
                 Title = model.Title,
@@ -76,6 +81,7 @@ namespace Discussion.Web.Controllers
             };
 
             _topicRepo.Create(topic);
+            return RedirectToAction("Index", new { topic.Id });
         }
     }
 

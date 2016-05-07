@@ -39,7 +39,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         public void should_use_mvc()
         {
             var httpContext = CreateHttpContext();
-            httpContext.Request.Path = IntegrationTests.NotFoundSpec.NotFoundPath;
+            httpContext.Request.Path = IntegrationTests.NotFoundSpecs.NotFoundPath;
 
             RequestHandler.Invoke(httpContext);
 
@@ -51,7 +51,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_use_static_files()
         {
-            var staticFile = IntegrationTests.NotFoundSpec.NotFoundStaticFile;
+            var staticFile = IntegrationTests.NotFoundSpecs.NotFoundStaticFile;
             var httpContext = CreateHttpContext();
             httpContext.Request.Method = "GET";
             httpContext.Request.Path = staticFile;
