@@ -330,11 +330,11 @@ function closestPRE(el){
     return $pre;
 }
 
-function patchPreTag(editor){
+function patchPreTag(editor, ev){
     var range = editor.invoke('editor.createRange');
     var $pre = $(range.sc).parents('pre');
 
-    if (!$pre.length){   // in edge, when hit enter quickly after click at end, can still fail  (may be use find method from this page can solve finding container:  http://stackoverflow.com/questions/14667764/in-contenteditable-how-do-you-add-a-paragraph-after-blockquote-on-enter-key-pres)
+    if (ev.ctrlKey || ev.metaKey || !$pre.length){   // in edge, when hit enter quickly after click at end, can still fail  (may be use find method from this page can solve finding container:  http://stackoverflow.com/questions/14667764/in-contenteditable-how-do-you-add-a-paragraph-after-blockquote-on-enter-key-pres)
         return;
     }
 
