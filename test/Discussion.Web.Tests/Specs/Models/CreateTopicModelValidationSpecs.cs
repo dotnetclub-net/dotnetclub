@@ -48,6 +48,24 @@ namespace Discussion.Web.Tests.Specs.Models
         }
 
 
+        [Theory]
+        [InlineData("</br>")]
+        [InlineData("<a")]
+        [InlineData("&#30;")]
+        public void should_refuse_any_html_tag_in_title_or_content(string illigalFragment)
+        {
+            var illigalContent = $"html tag like characters {illigalFragment} should not be valid";
+
+            var topicController = CreateControllerAndValidateTopic(illigalContent, illigalContent);
+
+            topicController.ModelState.IsValid.ShouldEqual(false);
+            topicController.ModelState.ErrorCount.ShouldEqual(2);
+
+            topicController.ModelState.Keys.ShouldContain("Title");
+            topicController.ModelState.Keys.ShouldContain("Content");
+        }
+
+
 
         private TopicController CreateControllerAndValidateTopic(string title, string content)
         {
