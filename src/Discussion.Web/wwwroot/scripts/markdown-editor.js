@@ -60,10 +60,13 @@ $(document).ready(function() {
         processTag(element[0], null, htmlOptions);
 
         var mdContent = convertToMarkdown(element.html());
+        var encodedContent = htmlEncode(mdContent);
 
+
+        var title = $('#new-topic-title').val();
         var newTopic = {
-            title: $('#new-topic-title').val(),
-            content: mdContent
+            title: htmlEncode(title),
+            content: encodedContent
         };
 
         console.log(newTopic);
@@ -480,7 +483,6 @@ function htmlFragmentOptions(){
     };
 }
 
-
 function processTag(node, parentNode, options){
     if(node.childNodes.length){
         processTag(node.childNodes[0], node, options);
@@ -601,6 +603,13 @@ function processSingleTag(node, options){
     function equals(first, second){
         return first.toUpperCase() === second.toUpperCase();
     }
+}
+
+function htmlEncode(content){
+    // todo: encode & to &amp;    .replace(/&(?!(amp|nbsp|copy);)/g, '&amp;')
+    return content.replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/&#[\d]+;/g, '');
 }
 
 })();
