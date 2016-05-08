@@ -365,7 +365,7 @@ function convertToMarkdown(htmlContent) {
     var markdownOptions = {
         converters: [
             {
-                filter: 'strike',
+                filter: ['strike', 'del', 's'],
                 replacement: function (content) {
                     return '~~' + content + '~~';
                 }
@@ -390,9 +390,7 @@ function convertToMarkdown(htmlContent) {
             },
             // Fenced code blocks
             {
-                filter: function (node) {
-                    return node.nodeName === 'PRE';
-                },
+                filter: 'pre',
                 replacement: function (content, node) {
                     // to-markdown supports Syntax-highlighted code blocks (search 'Syntax-highlighted code blocks' in to-markdown.js)
                     var language = node.getAttribute('language') || '';
