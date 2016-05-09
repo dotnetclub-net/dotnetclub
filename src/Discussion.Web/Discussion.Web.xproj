@@ -13,6 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <DnxInvisibleFolder Include="wwwroot\node_modules\" />
+    <DnxInvisibleFolder Include="tmp_wwwroot" />
   </ItemGroup>
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>

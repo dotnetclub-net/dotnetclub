@@ -25,9 +25,19 @@
 
   "exclude": [
     "wwwroot",
-    "node_modules"
+    "node_modules",
+    "tmp_wwwroot"
   ],
   "publishExclude": [
+    "tmp_wwwroot/**/*",
+    "wwwroot/node_modules",
+    "wwwroot/lib/source",
+    "wwwroot/stylesheets/sass",
+    "wwwroot/scripts/es6",
+    "wwwroot/.bowerrc",
+    "wwwroot/bower.json",
+    "wwwroot/gulpfile.js",
+    "wwwroot/package.json",
     "**.user",
     "**.vspscc"
   ]
