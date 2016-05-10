@@ -26,7 +26,15 @@ div#help .targets
 #native-compile target='compile'
   log warn='Default native-compile is overridden'
 
+#run-gulp .restore-npm-modules .restore-bower-components target='initialize'
+  var gulpDirs = '${GetDirectoriesContaining(Directory.GetCurrentDirectory(), "gulpfile.js")}'
+  gulp each='var gulpDir in gulpDirs'
+
+
 #publish
+  var gulpDirs = '${GetDirectoriesContaining(Directory.GetCurrentDirectory(), "gulpfile.js")}'
+  gulp each='var gulpDir in gulpDirs' gulpCommand='publish'
+  publish-macros
   @{
   	CallTarget("clean");
 
@@ -55,92 +63,6 @@ div#help .targets
     	Console.WriteLine("Package generated at {0}", Path.Combine(projectFolder, "bin", "output"));
     }
   }
-
-
-macro name='ExcludeWwrootFiles' projectFile='string'
-	@{
-		Console.WriteLine("Excluding wwwroot files temporarily...");
-
-		// does not support globbing
-		const string TmpWwwroot = "tmp_wwwroot";
-
-		var projectText = File.ReadAllText(projectFile);
-		var projectFolder = Path.GetDirectoryName(projectFile);
-
-		var project = (JsonObject)Json.Deserialize(projectText);
-		var wwwroot = (project.ValueAsString("wwwroot") ?? "wwwroot");
-		var publishExcludes = project.ValueAsStringArray("publishExclude");
-		var wwwrootPaths = publishExcludes.Where(path => path.StartsWith( wwwroot + "/")).ToArray();
-
-		var tmp_wwwroot = Path.Combine(projectFolder, TmpWwwroot);
-		if(Directory.Exists(tmp_wwwroot)){
-			Directory.Delete(tmp_wwwroot, true);
-		}
-		Directory.CreateDirectory(tmp_wwwroot);
-
-		foreach(var path in wwwrootPaths){
-			var normalizedPath = path.Replace("\\", new String(Path.DirectorySeparatorChar, 1)).Replace("/", new String(Path.DirectorySeparatorChar, 1));
-			var fullPath = Path.Combine(projectFolder, normalizedPath);
-			var isFile = File.Exists(fullPath);
-			var isDirectory = Directory.Exists(fullPath);
-
-			if(!isFile && !isDirectory){
-				continue;
-			}
-
-			var destPath = normalizedPath.Substring(wwwroot.Length + 1);
-			var destFullPath = Path.GetFullPath(Path.Combine(tmp_wwwroot, destPath));
-			var parentDir = Path.GetDirectoryName(destFullPath);
-			if(!Directory.Exists(parentDir)){
-				Directory.CreateDirectory(parentDir);
-			}
-
-			if(isDirectory){
-				Directory.Move(fullPath, Path.Combine(tmp_wwwroot, destFullPath));
-			}
-			else if(isFile){
-				File.Move(fullPath, Path.Combine(tmp_wwwroot, destFullPath));
-			}
-		}
-	}
-
-
-macro name='RestoreExcludedWwwrootFiles' projectFile='string'
-	@{
-		Console.WriteLine("Restoring temporarily excluded wwwroot files...");
-
-		const string TmpWwwroot = "tmp_wwwroot";
-		var projectFolder = Path.GetDirectoryName(projectFile);
-		var projectText = File.ReadAllText(projectFile);
-		var project = (JsonObject)Json.Deserialize(projectText);
-
-		var tmp_wwwroot = Path.Combine(projectFolder, TmpWwwroot)
-		MoveAll(tmp_wwwroot, Path.Combine(projectFolder, (project.ValueAsString("wwwroot") ?? "wwwroot")));
-		Directory.Delete(tmp_wwwroot, true);
-	}
-
-macro name="MoveAll" sourceDir='string' destDir='string'
-	@{
-		var dir = new DirectoryInfo(sourceDir);
-		if(!dir.Exists){
-			return null;
-		}
-		if(!Directory.Exists(destDir)){
-			Directory.CreateDirectory(destDir);
-		}
-
-
-		foreach(var file in dir.GetFiles()){
-			file.MoveTo(Path.Combine(destDir, file.Name));
-		}
-
-		foreach(var subDir in dir.GetDirectories()){
-			subDir.MoveTo(Path.Combine(destDir, subDir.Name));
-		}
-	}
-
-macro name='DnuAt' commands='string' workingDirectory='string'
-    dnu command='${commands}' workingdir='${workingDirectory}'
 
 
 @{

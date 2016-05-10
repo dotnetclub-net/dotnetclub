@@ -1,0 +1,17 @@
+default gulpCommand = ''
+default currentDir = '${Directory.GetCurrentDirectory()}'
+default nodeDir = '${Path.Combine(currentDir, "bin", "nodejs")}'
+var gulpCliLibrary = '${ Path.Combine(nodeDir, "node_modules", "gulp", "bin", "gulp.js") }'
+var gulpCliInstalled = '${ File.Exists(gulpCliLibrary) }'
+
+default gulpCliGloballyInstalled = '${ !gulpCliInstalled && TestCommand("gulp", "--version") }'
+var gulpCmd = '${ gulpCliGloballyInstalled ? "gulp" : gulpCliLibrary }'
+
+- // Install gulp-cli locally if not already installed either globally or locally; creates gulpCliLibrary file if run
+var installCommand = 'install ${E("KOREBUILD_NPM_INSTALL_OPTIONS")} --prefix "${nodeDir}" gulp'
+npm npmCommand='${installCommand}' if='!(gulpCliGloballyInstalled || gulpCliInstalled)' once='installgulpCli'
+
+-// Run gulp-cli
+exec program='cmd' commandline='/C ${gulpCmd} ${gulpCommand}' workingdir='${gulpDir}' if='gulpCliGloballyInstalled && !IsLinux'
+exec program='${gulpCmd}' commandline='${gulpCommand}' workingdir='${gulpDir}' if='gulpCliGloballyInstalled && IsLinux'
+node nodeCommand='"${gulpCmd}" ${gulpCommand}' workingdir='${gulpDir}' if='!gulpCliGloballyInstalled'

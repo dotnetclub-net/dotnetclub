@@ -32,12 +32,13 @@
     "tmp_wwwroot/**/*",
     "wwwroot/node_modules",
     "wwwroot/lib/source",
-    "wwwroot/stylesheets/sass",
+    "wwwroot/stylesheets/scss",
     "wwwroot/scripts/es6",
     "wwwroot/.bowerrc",
     "wwwroot/bower.json",
     "wwwroot/gulpfile.js",
     "wwwroot/package.json",
+    "appsettings*.json",
     "**.user",
     "**.vspscc"
   ]

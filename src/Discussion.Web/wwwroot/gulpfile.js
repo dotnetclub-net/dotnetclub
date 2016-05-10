@@ -223,11 +223,17 @@ function definePaths() {
 * */
 
 // Task chains
-gulp.task('compile', function (callback) {
+gulp.task('default', function (callback) {
     runSequence('clean', ['babel', 'sass'], 'use-libs', callback);
 });
-gulp.task('release', ['lint', 'compile'], function (callback) {
+gulp.task('publish', ['default'], function (callback) {
     runSequence('minify', callback);
-    // todo: package
 });
+gulp.task('test', ['lint'], function () {
+    // run tests
+});
+
+//gulp.task('watch', function () {
+//
+//});
 

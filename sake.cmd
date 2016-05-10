@@ -24,4 +24,4 @@ IF "%SKIP_DNX_INSTALL%"=="" (
 
 :build
 cd %~dp0
-build-tools\Sake\tools\Sake.exe -I build-tools\KoreBuild\build %*
+build-tools\Sake\tools\Sake.exe -I build-tools\KoreBuild\build -I build-tools\ext %*

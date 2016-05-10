@@ -18,4 +18,4 @@ else
     dnvm use default -p -runtime mono
 fi
 
-mono ./build-tools/Sake/tools/Sake.exe -I ./build-tools/KoreBuild/build "$@"
+mono ./build-tools/Sake/tools/Sake.exe -I ./build-tools/KoreBuild/build -I ./build-tools/ext "$@"
