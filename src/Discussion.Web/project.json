@@ -16,7 +16,7 @@
   },
 
   "commands": {
-    "web": "Microsoft.AspNet.Server.Kestrel  --server.urls http://localhost:5008"
+    "web": "Microsoft.AspNet.Server.Kestrel"
   },
 
   "frameworks": {
@@ -30,6 +30,7 @@
   ],
   "publishExclude": [
     "tmp_wwwroot/**/*",
+    "wwwroot/.idea",
     "wwwroot/node_modules",
     "wwwroot/lib/source",
     "wwwroot/stylesheets/scss",

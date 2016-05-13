@@ -1,6 +1,7 @@
 
 macro name='ExcludeWwrootFiles' projectFile='string'
 	@{
+		// currently, dnu publish will not exclude files in wwwroot. see https://github.com/dotnet/cli/issues/565
 		Console.WriteLine("Excluding wwwroot files temporarily...");
 
 		// does not support globbing
