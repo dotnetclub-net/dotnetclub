@@ -43,8 +43,7 @@ node_modules
 */*.Web/wwwroot/lib
 */*.Web/wwwroot/stylesheets/css
 */*.Web/wwwroot/scripts/js
+*/*.Web/wwwroot/scripts/**/*.min.js
 *.ng.ts
 *.sln.ide
 project.lock.json
-*/*.Web/appsettings.Development.json
-*/*.Web/appsettings.Production.json

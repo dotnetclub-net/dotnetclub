@@ -39,7 +39,6 @@
     "wwwroot/bower.json",
     "wwwroot/gulpfile.js",
     "wwwroot/package.json",
-    "appsettings*.json",
     "**.user",
     "**.vspscc"
   ]
