@@ -70,8 +70,10 @@ namespace Discussion.Web.Tests.StartupSpecs
         }
 
         public static IServiceProvider CreateApplicationServices(Action<IServiceCollection> configureServices) {
+            const string dummyDB = "mongodb://localhost/dummydb";
             var services = new ServiceCollection();
             var startup = CreateMockStartup();
+            startup.Configuration["mongoConnectionString"] = dummyDB;
 
             services.AddInstance<IApplicationEnvironment>(startup.ApplicationEnvironment);
             services.AddInstance<IHostingEnvironment>(startup.HostingEnvironment);
@@ -79,7 +81,7 @@ namespace Discussion.Web.Tests.StartupSpecs
 
             services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
             {
-                return new MongoRepositoryContext("mongodb://localhost/dummydb");
+                return new MongoRepositoryContext(dummyDB);
             });
             configureServices(services);
 
