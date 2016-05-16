@@ -1,6 +1,5 @@
-﻿using Discussion.Web.Data;
+﻿using Discussion.Web.Data.InMemory;
 using Jusfr.Persistent;
-using Jusfr.Persistent.Mongo;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Hosting.Startup;
@@ -17,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 using Microsoft.Extensions.PlatformAbstractions;
-using MongoDB.Driver;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,16 +23,13 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Collections;
 
 namespace Discussion.Web.Tests
 {
     public sealed class Application: IApplicationContext, IDisposable
     {
         TestApplicationContext _applicationContext;
-        Database _database;
+        InMemoryResponsitoryContext _dataContext;
         public TestApplicationContext Context
         {
             get
@@ -46,8 +41,8 @@ namespace Discussion.Web.Tests
 
                 Action<IServiceCollection> setupServices = (services) =>
                 {
-                    var dataContext = new InMemoryResponsitoryContext();
-                    services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => dataContext);
+                    _dataContext = new InMemoryResponsitoryContext();
+                    services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => _dataContext);
                     services.AddScoped(typeof(Repository<,>), typeof(InMemoryDataRepository<,>));
                 };
 
@@ -162,10 +157,10 @@ namespace Discussion.Web.Tests
             }
 
 
-            if (_database != null)
+            if (_dataContext != null)
             {
-                (_database as IDisposable).Dispose();
-                _database = null;
+                (_dataContext as IDisposable).Dispose();
+                _dataContext = null;
             }
 
             if(_applicationContext != null)
@@ -348,290 +343,7 @@ namespace Discussion.Web.Tests
             PlatformServices.Default.Application.SetData(name, value);
         }
     }
-
-    public sealed class Database : IDisposable
-    {
-        string _connectionString;
-        private Database(string databaseServer)
-        {
-            _connectionString = CreateConnectionStringForTesting(databaseServer);
-            Context = new MongoRepositoryContext(_connectionString);
-        }
-
-        public MongoRepositoryContext Context { get; private set; }
-        public static Database Create(string databaseServer)
-        {
-            return new Database(databaseServer);
-        }
-        public static Database CreateDefault()
-        {
-            return Create("192.168.1.178:27017");
-        }
-
-
-        #region Disposing
-
-        ~Database()
-        {
-            Dispose(false);
-        }
-
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
-
-        void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                GC.SuppressFinalize(this);
-            }
-
-            try
-            {
-                Context.Dispose();
-                DropDatabase(_connectionString);
-            }
-            catch { }
-        }
-
-        #endregion
-
-        #region helpers for setting up database
-
-        static string CreateConnectionStringForTesting(string host)
-        {
-            string connectionString;
-
-            do
-            {
-                var databaseName = string.Concat("ut_" + DateTime.UtcNow.ToString("yyyyMMddHHMMss") + Guid.NewGuid().ToString("N").Substring(0, 4));
-                connectionString = $"mongodb://{host}/{databaseName}";
-            }
-            while (MongoDbUtils.DatabaseExists(connectionString));
-            return connectionString;
-        }
-
-        static void DropDatabase(string connectionString)
-        {
-            var mongoUri = new MongoUrl(connectionString);
-            //new MongoClient(mongoUri).DropDatabase(mongoUri.DatabaseName);
-            new MongoClient(mongoUri).DropDatabaseAsync(mongoUri.DatabaseName).Wait();
-        }
-
-        #endregion
-
-    }
-
-    // services.AddScoped(typeof(Repository<,>), typeof(MongoRepository<,>));
-    public class InMemoryDataRepository<TEntry, TKey> : Repository<TEntry, TKey> where TEntry : class, IAggregate<TKey>
-    {
-        public InMemoryDataRepository(IRepositoryContext dataContext) : base(dataContext)
-        {
-
-        }
-
-        private InMemoryResponsitoryContext StorageContext
-        {
-            get
-            {
-                return Context as InMemoryResponsitoryContext;
-            }
-        }
-
-        public override IQueryable<TEntry> All
-        {
-            get
-            {
-                var repo = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-                return repo.Values.AsQueryable();
-            }
-        }
-
-        public override bool Any(params Expression<Func<TEntry, bool>>[] predicates)
-        {
-            IQueryable<TEntry> query = All;
-            foreach (var predicate in predicates)
-            {
-                query = query.Where(predicate);
-            }
-            return query.Select(r => r.Id).Any();
-        }
-
-        public override void Create(TEntry entry)
-        {
-            var repo = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            entry.Id = GenerateNewId(repo.Count);
-            repo.TryAdd(entry.Id, entry);
-        }
-
-        public override void Delete(IEnumerable<TEntry> entries)
-        {
-            var repo = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            var idList = entries.Where(e => e != null && repo.ContainsKey(e.Id)).Select(e => e.Id).ToArray();
-
-            foreach (var id in idList)
-            {
-                TEntry val;
-                repo.TryRemove(id, out val);
-            }
-        }
-
-        public override void Delete(TEntry entry)
-        {
-            Delete(new[] { entry });
-        }
-
-        public override TReutrn Fetch<TReutrn>(Func<IQueryable<TEntry>, TReutrn> query)
-        {
-            return query(All);
-        }
-
-        public override IEnumerable<TEntry> Retrive(params TKey[] keys)
-        {
-            if(keys == null)
-            {
-                yield break;
-            }
-
-            var storage = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            foreach(var key in keys)
-            {
-                TEntry val;
-                storage.TryGetValue(key, out val);
-                yield return val;
-            }
-        }
-
-        public override TEntry Retrive(TKey id)
-        {
-            return Retrive(new[] { id }).FirstOrDefault();
-        }
-
-        public override IEnumerable<TEntry> Retrive<TMember>(Expression<Func<TEntry, TMember>> selector, params TMember[] keys)
-        {
-            var storage = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            //var memberSelector = selector.Compile();
-            //return All
-            //    .Select(entry => new
-            //    {
-            //        Entry = entry,
-            //        Member = memberSelector(entry)
-            //    })
-            //    .Where(item => keys.Contains(item.Member))
-            //    .Select(item => item.Entry)
-            //    .ToList();
-
-            var parameters = selector.Parameters;
-            var memberValue = Expression.Invoke(selector, parameters);
-
-            Expression<Func<TMember, bool>> contains = member => keys.Contains(member);
-            var containsMember = Expression.Invoke(contains, memberValue);
-            var valueSelector = Expression.Lambda(containsMember, parameters) as Expression<Func<TEntry, bool>>;
-
-            return All.Where(valueSelector).ToList();
-        }
-
-        public override IEnumerable<TEntry> Retrive<TMember>(string field, params TMember[] keys)
-        {
-            var entryParameter = Expression.Parameter(typeof(TEntry), "entry");
-            var memberExpr = Expression.PropertyOrField(entryParameter, field);
-            var selector = Expression.Lambda(memberExpr, entryParameter) as Expression<Func<TEntry, TMember>>;
-
-            return Retrive(selector, keys);
-        }
-
-        public override void Save(IEnumerable<TEntry> entries)
-        {
-            var storage = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            var count = storage.Count;
-            foreach (var item in entries)
-            {
-                if (item.Id.Equals(default(TKey)))
-                {
-                    item.Id = GenerateNewId(++count);
-                }
-
-                storage.AddOrUpdate(item.Id, item, (key, existingValue) => item);
-            }
-        }
-
-        public override void Save(TEntry entry)
-        {
-            Save(new[] { entry });
-        }
-
-        public override void Update(IEnumerable<TEntry> entries)
-        {
-            var storage = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            foreach (var item in entries)
-            {
-                var existing = Retrive(item.Id);
-                storage.TryUpdate(item.Id, item, existing);
-            }
-        }
-
-        public override void Update(TEntry entry)
-        {
-            Update(new[] { entry });
-        }
-
-        TKey GenerateNewId(int count)
-        {
-            return (TKey)Convert.ChangeType(count + 1, typeof(TKey));
-        }
-    }
-
-    public class InMemoryResponsitoryContext : DisposableObject, IRepositoryContext
-    {
-        private ConcurrentDictionary<string, object> _storage = new ConcurrentDictionary<string, object>();
-
-        public bool DistributedTransactionSupported { get; } = false;
-
-        public ConcurrentDictionary<TKey, TEntry> GetRepositoryForEntity<TKey, TEntry>()
-        {
-            var type = typeof(TEntry).FullName;
-            var entryStorage = _storage.GetOrAdd(type, typeName =>
-            {
-                return new ConcurrentDictionary<TKey, TEntry>();
-            });
-
-            return entryStorage as ConcurrentDictionary<TKey, TEntry>;
-        }
-
-        public Guid ID { get; } = Guid.NewGuid();
-
-        public void Begin()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Commit()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Rollback()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void DisposeManaged()
-        {
-            foreach (var key in _storage.Keys)
-            {
-                var dic = _storage[key] as IDictionary;
-                if (dic != null)
-                {
-                    dic.Clear();
-                }
-            }
-
-            _storage.Clear();
-        }
-    }
-
+    
     public static class TestApplicationContextExtensions
     {
         public static T CreateController<T>(this IApplicationContext app) where T : Controller

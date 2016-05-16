@@ -1,4 +1,5 @@
 ﻿using Discussion.Web.Data;
+using Discussion.Web.Data.InMemory;
 using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
 using Microsoft.AspNet.Builder;
@@ -53,27 +54,10 @@ namespace Discussion.Web
 
                 option.CodePointFilter = new CodePointFilter(enabledChars);
             });
-
+            
             services.AddMvc();
-            services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
-            {
-                var mongoConnectionString = Configuration["mongoConnectionString"];
-                if (string.IsNullOrWhiteSpace(mongoConnectionString))
-                {
-                    throw new ApplicationException("No configuration value set for key 'mongoConnectionString'");
-                }
+            AddDataServicesTo(services, Configuration);
 
-                // @jijiechen: detect at every time initate a new IRepositoryContext
-                // may cause a performance issue
-                if (!MongoDbUtils.DatabaseExists(mongoConnectionString))
-                {
-                    throw new ApplicationException("Could not find a database using specified connection string");
-                }
-
-                return new MongoRepositoryContext(mongoConnectionString);
-            });
-            services.AddScoped(typeof(Repository<,>), typeof(MongoRepository<,>));
-            services.AddScoped(typeof(IDataRepository<>), typeof(BaseDataRepository<>));
 
             if (IsMono())
             {
@@ -101,7 +85,7 @@ namespace Discussion.Web
         }
 
 
-        private static IConfigurationRoot BuildConfiguration(IHostingEnvironment env, IApplicationEnvironment appEnv)
+        static IConfigurationRoot BuildConfiguration(IHostingEnvironment env, IApplicationEnvironment appEnv)
         {
             var builder = new ConfigurationBuilder()
               .SetBasePath(appEnv.ApplicationBasePath)
@@ -112,6 +96,36 @@ namespace Discussion.Web
             return builder.Build();
         }
 
+        static void AddDataServicesTo(IServiceCollection services, IConfigurationRoot _configuration)
+        {
+            var mongoConnectionString = _configuration["mongoConnectionString"];
+            var hasMongoCongured = !string.IsNullOrWhiteSpace(mongoConnectionString);
+
+
+            if (hasMongoCongured)
+            {
+                services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
+                {
+                // @jijiechen: detect at every time initate a new IRepositoryContext
+                // may cause a performance issue
+                if (!MongoDbUtils.DatabaseExists(mongoConnectionString))
+                    {
+                        throw new ApplicationException("Could not find a database using specified connection string");
+                    }
+
+                    return new MongoRepositoryContext(mongoConnectionString);
+                });
+                services.AddScoped(typeof(Repository<,>), typeof(MongoRepository<,>));
+            }
+            else
+            {
+                var dataContext = new InMemoryResponsitoryContext();
+                services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => dataContext);
+                services.AddScoped(typeof(Repository<,>), typeof(InMemoryDataRepository<,>));
+            }
+
+            services.AddScoped(typeof(IDataRepository<>), typeof(BaseDataRepository<>));
+        }
 
         static void UseSynchronousFileProvider(IServiceCollection services, IApplicationEnvironment appEnv)
         {
