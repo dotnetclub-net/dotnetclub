@@ -47,3 +47,5 @@ node_modules
 *.ng.ts
 *.sln.ide
 project.lock.json
+appsettings.Development.json
+
