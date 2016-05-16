@@ -5,6 +5,7 @@ OpenASPNET.ORG
 
 This project is source code for a discussion website, which is used to demonstrate how asp.net core can be used to make a user generated web application. The online instance of this project is hosted at [openaspnet.org](http://openaspnet.org) which is exactly a real community for discussing asp.net core technical topics.
 
+This project is a web application based on the [ASP.NET Core RC1](https://github.com/aspnet/Home/tree/v1.0.0-rc1-update1) open source and cross platform framework.
 &nbsp;
 
 ### Using the source
@@ -24,7 +25,7 @@ To restore packages and compile:
 ./sake build-all
 ```
 
-To execute tests:&nbsp;
+To execute tests:
 
 ``` 
 ./sake test
@@ -59,9 +60,7 @@ By executing this command, you can get output generated for deploying. Go to `sr
 ### Contributing
 
 Since this project is still under development, so It will be great to have your contribution. If you are planning to push back some code, please use the **dev** branch as your working branch. Pull reqeusts are only accepted through **dev** branch.
-This project is under [the MIT license](https://opensource.org/licenses/MIT).
-
-&nbsp;
+This project is open source under [the MIT license](https://opensource.org/licenses/MIT).
 
 &nbsp;
 
