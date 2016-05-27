@@ -123,13 +123,15 @@ namespace Discussion.Web.Controllers
                 preBuilder.AppendFormat(@" class=""language-{0}""", lang);
             }
 
-            preBuilder.Append("><code>\n");
+            preBuilder.Append("><code>");
             foreach (Capture line in match.Groups["code"].Captures)
             {
                 preBuilder.Append(line.Value);
             }
-            preBuilder.Append("</code></pre>\n");
-            return preBuilder.ToString();
+
+            var pre = preBuilder.ToString();
+            pre = Regex.Replace(pre, @"\r?\n$", string.Empty);
+            return string.Concat(pre, "</code></pre>\n");
         }
     }
 }
