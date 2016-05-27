@@ -69,7 +69,6 @@ $(document).ready(function() {
             content: encodedContent
         };
 
-        console.log(newTopic);
         //return;
         $.post(window.createTopicUrl, newTopic)
             .done(function () {
@@ -510,6 +509,10 @@ function processTag(node, parentNode, options){
 function processSingleTag(node, options){
     if(node.nodeType === 3){
         return node;
+    }
+
+    if(node.nodeName === 'A' && !$.trim(node.textContent) && !node.childNodes.length){
+        return document.createTextNode('');
     }
 
     if(node.nodeType !== 1 || isIllegal(node.nodeName)){

@@ -33,7 +33,7 @@ namespace Discussion.Web.Controllers
 
 
             // Create new markdown instance
-            var markdownConverter = new Markdown();
+            var markdownConverter = new Markdown { AllowEmptyLinkText = true };
             markdownConverter.AddExtension(new GfmCodeBlocks(markdownConverter));
             var showModel = new TopicShowModel
             {
@@ -89,7 +89,7 @@ namespace Discussion.Web.Controllers
     {
 
         private static Regex _codeBlock = new Regex(@"(?:\r?\n|^)(`{3,}|~{3,})([\u0020\t]*(?<lang>\S+))?[\u0020\t]*\r?\n
-	(?<code>[^\r^\n]*\r?\n)*
+	(?<code>[^\r^\n]*\r?\n)*?
 	\1(?:\r?\n|$)",
         RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
         private readonly Markdown _converterIntance;
