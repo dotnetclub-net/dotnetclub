@@ -1,0 +1,68 @@
+
+use namespace="System"
+use namespace="System.IO"
+use import="Files"
+
+var not_provided='(object)null'
+
+default features=''
+-Func<string,bool> HasFeature = name =>features.Split((char)',').Contains(name);
+
+default BASE_DIR='${Directory.GetCurrentDirectory()}'
+default TARGET_DIR='${Path.Combine(BASE_DIR, "target")}'
+default BUILD_DIR='${Path.Combine(TARGET_DIR, "build")}'
+default TEST_DIR='${Path.Combine(TARGET_DIR, "test")}'
+
+default SRC='.'
+default ASSEMBLYINFO_FILES='${Files.Include(SRC+"/**/AssemblyInfo.cs")}'
+default BUILD_PROJECTS='${Files.Include(SRC+"/**/*.csproj")}'
+default TEST_PROJECTS='${Files.Include(SRC+"/**/*.Tests.csproj")}'
+default TEST_ASSEMBLIES='${Files.Include("target/test/**/*.Tests.dll")}'
+
+default NUGET_DEPLOY=''
+
+#target-dir-clean target="clean"
+  directory delete="${TARGET_DIR}"
+
+
+#assemblyinfo-initialize target='initialize' if='ASSEMBLYINFO_FILES != null'
+  assemblyinfo each='var updateFile in ASSEMBLYINFO_FILES' assemblyVersion='${VERSION}' assemblyInformationalVersion='${FULL_VERSION}'
+
+
+#build-compile target='compile' description='Compile primary project'
+  for each='var projectFile in BUILD_PROJECTS.Except(TEST_PROJECTS)' 
+    var outputDir='${Path.Combine(BUILD_DIR, Path.GetFileNameWithoutExtension(projectFile))}'
+    build configuration='Release'
+    copy sourceDir='${Path.GetDirectoryName(projectFile)}' include='*.nuspec' overwrite='${true}'
+
+
+#build-test-compile target='test-compile' description='Compile entire solution for testing'
+  for each='var projectFile in TEST_PROJECTS' 
+    var outputDir='${Path.Combine(TEST_DIR, Path.GetFileNameWithoutExtension(projectFile))}'
+    build configuration='Debug'
+
+#stylecop-validate target="validate" description='Run stylecop validation' if='HasFeature("stylecop")'
+  stylecop each='var stylecopProject in BUILD_PROJECTS.Except(TEST_PROJECTS)'
+
+#xunit-test target="test" description='Run xunit tests' if='HasFeature("xunit")'
+  xunit each='var testFile in TEST_ASSEMBLIES'
+
+
+#nunit-test target="test" description='Run nunit tests' if='HasFeature("nunit")'
+  nunit each='var testFile in TEST_ASSEMBLIES'
+
+
+#nuget-package target='package' description='Create NuGet packages' if='HasFeature("nuget")'
+  for each='var file in Files.Include("target/build/**/*.nuspec")'
+    var baseName='${Path.GetFileNameWithoutExtension(file)}'
+    nuget-pack nuspecFile='${file}' packageVersion='${FULL_VERSION}' outputDir='${TARGET_DIR}' extra='-NoPackageAnalysis -Properties "id=${baseName};authors=${AUTHORS};author=${AUTHORS};title=${baseName};description=${baseName}"'
+
+
+#nuget-install target='install' description='Copy NuGet packages to local repo' if='HasFeature("nuget")'
+  default HOME_DIR='${Environment.GetEnvironmentVariable("HOME")}'
+  set HOME_DIR='${Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH")}' if='string.IsNullOrEmpty(HOME_DIR)'
+  copy sourceDir='${TARGET_DIR}' include='*.nupkg' outputDir='${Path.Combine(HOME_DIR, ".nuget")}' overwrite='${true}'
+
+
+#nuget-deploy target='deploy' description='Upload NuGet packages to gallery' if='HasFeature("nuget")'
+  nuget-push each='var nupkgFile in Files.Include("target/*.nupkg")' source='${NUGET_DEPLOY}'

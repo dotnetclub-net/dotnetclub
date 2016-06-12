@@ -1,0 +1,43 @@
+@{/*
+
+stylecop 
+    Run StyleCop on your project. Downloads and executes as msbuild task.
+
+stylecopProject='' 
+    Required. Path to the project file to analyze.
+
+stylecopVersion='4.7.42.1'
+    May be passed to override the nuget package version holding stylecop msbuild task.
+
+stylecopTargets='packages/StyleCop.MSBuild.${stylecopVersion}/tools/StyleCop.Targets'
+    May be passed to override the path to the stylecop targets file that will be imported.
+
+*/}
+
+default stylecopVersion='4.7.42.1'
+default stylecopTargets='packages/StyleCop.MSBuild.${stylecopVersion}/tools/StyleCop.Targets'
+
+-// Download nunit from nuget sources if not already present
+test if='!System.IO.File.Exists(stylecopTargets)'
+  nuget-install package='StyleCop.MSBuild' packageVersion='${stylecopVersion}' outputDir='packages'
+
+use namespace='System.IO'
+
+var projectFile='${Path.Combine(Path.GetDirectoryName(stylecopProject), "stylecop.proj.user")}'
+
+@{
+    File.WriteAllText(projectFile, @"
+<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" DefaultTargets=""StyleCop"" >
+  <PropertyGroup>
+    <StyleCopEnabled Condition="" '$(StyleCopEnabled)' == '' "">true</StyleCopEnabled>
+    <StyleCopTreatErrorsAsWarnings>false</StyleCopTreatErrorsAsWarnings>
+  </PropertyGroup>
+  <Import Project=""" + Path.GetFileName(stylecopProject) + @""" />
+  <Import Project=""" + Path.Combine(Directory.GetCurrentDirectory(), stylecopTargets) + @""" />
+</Project>
+");
+}
+
+- try {
+build 
+- } finally {File.Delete(projectFile);}

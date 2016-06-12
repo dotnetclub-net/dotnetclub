@@ -1,0 +1,53 @@
+
+-// Default target: when cmdline run without a target
+#default 
+  @{
+    CallTarget("clean");
+    CallTarget("test");
+    CallTarget("package");
+  }
+
+
+-// Default lifecycle: target phases their dependencies
+
+
+#pre-clean
+#clean .pre-clean -CallTarget('post-clean');
+#post-clean
+
+#validate
+
+#initialize .clean .validate
+
+#compile .initialize
+
+#test-compile .compile
+#test .test-compile
+
+#package-prepare
+#package .compile .package-prepare
+
+#pre-integration-test
+#integration-test .package .pre-integration-test -CallTarget("post-integration-test");
+#post-integration-test
+
+#verify .compile .test .package .integration-test
+
+#install .verify
+#deploy .verify
+
+
+functions
+  @{ 
+    void __DoList__(string name) 
+    {
+      if (Once(name))
+      {
+        var t = Targets[name];
+        foreach(var name2 in t.Dependencies) {__DoList__(name2);}
+        Log.Info(string.Format("\x1b-\x03{0}\x1b-\x07 {1}", t.Name, t.Description));
+      }
+    } 
+  }
+
+#targets for each='var t in Targets.Keys' -__DoList__(t);

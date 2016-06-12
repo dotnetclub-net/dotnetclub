@@ -1,0 +1,89 @@
+functions
+    @{
+        bool IsTeamCity
+        {
+            get { return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TEAMCITY_VERSION")); }
+        }
+
+        class TeamCityLog : Sake.Engine.Logging.ILog
+        {
+            private Sake.Engine.ISakeSettings _settings;
+
+            public TeamCityLog(Sake.Engine.ISakeSettings settings)
+            {
+                _settings = settings;
+            }
+
+            public void Info(object value)
+            {
+                _settings.Output.WriteLine(value);
+            }
+
+            public void Warn(object value)
+            {
+                _settings.Output.WriteLine(Format(value, "WARNING"));
+            }
+
+            public void Error(object value)
+            {
+                _settings.Output.WriteLine(Format(value, "ERROR"));
+            }
+
+            public void Verbose(object value)
+            {
+                _settings.Output.WriteLine(value);
+            }
+
+            public static string Format(object v, string level)
+            {
+                if (v == null)
+                {
+                    return string.Empty;
+                }
+
+                var value = v.ToString();
+                if (value.StartsWith("##teamcity", StringComparison.Ordinal))
+                {
+                    return value;
+                }
+
+                value = value.Replace("|", "||")
+                            .Replace("'", "|'")
+                            .Replace("\r", "|r")
+                            .Replace("\n", "|n")
+                            .Replace("]", "|]");
+
+                return string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                                    "##teamcity[message text='{0}' status='{1}']",
+                                    value,
+                                    level);
+            }
+        }
+
+        private string _previousTarget;
+
+        public override void StartingTarget(string name)
+        {
+            if (!IsTeamCity) { base.StartingTarget(name); return ;}
+
+            foreach (var dependency in Targets[name].Dependencies)
+            {
+                CallTarget(dependency);
+            }
+
+            if (_previousTarget != null)
+            {
+                Console.WriteLine(string.Format("##teamcity[blockClosed name='{0}']", _previousTarget));
+            }
+            _previousTarget = name;
+            Console.WriteLine(string.Format("##teamcity[blockOpened name='{0}']", name));
+        }
+  }
+
+@{
+  if (IsTeamCity)
+  {
+    Log = new TeamCityLog(SakeSettings);
+    __WriteExecOutputToLogger = true;
+  }
+}

@@ -1,0 +1,40 @@
+
+use namespace='System'
+use namespace='System.IO'
+use import='Environment'
+
+#default
+  log info=' '
+  log warn='Sakefile.shade not found'
+  log warn='and current directory did not contain single .shade file.'
+  log info=' '
+  log info='Please use -f switch to provide .shade file name.'
+  log info=' '
+  log info='Or call `sake init` to create a simple Sakefile.shade file'
+  log info='with default build.cmd and build.sh files in the current directory.'
+  log info=' '
+  -Environment.Exit(1);
+
+
+#init
+  content var='initSakefileShade' include href='Init-SakefileShade.txt' parse='text'
+  content var='initBuildCmd' include href='Init-BuildCmd.txt' parse='text'
+  content var='initBuildSh' include href='Init-BuildSh.txt' parse='text'
+
+  -initSakefileShade = initSakefileShade.Replace("%CWD%", Path.GetFileName(Directory.GetCurrentDirectory()));
+
+  -WriteFile('Sakefile.shade', initSakefileShade);
+  -WriteFile('build.cmd', initBuildCmd);
+  -WriteFile('build.sh', initBuildSh);
+
+  exec program='chmod' commandline='+x Build.sh' if='IsLinux'
+
+
+macro name='WriteFile' fileName='string' fileText='string'
+  test if='File.Exists(fileName)'
+    log warn='${fileName} exists. Will not overwrite.'
+  else
+    log info='Writing ${fileName}'
+    -File.WriteAllText(fileName, fileText);
+
+

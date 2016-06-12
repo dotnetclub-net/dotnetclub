@@ -1,0 +1,8 @@
+
+functions
+  @{
+    string RegexReplace(string text, string pattern, string replace)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(text, pattern, replace);
+    }
+  }
