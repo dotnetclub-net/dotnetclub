@@ -1,6 +1,6 @@
 ﻿using Xunit;
 using Discussion.Web.Controllers;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace Discussion.Web.Tests.Specs.Web

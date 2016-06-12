@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Testing;
+﻿using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
 using System.IO;

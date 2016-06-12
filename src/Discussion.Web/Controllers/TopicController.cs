@@ -1,5 +1,5 @@
 ﻿using Discussion.Web.Models;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using Discussion.Web.Data;
 using Discussion.Web.ViewModels;
@@ -24,7 +24,7 @@ namespace Discussion.Web.Controllers
             var topic = _topicRepo.Retrive(id);
             if(topic == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
 
             var markdownRenderer = new MarkdownRenderService();
@@ -62,7 +62,7 @@ namespace Discussion.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return HttpBadRequest();
+                return BadRequest();
             }
 
             var topic = new Topic

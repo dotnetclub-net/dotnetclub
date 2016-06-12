@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Builder;
 using System;
-using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Tests.Specs;
 

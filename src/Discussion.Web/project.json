@@ -1,26 +1,33 @@
 {
+  "buildOptions": {
+    "emitEntryPoint": true,
+    "preserveCompilationContext": true
+  },
   "webroot": "wwwroot",
-  "version": "1.0.0-rc-final",
 
   "dependencies": {
-    "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
-    "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
-    "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
-    "Microsoft.Extensions.Logging.Debug": "1.0.0-rc1-final",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
     "Jusfr.Persistent.Mongo": "1.0.0",
     "Moq": "4.2.1312.1622",
     "Markdown": "1.14.4",
-    "Microsoft.AspNet.Diagnostics": "1.0.0-rc1-final",
-    "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-rc1-final",
-    "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final"
-  },
-
-  "commands": {
-    "web": "Microsoft.AspNet.Server.Kestrel"
+    "Microsoft.AspNetCore.Diagnostics": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc": "1.0.0-*",
+    "Microsoft.AspNetCore.Razor.Tools": {
+      "type": "build",
+      "version": "1.0.0-*"
+    },
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-*",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-*",
+    "Microsoft.AspNetCore.StaticFiles": "1.0.0-*",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
+    "Microsoft.Extensions.Logging.Debug": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.0-*",
+    "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0-*",
+    "Microsoft.Extensions.Configuration.CommandLine": "1.0.0-*"
   },
 
   "frameworks": {
-    "dnx451": { }
+    "net451": { }
   },
 
   "exclude": [
@@ -28,6 +35,13 @@
     "node_modules",
     "tmp_wwwroot"
   ],
+   "publishOptions": {
+    "include": [
+      "Views",
+      "web.config",
+      "wwwroot"
+    ]
+  },
   "publishExclude": [
     "tmp_wwwroot/**/*",
     "wwwroot/.idea",

@@ -1,24 +1,19 @@
 {
-  "version": "1.0.0-*",
-  "description": "Discussion.Web.Tests Class Library",
-  "authors": [ "jijie" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
   "dependencies": {
-    "Microsoft.AspNet.Testing": "1.0.0-rc1-final",
-    "xunit.runner.aspnet": "2.0.0-aspnet-rc1-final",
-    "xunit": "2.1.0",
-    "Moq": "4.2.1312.1622",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
+    "dotnet-test-xunit": "1.0.0-*",
     "Discussion.Web": "1.0.0-*",
-    "Microsoft.AspNet.TestHost": "1.0.0-rc1-final",
-    "Microsoft.AspNet.Hosting": "1.0.0-rc1-final",
-    "Jusfr.Persistent.Mongo": "1.0.0"
+    "Microsoft.AspNetCore.TestHost": "1.0.0-*",
+    "Microsoft.AspNetCore.Hosting": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc": "1.0.0-*",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0-*",
+    "Microsoft.Extensions.Logging": "1.0.0-*",
+    "xunit": "2.1.0",
+    "Jusfr.Persistent.Mongo": "1.0.0",
+    "Moq": "4.2.1312.1622"
   },
-  "commands": {
-    "test": "xunit.runner.aspnet"
-  },
+  "testRunner": "xunit",
   "frameworks": {
-    "dnx451": { }
+    "net451": { }
   }
 }

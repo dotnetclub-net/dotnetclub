@@ -2,16 +2,18 @@
 using Discussion.Web.Data.InMemory;
 using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.FileProviders;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Mvc.Razor;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Extensions.WebEncoders;
+using Microsoft.Extensions.Configuration;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 using System;
 using System.IO;
 
@@ -21,13 +23,24 @@ namespace Discussion.Web
     {
         public IConfigurationRoot Configuration { get;  }
         public IHostingEnvironment HostingEnvironment { get;  }
-        public IApplicationEnvironment ApplicationEnvironment { get;  }
 
-        public Startup(IHostingEnvironment env, IApplicationEnvironment appEnv)
+        public Startup(IHostingEnvironment env)
         {
             HostingEnvironment = env;
-            ApplicationEnvironment = appEnv;
-            Configuration = BuildConfiguration(env, appEnv);
+            Configuration = BuildConfiguration(env, Environment.GetCommandLineArgs());
+        }
+
+        public static void Main(string[] args)
+        {
+
+            var host = new WebHostBuilder()
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseIISIntegration()
+                .UseKestrel()
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
         }
 
 
@@ -36,24 +49,24 @@ namespace Discussion.Web
             services.AddLogging();
             // Configure runtime to enable specified characters to be rendered as is
             // See https://github.com/aspnet/HttpAbstractions/issues/315
-            services.AddWebEncoders(option =>
-            {
-                var enabledChars = new[]
-                {
-                    UnicodeRanges.BasicLatin,
-                    UnicodeRanges.Latin1Supplement,
-                    UnicodeRanges.CJKUnifiedIdeographs,
-                    UnicodeRanges.HalfwidthandFullwidthForms,
-                    UnicodeRanges.LatinExtendedAdditional,
-                    UnicodeRanges.LatinExtendedA,
-                    UnicodeRanges.LatinExtendedB,
-                    UnicodeRanges.LatinExtendedC,
-                    UnicodeRanges.LatinExtendedD,
-                    UnicodeRanges.LatinExtendedE
-                };
+            // services.AddWebEncoders(option =>
+            // {
+            //     var enabledChars = new[]
+            //     {
+            //         UnicodeRanges.BasicLatin,
+            //         UnicodeRanges.Latin1Supplement,
+            //         // UnicodeRanges.CJKUnifiedIdeographs,
+            //         UnicodeRanges.HalfwidthandFullwidthForms,
+            //         UnicodeRanges.LatinExtendedAdditional,
+            //         UnicodeRanges.LatinExtendedA,
+            //         UnicodeRanges.LatinExtendedB,
+            //         UnicodeRanges.LatinExtendedC,
+            //         UnicodeRanges.LatinExtendedD,
+            //         UnicodeRanges.LatinExtendedE
+            //     };
 
-                option.CodePointFilter = new CodePointFilter(enabledChars);
-            });
+            //     option.CodePointFilter = new CodePointFilter(enabledChars);
+            // });
             
             services.AddMvc();
             AddDataServicesTo(services, Configuration);
@@ -62,7 +75,7 @@ namespace Discussion.Web
             if (IsMono())
             {
                 Console.WriteLine("Replaced default FileProvider with a wrapped synchronous one\n Since Mono has a bug on asynchronous filestream.\n See https://github.com/aspnet/Hosting/issues/604");
-                UseSynchronousFileProvider(services, ApplicationEnvironment);
+                UseSynchronousFileProvider(services, HostingEnvironment);
             }
         }
 
@@ -75,24 +88,26 @@ namespace Discussion.Web
             }
             else
             {
-                app.UseExceptionHandler("/error");
+                app.UseDeveloperExceptionPage();
+             //   app.UseExceptionHandler("/error");
             }
 
             // Add the platform handler to the request pipeline.
-            app.UseIISPlatformHandler();
+            // app.UseIISPlatformHandler();
             app.UseStaticFiles();
             app.UseMvc();
         }
 
 
-        static IConfigurationRoot BuildConfiguration(IHostingEnvironment env, IApplicationEnvironment appEnv)
+        static IConfigurationRoot BuildConfiguration(IHostingEnvironment env, string[] commandlineArgs)
         {
             var builder = new ConfigurationBuilder()
-              .SetBasePath(appEnv.ApplicationBasePath)
+              .SetBasePath(env.ContentRootPath)
               .AddJsonFile("appsettings.json", optional: true)
               .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
 
             builder.AddEnvironmentVariables();
+            // builder.AddCommandLine(commandlineArgs);
             return builder.Build();
         }
 
@@ -127,13 +142,13 @@ namespace Discussion.Web
             services.AddScoped(typeof(IDataRepository<>), typeof(BaseDataRepository<>));
         }
 
-        static void UseSynchronousFileProvider(IServiceCollection services, IApplicationEnvironment appEnv)
+        static void UseSynchronousFileProvider(IServiceCollection services, IHostingEnvironment hostingEnvironment)
         {
-            services.Configure<RazorViewEngineOptions>(opt =>
-            {
-                var physicalFileProvider = new PhysicalFileProvider(appEnv.ApplicationBasePath);
-                opt.FileProvider = new WrappedSynchronousFileProvider(physicalFileProvider);
-            });
+            // services.Configure<RazorViewEngineOptions>(opt =>
+            // {
+            //     var physicalFileProvider = new PhysicalFileProvider(hostingEnvironment.ContentRootPath);
+            //     opt.FileProvider = new WrappedSynchronousFileProvider(physicalFileProvider);
+            // });
         }
 
         static bool IsMono()

@@ -2,7 +2,7 @@
 using Discussion.Web.Data;
 using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
-using Microsoft.AspNet.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Moq;

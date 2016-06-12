@@ -1,7 +1,7 @@
 ﻿using Discussion.Web.Controllers;
 using Discussion.Web.Models;
 using Discussion.Web.Data;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Xunit;
 using Discussion.Web.ViewModels;
