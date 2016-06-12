@@ -1,0 +1,9 @@
+{
+  "frameworks": {
+      "net451": { }
+  },
+  "dependencies": {
+      "Sake": "0.2.2",
+      "NuGetPackageVerifier": "1.0.1-*"
+  }
+}

@@ -1,0 +1,29 @@
+@{/*
+
+dotnet-restore
+    Restores nuget packages required for dotnet projects. Downloads and executes dotnet sdk tools.
+
+restoreDir=''
+    Optional. The directory in which to execute the dnu restore command.
+*/}
+
+default currentDir = '${ Directory.GetCurrentDirectory() }'
+default restoreDir = '${ currentDir }'
+
+@{
+    var projectFiles = Files.Include(Path.Combine(restoreDir, "*/*/project.json"));
+    bool inferRids = false;
+    foreach (var projectFile in projectFiles)
+    {
+        inferRids |= File.ReadAllText(projectFile).Contains("\"netstandardapp1.5\"");
+        if (inferRids)
+        {
+            Log.Warn("Forcing infer-runtimes because of: " + projectFile);
+            break;
+        }
+    }
+}
+
+default restore_options=' ${ inferRids ? "--infer-runtimes" : "" } ${ E("KOREBUILD_DOTNET_RESTORE_OPTIONS") }'
+
+dotnet command='restore${ restore_options }' workingDir='${ restoreDir }'

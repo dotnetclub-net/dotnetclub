@@ -1,0 +1,15 @@
+use namespace='System'
+ 
+functions @{
+    static string GetEnvironmentParameter(string name)
+    {
+        return GetEnvironmentParameter(name, s => s);
+    } 
+
+    static T GetEnvironmentParameter<T>(string name, Func<string, T> valueFn)
+    {
+        var value = valueFn(Environment.GetEnvironmentVariable(name));
+        Console.WriteLine(name + ": " + (value != null ? value.ToString() : "(null)"));
+        return value;
+    }
+}

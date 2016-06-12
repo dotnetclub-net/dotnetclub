@@ -1,0 +1,91 @@
+use namespace="System"
+
+functions
+  @{
+    DateTime Start = new DateTime(2015, 1, 1);
+
+    string CreateDayBasedVersionNumber()
+    {
+        var now = DateTime.UtcNow;
+
+        string version = "0";
+        // If the computer date is set before the start date, then the version is 0
+        if (now >= Start)
+        {
+            var yearsSinceStart = (now.Year - Start.Year) + 1;
+            version = yearsSinceStart + now.ToString("MMdd");
+        }
+
+        return version;
+    }
+
+    string CreateSecondBasedTimeStamp()
+    {
+      var seconds = (long)(DateTime.UtcNow - Start).TotalSeconds;
+      return seconds.ToString("x").PadLeft(9, (char)'0');
+    }
+
+    private bool _buildQualitySet;
+    private string _buildQuality;
+
+    string BuildQuality
+    {
+        get
+        {
+            if (!_buildQualitySet)
+            {
+                var buildQualityFilePath = Path.Combine(KoreBuildFolderPath, "build-quality.txt");
+                _buildQuality = File.ReadAllText(buildQualityFilePath);
+                _buildQualitySet = true;
+            }
+
+            return _buildQuality;
+        }
+        set
+        {
+            _buildQuality = value;
+            _buildQualitySet = true;
+        }
+    }
+
+    string BuildNumber
+    {
+        get
+        {
+            var buildNumber = Environment.GetEnvironmentVariable("KOREBUILD_BUILD_NUMBER");
+            if (string.IsNullOrEmpty(buildNumber))
+            {
+                return "t" + CreateSecondBasedTimeStamp();
+            }
+
+            return !string.IsNullOrEmpty(BuildQuality) ? BuildQuality + "-" + buildNumber : buildNumber;
+        }
+    }
+
+    string DotBuildFolderPath
+    {
+        get
+        {
+            return Environment.GetEnvironmentVariable("BUILD_FOLDER");
+        }
+    }
+
+    string KoreBuildFolderPath
+    {
+        get
+        {
+            return Environment.GetEnvironmentVariable("KOREBUILD_FOLDER");
+        }
+    }
+
+    bool IsTeamCity
+    {
+        get { return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TEAMCITY_VERSION")); }
+    }
+
+    bool IsTravisCi
+    {
+        get { return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TRAVIS")) &&
+                !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CONTINUOUS_INTEGRATION")); }
+    }
+}

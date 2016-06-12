@@ -1,0 +1,57 @@
+use import="Environment"
+
+default NO_PARALLEL_TEST_PROJECTS='${E("NO_PARALLEL_TEST_PROJECTS")}'
+
+@{/*
+
+dotnet-test
+    Run unit tests in your project.
+
+projectFile=''
+    Required. Path to the test project.json to execute
+
+configuration=''
+    Optional. The configuration to build in. Defaults to 'Debug'.
+*/}
+
+default configuration = 'Debug'
+default IgnoreDotnetTestExitCode = '${E("KOREBUILD_IGNORE_DOTNET_TEST_EXIT_CODE") == "true"}'
+default test_options=' ${E("KOREBUILD_DOTNET_TEST_OPTIONS")}'
+
+@{
+    var content = File.ReadAllText(projectFile);
+    // Desktop tests only work on Windows. Only run the test on xplat if it has a netcoreapp1.0 TFM.
+    if (content.Contains("\"testRunner\"") && (!IsLinux || content.Contains("netcoreapp1.0")))
+    {
+        var projectFolder = Path.GetDirectoryName(projectFile);
+        var projectName = Path.GetFileName(projectFolder);
+
+        var noParallelTestProjects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (!string.IsNullOrEmpty(NO_PARALLEL_TEST_PROJECTS))
+        {
+            noParallelTestProjects.UnionWith(NO_PARALLEL_TEST_PROJECTS.Split((char)','));
+        }
+
+        var testArgs = test_options + " --configuration " + configuration;
+        if (IsLinux)
+        {
+            testArgs += " -f netcoreapp1.0";
+        }
+
+        testArgs += noParallelTestProjects.Contains(projectName) ? " -parallel none" : "";
+
+        try
+        {
+            Dotnet("test" + testArgs, projectFolder);
+        }
+        catch
+        {
+            if (!IgnoreDotnetTestExitCode)
+            {
+                // Ignore dotnet-test exit code if KOREBUILD_IGNORE_DOTNET_TEST_EXIT_CODE is set.
+                throw;
+            }
+        }
+    }
+}
+
