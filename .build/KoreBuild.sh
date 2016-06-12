@@ -93,4 +93,4 @@ if [ ! -e $makeFile ]; then
 fi
 
 export KOREBUILD_FOLDER="$koreBuildFolder"
-mono $sakeFolder/0.2.2/tools/Sake.exe -I $koreBuildFolder/shade -f $makeFile $targets
+mono $sakeFolder/0.2.2/tools/Sake.exe -I $koreBuildFolder/shade -I $koreBuildFolder/ext -f $makeFile $targets

@@ -4,7 +4,7 @@ use namespace='System.IO'
 use import='Environment'
 
 default currentDir = '${Directory.GetCurrentDirectory()}'
-default PublishRuntime = 'dnx-clr-win-x64.1.0.0-rc1-update1'
+default PublishRuntime = 'win-x64'
 
 var BUILD_NUMBER = '${Environment.GetEnvironmentVariable("BUILD_NUMBER")}'
 var deployServer = '${Environment.GetEnvironmentVariable("CI_DEPLOY_COORDINATOR_SERVER")}'
@@ -62,7 +62,7 @@ div#help .targets
 
 		Console.WriteLine("Generating package for {0}", projectFolder);
 
-    	DnuAt("publish --no-source --runtime " + runtimeName, projectFolder);
+    	DotnetAt("publish --no-source --runtime " + runtimeName, projectFolder);
 
     	RestoreExcludedWwwrootFiles(projectFile);
 
@@ -75,14 +75,14 @@ div#help .targets
     		packageVersion = "1.0." + BUILD_NUMBER;    		
     		Console.WriteLine(@"Creating package file for {0}.{1} for pushing...", packageName, packageVersion);
     		
-    		Exec(@"build-tools\OctopusTools\Octo.exe", string.Format(@"pack --id {0} --version {1} --format zip --basePath src\{0}\bin\output --outFolder src\{0}\bin\output --overwrite", packageName, packageVersion));
+    		Exec(@".build\OctopusTools\Octo.exe", string.Format(@"pack --id {0} --version {1} --format zip --basePath src\{0}\bin\output --outFolder src\{0}\bin\output --overwrite", packageName, packageVersion));
 
     		Console.WriteLine(@"Package created at src\{0}\bin\output\{0}.{1}.zip", packageName, packageVersion);
 
     		if(!string.IsNullOrWhiteSpace(deployServer) && !string.IsNullOrWhiteSpace(deployServerApiKey)) {
 	    		Console.WriteLine(@"Uploading package file {0}.{1}.zip to server {2}...", packageName, packageVersion, deployServer);
 
-	    		Exec(@"build-tools\OctopusTools\Octo.exe", string.Format(@"push --package src\{0}\bin\output\{0}.{1}.zip --server {2} --apikey {3}", packageName, packageVersion, deployServer, deployServerApiKey));
+	    		Exec(@".build\OctopusTools\Octo.exe", string.Format(@"push --package src\{0}\bin\output\{0}.{1}.zip --server {2} --apikey {3}", packageName, packageVersion, deployServer, deployServerApiKey));
 
 	    		Console.WriteLine(@"Uploaded src\{0}\bin\output\{0}.{1}.zip to {2} successfully.", packageName, packageVersion, deployServer);
 	    	}

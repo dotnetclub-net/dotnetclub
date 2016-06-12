@@ -71,8 +71,8 @@ macro name="MoveAll" sourceDir='string' destDir='string'
 		MergeDirectory(sourceDir, destDir);
 	}
 
-macro name='DnuAt' commands='string' workingDirectory='string'
-    dnu command='${commands}' workingdir='${workingDirectory}'
+macro name='DotnetAt' commands='string' workingDirectory='string'
+    dotnet command='${commands}' dotnetDir='${workingDirectory}'
 
 
 functions @{

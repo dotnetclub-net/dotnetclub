@@ -75,4 +75,4 @@ if (!(Test-Path $makeFilePath))
 Write-Host "Using makefile: $makeFilePath"
 
 $env:KOREBUILD_FOLDER=$koreBuildFolder
-&"$koreBuildFolder\Sake\0.2.2\tools\Sake.exe" -I $koreBuildFolder\shade -f $makeFilePath @args
+&"$koreBuildFolder\Sake\0.2.2\tools\Sake.exe" -I $koreBuildFolder\shade -I $koreBuildFolder\ext -f $makeFilePath @args
