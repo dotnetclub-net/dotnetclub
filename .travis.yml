@@ -19,6 +19,6 @@ branches:
     - master
     - dev
 script:
-  - ./sake.sh --quiet build-all
+  - ./build.sh --quiet build-all
 env:
   - KOREBUILD_TEST_SKIPMONO=1
