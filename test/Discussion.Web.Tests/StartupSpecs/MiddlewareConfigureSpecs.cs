@@ -43,7 +43,7 @@ namespace Discussion.Web.Tests.StartupSpecs
 
             RequestHandler.Invoke(httpContext);
 
-            var loggerFactory = httpContext.ApplicationServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
+            var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
             loggerFactory.ShouldNotBeNull();
             loggerFactory.LogItems.ShouldContain(item => item.Message.Equals("Request did not match any routes."));
         }
@@ -58,7 +58,7 @@ namespace Discussion.Web.Tests.StartupSpecs
 
             RequestHandler.Invoke(httpContext);
 
-            var loggerFactory = httpContext.ApplicationServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
+            var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
             loggerFactory.ShouldNotBeNull();
             loggerFactory.LogItems.ShouldContain(item => item.Message.Equals($"The request path {staticFile} does not match an existing file"));
         }
@@ -68,7 +68,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         {
             return new DefaultHttpContext
             {
-                ApplicationServices = this.ApplicationServices
+                RequestServices = this.ApplicationServices
             };
         }
 

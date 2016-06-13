@@ -52,7 +52,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         {
             var args = Environment.GetCommandLineArgs();
 
-            var dnxPath = DnxPath();
+            var dnxPath = RuntimeLauncherPath();
             var appBaseIndex = Array.IndexOf(args, "--appbase");
             var webProject = WebProjectPath();
 

@@ -2,25 +2,17 @@
 using Jusfr.Persistent;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Startup;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.OptionsModel;
-using Microsoft.Extensions.PlatformAbstractions;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.Versioning;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
 
@@ -46,7 +38,7 @@ namespace Discussion.Web.Tests
                     services.AddScoped(typeof(Repository<,>), typeof(InMemoryDataRepository<,>));
                 };
 
-                _applicationContext = BuildApplication( (c)=> { }, setupServices, (a, h, l) => { } );
+                _applicationContext = BuildApplication( (c)=> { }, setupServices, (a) => { } );
                 return _applicationContext;
             }
         }
@@ -55,7 +47,6 @@ namespace Discussion.Web.Tests
         #region Proxy Context Properties
 
         public StubLoggerFactory LoggerFactory { get { return this.Context.LoggerFactory; } }
-        public IApplicationEnvironment ApplicationEnvironment { get { return this.Context.ApplicationEnvironment; }  }
         public IHostingEnvironment HostingEnvironment { get { return this.Context.HostingEnvironment; }  }
 
         public RequestDelegate RequestHandler { get { return this.Context.RequestHandler; }  }
@@ -67,74 +58,33 @@ namespace Discussion.Web.Tests
         #endregion
 
 
-        public static TestApplicationContext BuildApplication(Action<IConfigurationBuilder> customConfiguration, Action<IServiceCollection> serviceConfiguration, Action<IApplicationBuilder, IHostingEnvironment, ILoggerFactory> serviceCustomConfiguration, string environmentName = "Production")
+        public static TestApplicationContext BuildApplication(Action<IConfigurationBuilder> customConfiguration, Action<IServiceCollection> serviceConfiguration,  Action<IApplicationBuilder> appConfiguration,  string environmentName = "Production")
         {
-            StartupMethods startup = null;
             IApplicationBuilder bootingupApp = null;
-            var bootstrapDiagnosticMessages = new List<string>();
-
 
             var testApp = new TestApplicationContext
             {
-                LoggerFactory = new StubLoggerFactory(),
-                ApplicationEnvironment = CreateApplicationEnvironment(),
-                HostingEnvironment = new HostingEnvironment { EnvironmentName = environmentName }
+                LoggerFactory = new StubLoggerFactory()
             };
-            testApp.Configuration = BuildConfiguration(testApp.HostingEnvironment, testApp.ApplicationEnvironment, customConfiguration);
 
 
-            Func<IServiceCollection, IServiceProvider> configureServices = services =>
+            var builder = new WebHostBuilder();
+            HostingAbstractionsWebHostBuilderExtensions.UseContentRoot(builder, WebProjectPath());
+            HostingAbstractionsWebHostBuilderExtensions.UseEnvironment(builder, environmentName);
+
+            builder.Configure(app =>
             {
-                services.AddInstance<ILoggerFactory>(testApp.LoggerFactory);
-                services.AddInstance<IApplicationEnvironment>(testApp.ApplicationEnvironment);
-
-                var loader = new StartupLoader(services.BuildServiceProvider(), testApp.HostingEnvironment);
-                startup = loader.LoadMethods(typeof(Startup), bootstrapDiagnosticMessages);
-                startup.ConfigureServicesDelegate(services);
-                serviceConfiguration(services);
-
-                testApp.ApplicationServices = services.BuildServiceProvider();
-                return testApp.ApplicationServices;
-            };
-            Action<IApplicationBuilder> configure = app =>
-            {
+                appConfiguration(app);
                 bootingupApp = app;
-                startup.ConfigureDelegate(app);
-                serviceCustomConfiguration(app, testApp.HostingEnvironment, testApp.ApplicationServices.GetService<ILoggerFactory>());
-            };
-
-
-            var webHostBuilder = TestServer
-                                .CreateBuilder(testApp.Configuration)
-                                .UseEnvironment(environmentName)
-                                .UseStartup(configure, configureServices);
-
-            testApp.Server = new TestServer(webHostBuilder);
+            })
+            .ConfigureServices(serviceConfiguration)
+            .UseLoggerFactory(testApp.LoggerFactory)
+            .UseStartup<Startup>();
+            
+            testApp.Server = new TestServer(builder);
             testApp.RequestHandler = bootingupApp.Build();
 
             return testApp;
-        }
-
-        static IConfigurationRoot BuildConfiguration(IHostingEnvironment env, IApplicationEnvironment appEnv, Action<IConfigurationBuilder> customConfiguration)
-        {
-            var builder = new ConfigurationBuilder()
-              .SetBasePath(appEnv.ApplicationBasePath)
-              .AddJsonFile("appsettings.json", optional: true)
-              .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
-
-            builder.AddEnvironmentVariables();
-            customConfiguration(builder);
-
-            return builder.Build();
-        }
-
-        internal static IApplicationEnvironment CreateApplicationEnvironment()
-        {
-            var env = new TestApplicationEnvironment();
-            env.ApplicationBasePath = WebProjectPath();
-            env.ApplicationName = "Discussion.Web";
-
-            return env;
         }
 
         #region Disposing
@@ -186,7 +136,6 @@ namespace Discussion.Web.Tests
     public interface IApplicationContext: IDisposable
     {
          StubLoggerFactory LoggerFactory { get;  }
-         IApplicationEnvironment ApplicationEnvironment { get;  }
          IHostingEnvironment HostingEnvironment { get;  }
 
          RequestDelegate RequestHandler { get;  }
@@ -199,7 +148,6 @@ namespace Discussion.Web.Tests
     public class TestApplicationContext: IApplicationContext
     {
         public StubLoggerFactory LoggerFactory { get; set; }
-        public IApplicationEnvironment ApplicationEnvironment { get; set; }
         public IHostingEnvironment HostingEnvironment { get; set; }        
 
         public RequestDelegate RequestHandler { get; set; }
@@ -286,6 +234,10 @@ namespace Discussion.Web.Tests
         {
             public StubLoggerFactory Factory { get; set; }
 
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                throw new NotImplementedException();
+            }
 
             public IDisposable BeginScopeImpl(object state)
             {
@@ -309,6 +261,11 @@ namespace Discussion.Web.Tests
                 };
                 Factory.LogItems.Push(log);
             }
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public class LogItem
@@ -321,29 +278,6 @@ namespace Discussion.Web.Tests
         }
     }
 
-    class TestApplicationEnvironment : IApplicationEnvironment
-    {
-        public string ApplicationBasePath { get; set; }
-
-        public string ApplicationName { get; set; }
-
-        public string ApplicationVersion => PlatformServices.Default.Application.ApplicationVersion;
-
-        public string Configuration => PlatformServices.Default.Application.Configuration;
-
-        public FrameworkName RuntimeFramework => PlatformServices.Default.Application.RuntimeFramework;
-
-        public object GetData(string name)
-        {
-            return PlatformServices.Default.Application.GetData(name);
-        }
-
-        public void SetData(string name, object value)
-        {
-            PlatformServices.Default.Application.SetData(name, value);
-        }
-    }
-    
     public static class TestApplicationContextExtensions
     {
         public static T CreateController<T>(this IApplicationContext app) where T : Controller
@@ -361,27 +295,31 @@ namespace Discussion.Web.Tests
                     ControllerTypeInfo = typeof(T).GetTypeInfo()
                 });
 
-            var actionBindingContext = GetActionBindingContext(services.GetService<IOptions<MvcOptions>>().Value, actionContext);
-            services.GetRequiredService<IActionBindingContextAccessor>().ActionBindingContext = actionBindingContext;
+            // var actionBindingContext = GetActionBindingContext(services.GetService<IOptions<MvcOptions>>().Value, actionContext);
+            // services.GetRequiredService<IActionBindingContextAccessor>().ActionBindingContext = actionBindingContext;
 
             var controllerFactory = services.GetService<IControllerFactory>();
-            return controllerFactory.CreateController(actionContext) as T;
+            return controllerFactory.CreateController(new ControllerContext(actionContext)) as T;
         }
 
-        private static ActionBindingContext GetActionBindingContext(MvcOptions options, ActionContext actionContext)
-        {
-            var valueProviderFactoryContext = new ValueProviderFactoryContext(actionContext.HttpContext, actionContext.RouteData.Values);
-            var valueProvider = CompositeValueProvider.CreateAsync(options.ValueProviderFactories, valueProviderFactoryContext).Result;
+        //private static ActionBindingContext GetActionBindingContext(MvcOptions options, ActionContext actionContext)
+        //{
+        //    var valueProviderFactoryContext = new ValueProviderFactoryContext(actionContext.HttpContext, actionContext.RouteData.Values);
+        //    var valueProvider = CompositeValueProvider.CreateAsync(options.ValueProviderFactories, valueProviderFactoryContext).Result;
 
-            return new ActionBindingContext()
-            {
-                InputFormatters = options.InputFormatters,
-                OutputFormatters = options.OutputFormatters,
-                ValidatorProvider = new CompositeModelValidatorProvider(options.ModelValidatorProviders),
-                ModelBinder = new CompositeModelBinder(options.ModelBinders),
-                ValueProvider = valueProvider
-            };
-        }
+        //    return new ActionBindingContext()
+        //    {
+        //        InputFormatters = options.InputFormatters,
+        //        OutputFormatters = options.OutputFormatters,
+        //        ValidatorProvider = new CompositeModelValidatorProvider(options.ModelValidatorProviders),
+        //        ModelBinder = new CompositeModelBinder(options.ModelBinders),
+        //        ValueProvider = valueProvider
+        //    };
+
+
+
+        //}
+        
 
         public static T GetService<T>(this IApplicationContext app) where T : class
         {

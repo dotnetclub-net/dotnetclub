@@ -10,8 +10,7 @@ namespace Discussion.Web.Tests {
     {
         public static string TestProjectPath()
         {
-            // PlatformServices.Default.Application.ApplicationBasePath
-
+            // return PlatformServices.Default.Application.ApplicationBasePath;
             var args = Environment.GetCommandLineArgs();
             var appBaseIndex = Array.IndexOf(args, "--appbase");
 
@@ -19,24 +18,33 @@ namespace Discussion.Web.Tests {
             return path.NormalizeToAbsolutePath();
         }
 
-        public static string DnxPath()
-        {
-            var dnxCommand = TestPlatformHelper.IsWindows ? "dnx.exe" : "dnx";
-            var runtimeBin = PlatformServices.Default.Runtime.RuntimePath;
-
-            if (string.IsNullOrWhiteSpace(runtimeBin))
-            {
-                throw new Exception("Runtime not detected on the machine.");
-            }
-
-            return Path.Combine(runtimeBin, dnxCommand).NormalizeToAbsolutePath();
-        }
-
         public static string WebProjectPath()
         {
             return Path.Combine(TestProjectPath(), "../../src/Discussion.Web").NormalizeToAbsolutePath();
         }
 
+        public static string RuntimeLauncherPath()
+        {
+            var isWindows = PlatformServices.Default.Runtime.OperatingSystemPlatform == Platform.Windows;
+            var envVarSeparateChar = isWindows ? ';' : ':';
+            var commandName = isWindows ? "dotnet.exe" : "dotnet";
+
+            return FindFileThoughEnvironmentVariables(commandName, envVarSeparateChar);
+        }
+
+        private static string FindFileThoughEnvironmentVariables(string executableName, char envVarSeparateChar)
+        {
+            foreach (string envPath in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(envVarSeparateChar))
+            {
+                var path = envPath.Trim();
+                if (!string.IsNullOrWhiteSpace(path) && File.Exists(path = Path.Combine(path, executableName)))
+                {
+                    return Path.GetFullPath(path);
+                }
+            }
+
+            throw new Exception("Runtime not detected on the machine.");
+        }
 
         private static string NormalizeToAbsolutePath(this string relativePath)
         {

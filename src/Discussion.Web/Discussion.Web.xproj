@@ -9,7 +9,7 @@
     <ProjectGuid>2c14f77a-a763-49ac-9751-07c10ad5e201</ProjectGuid>
     <RootNamespace>Discussion.Web</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">..\artifacts\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
-    <OutputPath Condition="'$(OutputPath)'=='' ">..\artifacts\bin\$(MSBuildProjectName)\</OutputPath>
+    <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <DnxInvisibleFolder Include="wwwroot\node_modules\" />

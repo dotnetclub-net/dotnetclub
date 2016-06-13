@@ -75,8 +75,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             var startup = CreateMockStartup();
             startup.Configuration["mongoConnectionString"] = dummyDB;
 
-            services.AddInstance<IApplicationEnvironment>(startup.ApplicationEnvironment);
-            services.AddInstance<IHostingEnvironment>(startup.HostingEnvironment);
+            // services.AddInstance<IHostingEnvironment>(startup.HostingEnvironment);
             startup.ConfigureServices(services);
 
             services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
@@ -90,15 +89,11 @@ namespace Discussion.Web.Tests.StartupSpecs
 
         public static Startup CreateMockStartup()
         {
-            var appEnv = new Mock<IApplicationEnvironment>();
-            appEnv.SetupGet(e => e.ApplicationBasePath)
-                .Returns(Directory.GetCurrentDirectory());
-
             var hostingEnv = new Mock<IHostingEnvironment>();
             hostingEnv.SetupGet(e => e.EnvironmentName)
                 .Returns("Development");
 
-            return new Startup(hostingEnv.Object, appEnv.Object);
+            return new Startup(hostingEnv.Object);
         }
 
     }
