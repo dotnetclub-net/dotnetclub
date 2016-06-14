@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Builder;
 using System;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Logging;
-using Discussion.Web.Tests.Specs;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
@@ -25,14 +23,19 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_use_iis_platform()
         {
-            // arrange
-            var httpContext = GivenHttpContextFromIISPlatformHandler();
+            var app = Application.BuildApplication("Dev", host =>
+            {
+                host.UseSetting("PORT", "5000");
+                host.UseSetting("APPL_PATH", "/");
+                host.UseSetting("TOKEN", "dummy-token");
+            });
 
-            // act
-            RequestHandler.Invoke(httpContext);
+            var iisFilter = app.ApplicationServices.GetRequiredService<IStartupFilter>();
 
-            // assert
-            AssertHttpContextAreProperlyRestored(httpContext);
+            var filterName = iisFilter.GetType().FullName;
+            filterName.Contains("IISSetupFilter").ShouldEqual(true);
+
+            (app as IDisposable).Dispose();
         }
 
         [Fact]
@@ -72,37 +75,6 @@ namespace Discussion.Web.Tests.StartupSpecs
             };
         }
 
-        const string Req_IP = "128.0.0.1";
-        const string XForwardedForHeaderName = "X-Forwarded-For";
-
-        const string Req_ProtoValue = "FTP";
-        const string XForwardedProtoHeaderName = "X-Forwarded-Proto";
-
-        const string Req_ProtoAfterModified = "FTP-OVER-HTTP";        
-        const string XOriginalProtoName = "X-Original-Proto";
-
-
-        HttpContext GivenHttpContextFromIISPlatformHandler()
-        {
-            // IISPlatformHandlerMiddleware is used to restore the Headers marked(modified) by the IISPlatformHandler module
-            // see https://github.com/aspnet/IISIntegration/blob/2fe2e0d8418ff55612fc9001b7f7bde058ae5bb9/src/Microsoft.AspNet.IISPlatformHandler/IISPlatformHandlerMiddleware.cs
-
-            var httpContext = CreateHttpContext();
-            httpContext.Request.Headers.Add(XForwardedProtoHeaderName, Req_ProtoValue);
-            httpContext.Request.Headers.Add(XForwardedForHeaderName, Req_IP);
-
-            httpContext.Request.Scheme = Req_ProtoAfterModified;
-
-            return httpContext;
-        }
-
-        void AssertHttpContextAreProperlyRestored(HttpContext httpContext)
-        {
-            httpContext.Request.Scheme.ShouldEqual(Req_ProtoValue);
-            // httpContext.Request.Headers.ShouldContain(kvp => kvp.Key == XOriginalProtoName && kvp.Value == Req_ProtoAfterModified);
-
-            httpContext.Connection.RemoteIpAddress.ToString().ShouldEqual(Req_IP);
-        }
     }
 
 }

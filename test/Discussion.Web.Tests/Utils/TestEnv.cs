@@ -8,19 +8,29 @@ namespace Discussion.Web.Tests {
 
     public static class TestEnv
     {
-        public static string TestProjectPath()
+        public static string SolutionPath()
         {
-            // return PlatformServices.Default.Application.ApplicationBasePath;
-            var args = Environment.GetCommandLineArgs();
-            var appBaseIndex = Array.IndexOf(args, "--appbase");
+            const string testProjectSubPath = "test/Discussion.Web.Tests/project.json";
+            var currentPath = Environment.CurrentDirectory;
 
-            var path = appBaseIndex >= 0 ? args[appBaseIndex + 1] : Environment.CurrentDirectory;
-            return path.NormalizeToAbsolutePath();
+            do
+            {
+                var testProjectPath = Path.Combine(currentPath, testProjectSubPath).NormalizeToAbsolutePath();
+                if (File.Exists(testProjectPath))
+                {
+                    return currentPath;
+                }
+
+                var parent = Directory.GetParent(currentPath);
+                currentPath = parent == null ? null : parent.FullName;
+            } while (currentPath != null);
+
+            throw new ApplicationException("Cannot find test project.");
         }
 
         public static string WebProjectPath()
         {
-            return Path.Combine(TestProjectPath(), "../../src/Discussion.Web").NormalizeToAbsolutePath();
+            return Path.Combine(SolutionPath(), "src/Discussion.Web").NormalizeToAbsolutePath();
         }
 
         public static string RuntimeLauncherPath()

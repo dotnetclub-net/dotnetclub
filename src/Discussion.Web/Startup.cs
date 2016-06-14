@@ -32,15 +32,19 @@ namespace Discussion.Web
 
         public static void Main(string[] args)
         {
+            var hostBuilder = new WebHostBuilder();
+            ConfigureHost(hostBuilder);
 
-            var host = new WebHostBuilder()
-                .UseContentRoot(Directory.GetCurrentDirectory())
+            var host = hostBuilder.Build();
+            host.Run();
+        }
+
+        public static void ConfigureHost(IWebHostBuilder hostBuilder)
+        {
+            hostBuilder.UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
                 .UseKestrel()
-                .UseStartup<Startup>()
-                .Build();
-
-            host.Run();
+                .UseStartup<Startup>();
         }
 
 

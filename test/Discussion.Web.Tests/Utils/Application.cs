@@ -31,14 +31,7 @@ namespace Discussion.Web.Tests
                     return _applicationContext;
                 }
 
-                Action<IServiceCollection> setupServices = (services) =>
-                {
-                    _dataContext = new InMemoryResponsitoryContext();
-                    services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => _dataContext);
-                    services.AddScoped(typeof(Repository<,>), typeof(InMemoryDataRepository<,>));
-                };
-
-                _applicationContext = BuildApplication( (c)=> { }, setupServices, (a) => { } );
+                _applicationContext = BuildApplication();
                 return _applicationContext;
             }
         }
@@ -52,39 +45,43 @@ namespace Discussion.Web.Tests
         public RequestDelegate RequestHandler { get { return this.Context.RequestHandler; }  }
         public IServiceProvider ApplicationServices { get { return this.Context.ApplicationServices; }  }
 
-        public IConfigurationRoot Configuration { get { return this.Context.Configuration; }  }
         public TestServer Server { get { return this.Context.Server; }  }
 
         #endregion
 
 
-        public static TestApplicationContext BuildApplication(Action<IConfigurationBuilder> customConfiguration, Action<IServiceCollection> serviceConfiguration,  Action<IApplicationBuilder> appConfiguration,  string environmentName = "Production")
+        public static TestApplicationContext BuildApplication(string environmentName = "Production", Action<IWebHostBuilder> configureHost = null)
         {
-            IApplicationBuilder bootingupApp = null;
-
             var testApp = new TestApplicationContext
             {
                 LoggerFactory = new StubLoggerFactory()
             };
 
 
-            var builder = new WebHostBuilder();
-            HostingAbstractionsWebHostBuilderExtensions.UseContentRoot(builder, WebProjectPath());
-            HostingAbstractionsWebHostBuilderExtensions.UseEnvironment(builder, environmentName);
-
-            builder.Configure(app =>
+            var hostBuilder = new WebHostBuilder();
+            if(configureHost != null)
             {
-                appConfiguration(app);
-                bootingupApp = app;
-            })
-            .ConfigureServices(serviceConfiguration)
-            .UseLoggerFactory(testApp.LoggerFactory)
-            .UseStartup<Startup>();
-            
-            testApp.Server = new TestServer(builder);
-            testApp.RequestHandler = bootingupApp.Build();
+                configureHost(hostBuilder);
+            }
+
+            Startup.ConfigureHost(hostBuilder);
+
+            hostBuilder.UseContentRoot(WebProjectPath())
+                .UseEnvironment(environmentName)
+                .UseLoggerFactory(testApp.LoggerFactory);
+
+            testApp.Server = new TestServer(hostBuilder);
+            testApp.RequestHandler = GetRequestHandler(testApp.Server.Host);
+            testApp.ApplicationServices = testApp.Server.Host.Services;
 
             return testApp;
+        }
+        
+        static RequestDelegate GetRequestHandler(IWebHost host)
+        {
+            var type = host.GetType();
+            var field = type.GetField("_application", BindingFlags.NonPublic | BindingFlags.Instance);
+            return field.GetValue(host) as RequestDelegate;
         }
 
         #region Disposing
@@ -141,7 +138,6 @@ namespace Discussion.Web.Tests
          RequestDelegate RequestHandler { get;  }
          IServiceProvider ApplicationServices { get;  }
 
-         IConfigurationRoot Configuration { get;  }
          TestServer Server { get;  }
     }
 
@@ -153,7 +149,6 @@ namespace Discussion.Web.Tests
         public RequestDelegate RequestHandler { get; set; }
         public IServiceProvider ApplicationServices { get; set; }
 
-        public IConfigurationRoot Configuration { get; set; }
         public TestServer Server { get; set; }
 
 
@@ -197,7 +192,7 @@ namespace Discussion.Web.Tests
         #endregion
     }
 
-    public class StubLoggerFactory : ILoggerFactory
+    public class StubLoggerFactory : ILoggerFactory, IDisposable
     {
         public LogLevel MinimumLevel
         {
@@ -232,16 +227,20 @@ namespace Discussion.Web.Tests
 
         public class Logger : ILogger
         {
+            private class NoopDisposable : IDisposable
+            {
+                public static Logger.NoopDisposable Instance = new Logger.NoopDisposable();
+
+                public void Dispose()
+                {
+                }
+            }
+
             public StubLoggerFactory Factory { get; set; }
 
             public IDisposable BeginScope<TState>(TState state)
             {
-                throw new NotImplementedException();
-            }
-
-            public IDisposable BeginScopeImpl(object state)
-            {
-                return null;
+                return NoopDisposable.Instance;
             }
 
             public bool IsEnabled(LogLevel logLevel)
@@ -264,7 +263,15 @@ namespace Discussion.Web.Tests
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
             {
-                throw new NotImplementedException();
+                var log = new LogItem
+                {
+                    Level = logLevel,
+                    EventId = eventId.Id,
+                    State = state,
+                    Exception = exception,
+                    Message = formatter.Invoke(state, exception)
+                };
+                Factory.LogItems.Push(log);
             }
         }
 

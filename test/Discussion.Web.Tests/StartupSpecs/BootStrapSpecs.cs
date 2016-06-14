@@ -52,13 +52,13 @@ namespace Discussion.Web.Tests.StartupSpecs
         {
             var args = Environment.GetCommandLineArgs();
 
-            var dnxPath = RuntimeLauncherPath();
+            var dotnetPath = RuntimeLauncherPath();
             var appBaseIndex = Array.IndexOf(args, "--appbase");
             var webProject = WebProjectPath();
 
             var dnxWeb = new ProcessStartInfo
             {
-                FileName = dnxPath,
+                FileName = dotnetPath,
                 Arguments = "Microsoft.AspNet.Server.Kestrel --Hosting:Environment Integration --server.urls http://localhost:" + port.ToString(),
                 WorkingDirectory = webProject,
                 RedirectStandardOutput = true,
@@ -66,7 +66,7 @@ namespace Discussion.Web.Tests.StartupSpecs
                 LoadUserProfile = true,
                 UseShellExecute = false
             };
-            Console.WriteLine($"dnx command is: {dnxPath}{Environment.NewLine}\nStarting web site at: {webProject}");
+            Console.WriteLine($"dotnet command is: {dotnetPath}{Environment.NewLine}\nStarting web site at: {webProject}");
 
             string outputData = string.Empty, errorOutput = string.Empty;
             var startedSuccessfully = false;

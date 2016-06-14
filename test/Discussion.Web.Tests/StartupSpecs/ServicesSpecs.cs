@@ -90,8 +90,8 @@ namespace Discussion.Web.Tests.StartupSpecs
         public static Startup CreateMockStartup()
         {
             var hostingEnv = new Mock<IHostingEnvironment>();
-            hostingEnv.SetupGet(e => e.EnvironmentName)
-                .Returns("Development");
+            hostingEnv.SetupGet(e => e.EnvironmentName).Returns("Development");
+            hostingEnv.SetupGet(e => e.ContentRootPath).Returns(TestEnv.WebProjectPath());
 
             return new Startup(hostingEnv.Object);
         }
