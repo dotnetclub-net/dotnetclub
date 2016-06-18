@@ -3,19 +3,12 @@ using Discussion.Web.Data.InMemory;
 using Jusfr.Persistent;
 using Jusfr.Persistent.Mongo;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Extensions.Configuration;
-using System.Text.Encodings.Web;
-using System.Text.Unicode;
 using System;
-using System.IO;
+using System.Linq;
 
 namespace Discussion.Web
 {
@@ -27,26 +20,30 @@ namespace Discussion.Web
         public Startup(IHostingEnvironment env)
         {
             HostingEnvironment = env;
-            Configuration = BuildConfiguration(env, Environment.GetCommandLineArgs());
+            Configuration = BuildApplicationConfiguration(env.ContentRootPath, env.EnvironmentName).Build();
         }
 
         public static void Main(string[] args)
         {
             var hostBuilder = new WebHostBuilder();
-            ConfigureHost(hostBuilder);
+            ConfigureHost(hostBuilder, addCommandLineArguments: true);
 
             var host = hostBuilder.Build();
             host.Run();
         }
 
-        public static void ConfigureHost(IWebHostBuilder hostBuilder)
+        public static void ConfigureHost(IWebHostBuilder hostBuilder, bool addCommandLineArguments = false)
         {
-            hostBuilder.UseContentRoot(Directory.GetCurrentDirectory())
+            var basePath = Environment.CurrentDirectory;
+            var configBuilder = BuildHostingConfiguration(basePath, hostBuilder.GetSetting(WebHostDefaults.EnvironmentKey), addCommandLineArguments ? Environment.GetCommandLineArgs() : null);
+            var configuration = configBuilder.Build();
+
+            hostBuilder.UseContentRoot(basePath)
                 .UseIISIntegration()
                 .UseKestrel()
-                .UseStartup<Startup>();
+                .UseStartup<Startup>()
+                .UseConfiguration(configuration);
         }
-
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -76,7 +73,6 @@ namespace Discussion.Web
             AddDataServicesTo(services, Configuration);
         }
 
-
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
@@ -95,20 +91,37 @@ namespace Discussion.Web
             app.UseMvc();
         }
 
-
-        static IConfigurationRoot BuildConfiguration(IHostingEnvironment env, string[] commandlineArgs)
+        static IConfigurationBuilder BuildApplicationConfiguration(string basePath, string envName)
         {
             var builder = new ConfigurationBuilder()
-              .SetBasePath(env.ContentRootPath)
-              .AddJsonFile("appsettings.json", optional: true)
-              .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+                              .AddEnvironmentVariables(prefix: "OPENASPNETORG_")
+                              .SetBasePath(basePath)
+                              .AddJsonFile("appsettings.json", optional: true)
+                              .AddJsonFile($"appsettings.{envName}.json", optional: true);
 
-            builder.AddEnvironmentVariables();
-            // builder.AddCommandLine(commandlineArgs);
-            return builder.Build();
+            return builder;
         }
 
-        static void AddDataServicesTo(IServiceCollection services, IConfigurationRoot _configuration)
+        static IConfigurationBuilder BuildHostingConfiguration(string basePath, string defaultEnvName, string[] commandlineArgs = null)
+        {
+            var builder = new ConfigurationBuilder()
+                              .AddEnvironmentVariables(prefix: "ASPNETCORE_")
+                              .SetBasePath(basePath)
+                              .AddJsonFile("hosting.json", optional: true);
+
+            if (commandlineArgs != null)
+            {
+                var args = Environment.GetCommandLineArgs();
+                var firstArgs = args.FirstOrDefault(arg => arg.StartsWith("--"));
+                var argsIndex = Array.IndexOf(args, firstArgs);
+                var usefulArgs = args.Skip(argsIndex).ToArray();
+                builder.AddCommandLine(usefulArgs);
+            }
+
+            return builder;
+        }
+
+        static void AddDataServicesTo(IServiceCollection services, IConfiguration _configuration)
         {
             var mongoConnectionString = _configuration["mongoConnectionString"];
             var hasMongoCongured = !string.IsNullOrWhiteSpace(mongoConnectionString);

@@ -12,7 +12,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_bootstrap_success()
         {
-            const int httpListenPort = 5000;
+            const int httpListenPort = 5001;
             var testCompleted = false;
             HttpWebResponse response = null;
 
@@ -53,13 +53,12 @@ namespace Discussion.Web.Tests.StartupSpecs
             var args = Environment.GetCommandLineArgs();
 
             var dotnetPath = RuntimeLauncherPath();
-            var appBaseIndex = Array.IndexOf(args, "--appbase");
             var webProject = WebProjectPath();
 
-            var dnxWeb = new ProcessStartInfo
+            var dotnetProcess = new ProcessStartInfo
             {
                 FileName = dotnetPath,
-                Arguments = "Microsoft.AspNet.Server.Kestrel --Hosting:Environment Integration --server.urls http://localhost:" + port.ToString(),
+                Arguments = "run --environment Integration --server.urls http://localhost:" + port.ToString(),
                 WorkingDirectory = webProject,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -70,7 +69,7 @@ namespace Discussion.Web.Tests.StartupSpecs
 
             string outputData = string.Empty, errorOutput = string.Empty;
             var startedSuccessfully = false;
-            var dnxWebServer = new Process { StartInfo = dnxWeb };
+            var dnxWebServer = new Process { StartInfo = dotnetProcess };
 
 
             dnxWebServer.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>

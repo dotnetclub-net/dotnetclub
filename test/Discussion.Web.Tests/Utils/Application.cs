@@ -5,13 +5,19 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
+using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
@@ -49,7 +55,6 @@ namespace Discussion.Web.Tests
 
         #endregion
 
-
         public static TestApplicationContext BuildApplication(string environmentName = "Production", Action<IWebHostBuilder> configureHost = null)
         {
             var testApp = new TestApplicationContext
@@ -63,7 +68,6 @@ namespace Discussion.Web.Tests
             {
                 configureHost(hostBuilder);
             }
-
             Startup.ConfigureHost(hostBuilder);
 
             hostBuilder.UseContentRoot(WebProjectPath())
@@ -306,31 +310,81 @@ namespace Discussion.Web.Tests
             // services.GetRequiredService<IActionBindingContextAccessor>().ActionBindingContext = actionBindingContext;
 
             var controllerFactory = services.GetService<IControllerFactory>();
-            return controllerFactory.CreateController(new ControllerContext(actionContext)) as T;
+            var controller = controllerFactory.CreateController(new ControllerContext(actionContext)) as T;
+
+            var testContext = GetTestContext(services);
+            AttachValidators(controller, actionContext, testContext.MetadataProvider);
+            return controller;
         }
 
-        //private static ActionBindingContext GetActionBindingContext(MvcOptions options, ActionContext actionContext)
-        //{
-        //    var valueProviderFactoryContext = new ValueProviderFactoryContext(actionContext.HttpContext, actionContext.RouteData.Values);
-        //    var valueProvider = CompositeValueProvider.CreateAsync(options.ValueProviderFactories, valueProviderFactoryContext).Result;
+        public static ModelBindingTestContext GetTestContext(IServiceProvider services,
+    Action<HttpRequest> updateRequest = null,
+    Action<MvcOptions> updateOptions = null,
+    ControllerActionDescriptor actionDescriptor = null)
+        {
+            var httpContext = new DefaultHttpContext { RequestServices = services  }; // GetHttpContext(updateRequest, updateOptions);
+            var options = services.GetRequiredService<IOptions<MvcOptions>>();
 
-        //    return new ActionBindingContext()
-        //    {
-        //        InputFormatters = options.InputFormatters,
-        //        OutputFormatters = options.OutputFormatters,
-        //        ValidatorProvider = new CompositeModelValidatorProvider(options.ModelValidatorProviders),
-        //        ModelBinder = new CompositeModelBinder(options.ModelBinders),
-        //        ValueProvider = valueProvider
-        //    };
+            var context = new TestApplicationContextExtensions.ModelBindingTestContext()
+            {
+                ActionDescriptor = actionDescriptor ?? new ControllerActionDescriptor(),
+                HttpContext = httpContext,
+                MetadataProvider = CreateDefaultProvider(),
+                RouteData = new RouteData(),
+               //  ValueProviderFactories = new List<IValueProviderFactory>(options.Value.ValueProviderFactories),
+            };
 
+            return context;
+        }
 
+        public static IModelMetadataProvider CreateDefaultProvider()
+        {
+            var detailsProviders = new IMetadataDetailsProvider[]
+            {
+                new DefaultBindingMetadataProvider(CreateMessageProvider()),
+                new DefaultValidationMetadataProvider(),
+                new DataAnnotationsMetadataProvider(),
+                new DataMemberRequiredBindingMetadataProvider(),
+            };
 
-        //}
-        
+            var compositeDetailsProvider = new DefaultCompositeMetadataDetailsProvider(detailsProviders);
+            return new DefaultModelMetadataProvider(compositeDetailsProvider);
+        }
+
+        private static ModelBindingMessageProvider CreateMessageProvider()
+        {
+            return new ModelBindingMessageProvider
+            {
+                MissingBindRequiredValueAccessor = name => $"A value for the '{ name }' property was not provided.",
+                MissingKeyOrValueAccessor = () => $"A value is required.",
+                ValueMustNotBeNullAccessor = value => $"The value '{ value }' is invalid.",
+                AttemptedValueIsInvalidAccessor = (value, name) => $"The value '{ value }' is not valid for { name }.",
+                UnknownValueIsInvalidAccessor = name => $"The supplied value is invalid for { name }.",
+                ValueIsInvalidAccessor = value => $"The value '{ value }' is invalid.",
+                ValueMustBeANumberAccessor = name => $"The field { name } must be a number.",
+            };
+        }
+
+        private static void AttachValidators(Controller controller, ActionContext actionContext, IModelMetadataProvider metadataProvider)
+        {
+            var options = actionContext.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>();
+
+            controller.ControllerContext = new ControllerContext(actionContext);
+            // controller.ObjectValidator = ModelBindingTestHelper.GetObjectValidator(metadataProvider, options);
+            controller.MetadataProvider = metadataProvider;
+        }
 
         public static T GetService<T>(this IApplicationContext app) where T : class
         {
             return app.ApplicationServices.GetService<T>();
         }
+
+
+
+        public class ModelBindingTestContext : ControllerContext
+        {
+            public IModelMetadataProvider MetadataProvider { get; set; }
+        }
     }
+
 }
