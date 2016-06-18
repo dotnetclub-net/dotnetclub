@@ -114,8 +114,12 @@ namespace Discussion.Web
                 var args = Environment.GetCommandLineArgs();
                 var firstArgs = args.FirstOrDefault(arg => arg.StartsWith("--"));
                 var argsIndex = Array.IndexOf(args, firstArgs);
-                var usefulArgs = args.Skip(argsIndex).ToArray();
-                builder.AddCommandLine(usefulArgs);
+
+                if (argsIndex > -1)
+                {
+                    var usefulArgs = args.Skip(argsIndex).ToArray();
+                    builder.AddCommandLine(usefulArgs);
+                }
             }
 
             return builder;
