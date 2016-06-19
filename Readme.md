@@ -5,7 +5,7 @@ OpenASPNET.ORG
 
 This project is source code for a discussion website, which is used to demonstrate how asp.net core can be used to make a user generated web application. The online instance of this project is hosted at [openaspnet.org](http://openaspnet.org) which is exactly a real community for discussing asp.net core technical topics.
 
-This project is a web application based on the [ASP.NET Core RC1](https://github.com/aspnet/Home/tree/v1.0.0-rc1-update1) open source and cross platform framework. Notice that, currently this project uses on the DNX application model and runs upon the CLR runtime (depends on full .NET framework or Mono). It will be migrated to [.net core](https://dotnet.github.io/) runtime in near future.
+This project is a web application based on the [ASP.NET Core RC2](https://github.com/aspnet/Home/tree/v1.0.0-rc1-update1) open source and cross platform framework. Notice that, currently this project runs on the full CLR runtime (depends on full .NET framework or Mono). Maintainer is now working hard to migrate it to pure [.net core](https://dotnet.github.io/) runtime. Due to some compatibility issues, currently this project fails to run on the Mono runtime, after being migrated to .net core runtime, problems will be solved.
 
 Build dev:  ![Travis Status-dev](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=dev)
 Build master: ![Travis Status-master](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=master)
@@ -24,13 +24,13 @@ You can work on the source with any text editor or IDE.
 To restore packages and compile:
 
 ``` 
-./sake build-all
+./build build-all
 ```
 
 To execute tests:
 
 ``` 
-./sake test
+./build test
 ```
 
 &nbsp;
@@ -42,7 +42,7 @@ You need the asp.net core basic environment to run this application. It's pretty
 ``` 
 git clone https://github.com/jijiechen/openaspnetorg.git
 cd openaspnetorg
-./sake build-all
+./build build-all
 cd src/Discussion.Web
 dnx web
 ```
@@ -52,7 +52,7 @@ By default, the application will use in-memory storage, which will be cleared on
 Besides, you can also package artifacts and publish this project to a server. &nbsp;
 
 ``` 
-./sake publish
+./build publish
 ```
 
 By executing this command, you can get output generated for deploying. Go to `src/Discussion.Web/bin/output` and push contents to your server.
