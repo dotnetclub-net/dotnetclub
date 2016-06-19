@@ -5,6 +5,7 @@ using Discussion.Web.Data;
 using Discussion.Web.ViewModels;
 using System;
 using Discussion.Web.Services;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Discussion.Web.Controllers
 {
@@ -12,12 +13,13 @@ namespace Discussion.Web.Controllers
     {
 
         private readonly IDataRepository<Topic> _topicRepo;
-        public TopicController(IDataRepository<Topic> topicRepo)
+        private readonly IModelMetadataProvider _modelMetadataProvider;
+        public TopicController(IDataRepository<Topic> topicRepo, IModelMetadataProvider modelMetadataProvider)
         {
             _topicRepo = topicRepo;
+            _modelMetadataProvider = modelMetadataProvider;
         }
-
-
+        
         [Route("/Topic/{id}")]
         public ActionResult Index(int id)
         {

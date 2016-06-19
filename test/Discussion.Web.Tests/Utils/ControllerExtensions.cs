@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 
-namespace Discussion.Web.Tests.Specs
+namespace Discussion.Web.Tests
 {
     public static class ControllerExtensions
     {

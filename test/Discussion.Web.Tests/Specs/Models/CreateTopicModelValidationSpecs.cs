@@ -1,6 +1,9 @@
 ﻿using Discussion.Web.Controllers;
 using Discussion.Web.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Models
@@ -66,13 +69,14 @@ namespace Discussion.Web.Tests.Specs.Models
         }
 
 
-
         private TopicController CreateControllerAndValidateTopic(string title, string content)
         {
             var createModel = new TopicCreationModel { Title = title, Content = content };
 
+            var valiadtor = _myApp.GetService<Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IObjectModelValidator>();
             var topicController = _myApp.CreateController<TopicController>();
-            topicController.TryValidateModel(createModel);
+
+            topicController.TryValidateModel(createModel, string.Empty);
 
             return topicController;
         }
