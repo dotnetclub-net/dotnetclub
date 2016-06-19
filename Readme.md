@@ -7,8 +7,9 @@ This project is source code for a discussion website, which is used to demonstra
 
 This project is a web application based on the [ASP.NET Core RC2](https://github.com/aspnet/Home/tree/v1.0.0-rc1-update1) open source and cross platform framework. Notice that, currently this project runs on the full CLR runtime (depends on full .NET framework or Mono). Maintainer is now working hard to migrate it to pure [.net core](https://dotnet.github.io/) runtime. Due to some compatibility issues, currently this project fails to run on the Mono runtime, after being migrated to .net core runtime, problems will be solved.
 
-Build dev:  ![Travis Status-dev](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=dev)
-Build master: ![Travis Status-master](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=master)
+AppVeyor: dev [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/dev)  master [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/master)
+
+Travis: dev  ![Travis Status-dev](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=dev)   master ![Travis Status-master](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=master)
 
 ### Using the source
 
