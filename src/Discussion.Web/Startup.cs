@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
-using System.Text.Unicode;
 
 namespace Discussion.Web
 {
@@ -36,7 +35,7 @@ namespace Discussion.Web
         public static void ConfigureHost(IWebHostBuilder hostBuilder, bool addCommandLineArguments = false)
         {
             var basePath = Environment.CurrentDirectory;
-            var configBuilder = BuildHostingConfiguration(basePath, hostBuilder.GetSetting(WebHostDefaults.EnvironmentKey), addCommandLineArguments ? Environment.GetCommandLineArgs() : null);
+            var configBuilder = BuildHostingConfiguration(basePath, addCommandLineArguments ? Environment.GetCommandLineArgs() : null);
             var configuration = configBuilder.Build();
 
             hostBuilder.UseContentRoot(basePath)
@@ -49,27 +48,6 @@ namespace Discussion.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
-            //Configure runtime to enable specified characters to be rendered as is
-            //See https://github.com/aspnet/HttpAbstractions/issues/315
-            services.AddWebEncoders(option =>
-            {
-                var enabledChars = new[]
-                {
-                     UnicodeRanges.BasicLatin,
-                     UnicodeRanges.Latin1Supplement,
-                     UnicodeRanges.CjkUnifiedIdeographs,
-                     UnicodeRanges.HalfwidthandFullwidthForms,
-                     UnicodeRanges.LatinExtendedAdditional,
-                     UnicodeRanges.LatinExtendedA,
-                     UnicodeRanges.LatinExtendedB,
-                     UnicodeRanges.LatinExtendedC,
-                     UnicodeRanges.LatinExtendedD,
-                     UnicodeRanges.LatinExtendedE
-                };
-
-                option.TextEncoderSettings.AllowRanges(enabledChars);
-            });
-
             services.AddMvc();
             AddDataServicesTo(services, Configuration);
         }
@@ -100,7 +78,7 @@ namespace Discussion.Web
             return builder;
         }
 
-        static IConfigurationBuilder BuildHostingConfiguration(string basePath, string defaultEnvName, string[] commandlineArgs = null)
+        static IConfigurationBuilder BuildHostingConfiguration(string basePath, string[] commandlineArgs = null)
         {
             var builder = new ConfigurationBuilder()
                               .AddEnvironmentVariables(prefix: "ASPNETCORE_")
