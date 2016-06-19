@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Text.Unicode;
 
 namespace Discussion.Web
 {
@@ -48,27 +49,27 @@ namespace Discussion.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
-            // Configure runtime to enable specified characters to be rendered as is
-            // See https://github.com/aspnet/HttpAbstractions/issues/315
-            // services.AddWebEncoders(option =>
-            // {
-            //     var enabledChars = new[]
-            //     {
-            //         UnicodeRanges.BasicLatin,
-            //         UnicodeRanges.Latin1Supplement,
-            //         // UnicodeRanges.CJKUnifiedIdeographs,
-            //         UnicodeRanges.HalfwidthandFullwidthForms,
-            //         UnicodeRanges.LatinExtendedAdditional,
-            //         UnicodeRanges.LatinExtendedA,
-            //         UnicodeRanges.LatinExtendedB,
-            //         UnicodeRanges.LatinExtendedC,
-            //         UnicodeRanges.LatinExtendedD,
-            //         UnicodeRanges.LatinExtendedE
-            //     };
+            //Configure runtime to enable specified characters to be rendered as is
+            //See https://github.com/aspnet/HttpAbstractions/issues/315
+            services.AddWebEncoders(option =>
+            {
+                var enabledChars = new[]
+                {
+                     UnicodeRanges.BasicLatin,
+                     UnicodeRanges.Latin1Supplement,
+                     UnicodeRanges.CjkUnifiedIdeographs,
+                     UnicodeRanges.HalfwidthandFullwidthForms,
+                     UnicodeRanges.LatinExtendedAdditional,
+                     UnicodeRanges.LatinExtendedA,
+                     UnicodeRanges.LatinExtendedB,
+                     UnicodeRanges.LatinExtendedC,
+                     UnicodeRanges.LatinExtendedD,
+                     UnicodeRanges.LatinExtendedE
+                };
 
-            //     option.CodePointFilter = new CodePointFilter(enabledChars);
-            // });
-            
+                option.TextEncoderSettings.AllowRanges(enabledChars);
+            });
+
             services.AddMvc();
             AddDataServicesTo(services, Configuration);
         }
@@ -81,12 +82,9 @@ namespace Discussion.Web
             }
             else
             {
-                app.UseDeveloperExceptionPage();
-             //   app.UseExceptionHandler("/error");
+                app.UseExceptionHandler("/error");
             }
 
-            // Add the platform handler to the request pipeline.
-            // app.UseIISPlatformHandler();
             app.UseStaticFiles();
             app.UseMvc();
         }
