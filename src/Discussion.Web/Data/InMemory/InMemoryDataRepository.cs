@@ -1,5 +1,4 @@
 ﻿using Jusfr.Persistent;
-using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace Discussion.Web.Data.InMemory
 {
-    public class InMemoryDataRepository<TEntry, TKey> : Repository<TEntry, TKey> where TEntry : class, IAggregate<TKey>
+    public class InMemoryDataRepository<TEntry> : Repository<TEntry> where TEntry : Entity
     {
         public InMemoryDataRepository(IRepositoryContext dataContext) : base(dataContext)
         {
@@ -26,7 +25,7 @@ namespace Discussion.Web.Data.InMemory
         {
             get
             {
-                var repo = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
+                var repo = StorageContext.GetRepositoryForEntity<TEntry>();
                 return repo.Values.AsQueryable();
             }
         }
@@ -43,26 +42,17 @@ namespace Discussion.Web.Data.InMemory
 
         public override void Create(TEntry entry)
         {
-            var repo = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
+            var repo = StorageContext.GetRepositoryForEntity<TEntry>();
             entry.Id = GenerateNewId(repo.Count);
             repo.TryAdd(entry.Id, entry);
         }
 
-        public override void Delete(IEnumerable<TEntry> entries)
-        {
-            var repo = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            var idList = entries.Where(e => e != null && repo.ContainsKey(e.Id)).Select(e => e.Id).ToArray();
-
-            foreach (var id in idList)
-            {
-                TEntry val;
-                repo.TryRemove(id, out val);
-            }
-        }
-
         public override void Delete(TEntry entry)
         {
-            Delete(new[] { entry });
+            var repo = StorageContext.GetRepositoryForEntity<TEntry>();
+
+            TEntry val;
+            repo.TryRemove(entry.Id, out val);
         }
 
         public override TReutrn Fetch<TReutrn>(Func<IQueryable<TEntry>, TReutrn> query)
@@ -70,30 +60,30 @@ namespace Discussion.Web.Data.InMemory
             return query(All);
         }
 
-        public override IEnumerable<TEntry> Retrive(params TKey[] keys)
+        public override IEnumerable<TEntry> Retrive(params object[] keys)
         {
             if (keys == null)
             {
                 yield break;
             }
 
-            var storage = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
+            var storage = StorageContext.GetRepositoryForEntity<TEntry>();
             foreach (var key in keys)
             {
                 TEntry val;
-                storage.TryGetValue(key, out val);
+                storage.TryGetValue((int)key, out val);
                 yield return val;
             }
         }
 
-        public override TEntry Retrive(TKey id)
+        public override TEntry Retrive(object id)
         {
             return Retrive(new[] { id }).FirstOrDefault();
         }
 
         public override IEnumerable<TEntry> Retrive<TMember>(Expression<Func<TEntry, TMember>> selector, params TMember[] keys)
         {
-            var storage = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
+            var storage = StorageContext.GetRepositoryForEntity<TEntry>();
             //var memberSelector = selector.Compile();
             //return All
             //    .Select(entry => new
@@ -124,44 +114,28 @@ namespace Discussion.Web.Data.InMemory
             return Retrive(selector, keys);
         }
 
-        public override void Save(IEnumerable<TEntry> entries)
-        {
-            var storage = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            var count = storage.Count;
-            foreach (var item in entries)
-            {
-                if (item.Id.Equals(default(TKey)))
-                {
-                    item.Id = GenerateNewId(++count);
-                }
-
-                storage.AddOrUpdate(item.Id, item, (key, existingValue) => item);
-            }
-        }
-
         public override void Save(TEntry entry)
         {
-            Save(new[] { entry });
-        }
-
-        public override void Update(IEnumerable<TEntry> entries)
-        {
-            var storage = StorageContext.GetRepositoryForEntity<TKey, TEntry>();
-            foreach (var item in entries)
+            var storage = StorageContext.GetRepositoryForEntity<TEntry>();
+            var count = storage.Count;
+            if (entry.Id.Equals(default(int)))
             {
-                var existing = Retrive(item.Id);
-                storage.TryUpdate(item.Id, item, existing);
+                entry.Id = GenerateNewId(++count);
             }
+
+            storage.AddOrUpdate(entry.Id, entry, (key, existingValue) => entry);
         }
 
         public override void Update(TEntry entry)
         {
-            Update(new[] { entry });
+            var storage = StorageContext.GetRepositoryForEntity<TEntry>();
+            var existing = Retrive(entry.Id);
+            storage.TryUpdate(entry.Id, entry, existing);
         }
 
-        TKey GenerateNewId(int count)
+        int GenerateNewId(int count)
         {
-            return (TKey)Convert.ChangeType(count + 1, typeof(TKey));
+            return (int)Convert.ChangeType(count + 1, typeof(int));
         }
     }
 

@@ -6,21 +6,21 @@ using System.Collections;
 namespace Discussion.Web.Data.InMemory
 {
 
-    public class InMemoryResponsitoryContext : DisposableObject, IRepositoryContext
+    public class InMemoryResponsitoryContext : IDisposable, IRepositoryContext
     {
         private ConcurrentDictionary<string, object> _storage = new ConcurrentDictionary<string, object>();
 
         public bool DistributedTransactionSupported { get; } = false;
 
-        public ConcurrentDictionary<TKey, TEntry> GetRepositoryForEntity<TKey, TEntry>()
+        public ConcurrentDictionary<int, TEntry> GetRepositoryForEntity<TEntry>()
         {
             var type = typeof(TEntry).FullName;
             var entryStorage = _storage.GetOrAdd(type, typeName =>
             {
-                return new ConcurrentDictionary<TKey, TEntry>();
+                return new ConcurrentDictionary<int, TEntry>();
             });
 
-            return entryStorage as ConcurrentDictionary<TKey, TEntry>;
+            return entryStorage as ConcurrentDictionary<int, TEntry>;
         }
 
         public Guid ID { get; } = Guid.NewGuid();
@@ -40,7 +40,7 @@ namespace Discussion.Web.Data.InMemory
             throw new NotImplementedException();
         }
 
-        protected override void DisposeManaged()
+        void IDisposable.Dispose()
         {
             foreach (var key in _storage.Keys)
             {

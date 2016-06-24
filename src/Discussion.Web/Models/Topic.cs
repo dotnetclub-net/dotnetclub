@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Discussion.Web.Data;
+using System;
 
 namespace Discussion.Web.Models
 {

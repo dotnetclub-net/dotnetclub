@@ -1,13 +1,12 @@
-﻿using Discussion.Web.Data;
-using Discussion.Web.Data.InMemory;
+﻿using Discussion.Web.Data.InMemory;
 using Jusfr.Persistent;
-using Jusfr.Persistent.Mongo;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Linq;
 
 namespace Discussion.Web
@@ -34,7 +33,7 @@ namespace Discussion.Web
 
         public static void ConfigureHost(IWebHostBuilder hostBuilder, bool addCommandLineArguments = false)
         {
-            var basePath = Environment.CurrentDirectory;
+            var basePath = Directory.GetCurrentDirectory();
             var configBuilder = BuildHostingConfiguration(basePath, addCommandLineArguments ? Environment.GetCommandLineArgs() : null);
             var configuration = configBuilder.Build();
 
@@ -103,33 +102,10 @@ namespace Discussion.Web
 
         static void AddDataServicesTo(IServiceCollection services, IConfiguration _configuration)
         {
-            var mongoConnectionString = _configuration["mongoConnectionString"];
-            var hasMongoCongured = !string.IsNullOrWhiteSpace(mongoConnectionString);
-
-
-            if (hasMongoCongured)
-            {
-                services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
-                {
-                // @jijiechen: detect at every time initate a new IRepositoryContext
-                // may cause a performance issue
-                if (!MongoDbUtils.DatabaseExists(mongoConnectionString))
-                    {
-                        throw new ApplicationException("Could not find a database using specified connection string");
-                    }
-
-                    return new MongoRepositoryContext(mongoConnectionString);
-                });
-                services.AddScoped(typeof(Repository<,>), typeof(MongoRepository<,>));
-            }
-            else
-            {
-                var dataContext = new InMemoryResponsitoryContext();
-                services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => dataContext);
-                services.AddScoped(typeof(Repository<,>), typeof(InMemoryDataRepository<,>));
-            }
-
-            services.AddScoped(typeof(IDataRepository<>), typeof(BaseDataRepository<>));
+            var dataContext = new InMemoryResponsitoryContext();
+            services.AddSingleton(typeof(IRepositoryContext), (serviceProvider) => dataContext);
+            services.AddScoped(typeof(Repository<>), typeof(InMemoryDataRepository<>));
+            services.AddScoped(typeof(IRepository<>), typeof(InMemoryDataRepository<>));
         }
     }
 

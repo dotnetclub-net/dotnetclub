@@ -1,13 +1,12 @@
 ﻿using MarkdownSharp;
 using System.Text.RegularExpressions;
 using System.Text;
-using MarkdownSharp.Extensions;
 using System.Reflection;
 using System;
 
 namespace Discussion.Web.Services
 {
-    public class GfmCodeBlocks : IExtensionInterface
+    public class GfmCodeBlocks : IMarkdownExtension
     {
         private static Regex _codeBlock = new Regex(@"(?:\r?\n|^)(`{3,}|~{3,})([\u0020\t]*(?<lang>\S+))?[\u0020\t]*\r?\n
 	(?<code>[^\r^\n]*\r?\n)*?

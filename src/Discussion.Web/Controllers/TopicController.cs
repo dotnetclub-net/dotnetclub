@@ -1,20 +1,20 @@
 ﻿using Discussion.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-using Discussion.Web.Data;
 using Discussion.Web.ViewModels;
 using System;
 using Discussion.Web.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Jusfr.Persistent;
 
 namespace Discussion.Web.Controllers
 {
     public class TopicController : Controller
     {
 
-        private readonly IDataRepository<Topic> _topicRepo;
+        private readonly IRepository<Topic> _topicRepo;
         private readonly IModelMetadataProvider _modelMetadataProvider;
-        public TopicController(IDataRepository<Topic> topicRepo, IModelMetadataProvider modelMetadataProvider)
+        public TopicController(IRepository<Topic> topicRepo, IModelMetadataProvider modelMetadataProvider)
         {
             _topicRepo = topicRepo;
             _modelMetadataProvider = modelMetadataProvider;
