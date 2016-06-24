@@ -87,7 +87,7 @@ namespace Discussion.Web.Tests.StartupSpecs
                 {
                     startedSuccessfully = true;
                     var workerProcessId = int.Parse(Regex.Match(outputData, @"Process ID: (\d+)").Groups[1].Value);
-                    onServerReady.BeginInvoke(new RunningDotnetProcess { HostProcessId = dnxWebServer.Id, WorkerProcessId = workerProcessId }, null, null);
+                    onServerReady.Invoke(new RunningDotnetProcess { HostProcessId = dnxWebServer.Id, WorkerProcessId = workerProcessId });
                 };
             };
             dnxWebServer.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
