@@ -1,5 +1,5 @@
 ﻿using Discussion.Web.Models;
-using Discussion.Web.Data;
+using Jusfr.Persistent;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Xunit;
@@ -21,7 +21,7 @@ namespace Discussion.Web.Tests.Specs.Repository
         public void should_store_an_article()
         {
             var article = new Article() {Title = Guid.NewGuid().ToString() };
-            var repo = _applicationServices.GetRequiredService<IDataRepository<Article>>();
+            var repo = _applicationServices.GetRequiredService<IRepository<Article>>();
 
             repo.Create(article);
 

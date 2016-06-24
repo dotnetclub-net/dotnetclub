@@ -22,7 +22,7 @@ namespace Discussion.Web.Tests.StartupSpecs
                 {
                     Console.WriteLine("Server started successfully, trying to request...");
                     var httpWebRequest = WebRequest.CreateHttp("http://localhost:" + httpListenPort.ToString());
-                    response = httpWebRequest.GetResponse() as HttpWebResponse;
+                    response = httpWebRequest.GetResponseAsync().Result as HttpWebResponse;
                 }
                 catch (WebException ex)
                 {
@@ -67,7 +67,7 @@ namespace Discussion.Web.Tests.StartupSpecs
                 LoadUserProfile = true,
                 UseShellExecute = false
             };
-            dotnetProcess.EnvironmentVariables["DOTNET_CLI_CONTEXT_VERBOSE"] = "true";
+            dotnetProcess.Environment["DOTNET_CLI_CONTEXT_VERBOSE"] = "true";
             Console.WriteLine($"dotnet command is: {dotnetPath}{Environment.NewLine}\nStarting web site at: {webProject}");
 
             string outputData = string.Empty, errorOutput = string.Empty;

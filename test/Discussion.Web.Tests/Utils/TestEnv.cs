@@ -11,7 +11,7 @@ namespace Discussion.Web.Tests {
         public static string SolutionPath()
         {
             const string testProjectSubPath = "test/Discussion.Web.Tests/project.json";
-            var currentPath = Environment.CurrentDirectory;
+            var currentPath = Directory.GetCurrentDirectory();
 
             do
             {
@@ -25,7 +25,7 @@ namespace Discussion.Web.Tests {
                 currentPath = parent == null ? null : parent.FullName;
             } while (currentPath != null);
 
-            throw new ApplicationException("Cannot find test project.");
+            throw new InvalidOperationException("Cannot find test project.");
         }
 
         public static string WebProjectPath()

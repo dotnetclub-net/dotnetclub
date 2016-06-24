@@ -1,12 +1,12 @@
 ﻿using Discussion.Web.Controllers;
 using Discussion.Web.Models;
-using Discussion.Web.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Xunit;
 using Discussion.Web.ViewModels;
 using System.Linq;
 using System;
+using Jusfr.Persistent;
 
 namespace Discussion.Web.Tests.Specs
 {
@@ -44,7 +44,7 @@ namespace Discussion.Web.Tests.Specs
                 new Topic {Title = "dummy topic 2" },
                 new Topic {Title = "dummy topic 3" },
             };
-            var repo = _myApp.GetService<IDataRepository<Topic>>();
+            var repo = _myApp.GetService<IRepository<Topic>>();
             foreach(var item in topicItems)
             {
                 repo.Create(item);
@@ -72,7 +72,7 @@ namespace Discussion.Web.Tests.Specs
             topicController.CreateTopic(model);
 
 
-            var repo = _myApp.GetService<IDataRepository<Topic>>();
+            var repo = _myApp.GetService<IRepository<Topic>>();
             var allTopics = repo.All.ToList();
 
             var createdTopic = allTopics.Find(topic => topic.Title == model.Title);
@@ -94,7 +94,7 @@ namespace Discussion.Web.Tests.Specs
         public void should_show_topic()
         {
             var topic = new Topic { Title = "dummy topic 1" };
-            var repo = _myApp.GetService<IDataRepository<Topic>>();
+            var repo = _myApp.GetService<IRepository<Topic>>();
             repo.Create(topic);
 
 
@@ -121,7 +121,7 @@ namespace Discussion.Web.Tests.Specs
 ###哈呵呵
 **功能**是*很好*的"
             };
-            var repo = _myApp.GetService<IDataRepository<Topic>>();
+            var repo = _myApp.GetService<IRepository<Topic>>();
             repo.Create(topic);
 
 

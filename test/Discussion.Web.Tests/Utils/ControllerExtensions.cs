@@ -16,7 +16,7 @@ namespace Discussion.Web.Tests
             var actionMethod = ctrlType.GetMethod(actionName, BindingFlags.Public | BindingFlags.Instance);
             if (actionMethod == null)
             {
-                throw new MissingMethodException(ctrlType.FullName, actionName);
+                throw new MissingMethodException($"Could not find action method for action '{actionName}' in controller type: {ctrlType.FullName}");
             }
 
             return actionMethod.Invoke(controller, parameters) as IActionResult;

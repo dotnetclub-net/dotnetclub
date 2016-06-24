@@ -1,13 +1,10 @@
 ﻿using Discussion.Web.Models;
-using Discussion.Web.Data;
+using Discussion.Web.Data.InMemory;
 using Jusfr.Persistent;
-using Jusfr.Persistent.Mongo;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.PlatformAbstractions;
 using Moq;
 using System;
-using System.IO;
 using Xunit;
 
 namespace Discussion.Web.Tests.StartupSpecs
@@ -42,11 +39,11 @@ namespace Discussion.Web.Tests.StartupSpecs
             var applicationServices = CreateApplicationServices();
 
             // act
-            var repo = applicationServices.GetRequiredService<Repository<Article, int>>();
+            var repo = applicationServices.GetRequiredService<Repository<Article>>();
 
             // assert
             repo.ShouldNotBeNull();
-            repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(MongoRepository<,>));
+            repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(InMemoryDataRepository<>));
         }
 
 
@@ -57,11 +54,11 @@ namespace Discussion.Web.Tests.StartupSpecs
             var applicationServices = CreateApplicationServices();
 
             // act
-            var repo = applicationServices.GetRequiredService<IDataRepository<Article>>();
+            var repo = applicationServices.GetRequiredService<IRepository<Article>>();
 
             // assert
             repo.ShouldNotBeNull();
-            repo.GetType().ShouldEqual(typeof(BaseDataRepository<Article>));
+            repo.GetType().ShouldEqual(typeof(InMemoryDataRepository<Article>));
         }
 
         public static IServiceProvider CreateApplicationServices()
@@ -70,17 +67,15 @@ namespace Discussion.Web.Tests.StartupSpecs
         }
 
         public static IServiceProvider CreateApplicationServices(Action<IServiceCollection> configureServices) {
-            const string dummyDB = "mongodb://localhost/dummydb";
             var services = new ServiceCollection();
             var startup = CreateMockStartup();
-            startup.Configuration["mongoConnectionString"] = dummyDB;
 
             // services.AddInstance<IHostingEnvironment>(startup.HostingEnvironment);
             startup.ConfigureServices(services);
 
             services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
             {
-                return new MongoRepositoryContext(dummyDB);
+                return new InMemoryResponsitoryContext();
             });
             configureServices(services);
 
