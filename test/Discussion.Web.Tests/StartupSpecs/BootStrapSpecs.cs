@@ -64,7 +64,7 @@ namespace Discussion.Web.Tests.StartupSpecs
                 WorkingDirectory = webProject,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                LoadUserProfile = true,
+                // LoadUserProfile = true,   // will throw System.PlatformNotSupportedException : Operation is not supported on this platform.  see https://travis-ci.org/jijiechen/openaspnetorg/builds/140064540
                 UseShellExecute = false
             };
             dotnetProcess.Environment["DOTNET_CLI_CONTEXT_VERBOSE"] = "true";

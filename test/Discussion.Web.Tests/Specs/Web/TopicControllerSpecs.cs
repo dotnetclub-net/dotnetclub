@@ -82,7 +82,7 @@ namespace Discussion.Web.Tests.Specs
             createdTopic.Content.ShouldEqual(model.Content);
 
             var createdAt = (DateTime.UtcNow - createdTopic.CreatedAt);
-            Assert.True(createdAt.TotalMilliseconds > 0);
+            Assert.True(createdAt.TotalMilliseconds >= 0);
             Assert.True(createdAt.TotalMinutes < 2);
 
             createdTopic.LastRepliedAt.ShouldBeNull();
