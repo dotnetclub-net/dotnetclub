@@ -1,10 +1,13 @@
 ﻿using Discussion.Web.Data.InMemory;
+using Discussion.Web.Data;
 using Jusfr.Persistent;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Raven.Client;
+using Raven.Client.Document;
 using System;
 using System.IO;
 using System.Linq;
@@ -44,6 +47,7 @@ namespace Discussion.Web
                 .UseConfiguration(configuration);
         }
 
+        // ConfigureServices is invoked before Configure
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
@@ -64,6 +68,19 @@ namespace Discussion.Web
 
             app.UseStaticFiles();
             app.UseMvc();
+
+            var ravenStore = app.ApplicationServices.GetService<Lazy<IDocumentStore>>();
+            if (ravenStore != null)
+            {
+                var lifetime = app.ApplicationServices.GetService<IApplicationLifetime>();
+                lifetime.ApplicationStopping.Register(() =>
+                {
+                    if (ravenStore.IsValueCreated && !ravenStore.Value.WasDisposed)
+                    {
+                        ravenStore.Value.Dispose();
+                    }
+                });
+            }
         }
 
         static IConfigurationBuilder BuildApplicationConfiguration(string basePath, string envName)
@@ -102,6 +119,31 @@ namespace Discussion.Web
 
         static void AddDataServicesTo(IServiceCollection services, IConfiguration _configuration)
         {
+            var ravenConnectionString = _configuration["ravenConnectionString"];
+
+            if (!string.IsNullOrWhiteSpace(ravenConnectionString)) {
+
+                services.AddSingleton(new Lazy<IDocumentStore>(() =>
+                {
+                    var store = new DocumentStore();
+                    store.ParseConnectionString(ravenConnectionString);
+                    store.Initialize();
+
+                    return store;
+                }));
+
+                services.AddScoped(typeof(IRepositoryContext), (serviceProvider) => {
+                    return new RavenRepositoryContext(() =>
+                    {
+                        return serviceProvider.GetService<Lazy<IDocumentStore>>().Value;
+                    });
+                });
+                services.AddScoped(typeof(Repository<>), typeof(RavenDataRepository<>));
+                services.AddScoped(typeof(IRepository<>), typeof(RavenDataRepository<>));
+                
+                return;
+            }
+
             var dataContext = new InMemoryResponsitoryContext();
             services.AddSingleton(typeof(IRepositoryContext), (serviceProvider) => dataContext);
             services.AddScoped(typeof(Repository<>), typeof(InMemoryDataRepository<>));

@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
 using Xunit;
+using Microsoft.Extensions.Configuration;
+using Discussion.Web.Data;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
@@ -18,7 +20,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             IServiceCollection services = null;
 
             // act
-            CreateApplicationServices(serviceCollection => {
+            CreateApplicationServices(c => { }, serviceCollection => {
                 services = serviceCollection;
             });
 
@@ -33,17 +35,19 @@ namespace Discussion.Web.Tests.StartupSpecs
 
 
         [Fact]
-        public void should_add_mongo_reposotiry()
+        public void should_add_ravendb_reposotiry()
         {
             // arrange
-            var applicationServices = CreateApplicationServices();
+            var applicationServices = CreateApplicationServices((configuration) => {
+                configuration["ravenConnectionString"] = "Url=http://ravendb.mydomain.com;Database=Northwind";
+            }, s => { });
 
             // act
             var repo = applicationServices.GetRequiredService<Repository<Article>>();
 
             // assert
             repo.ShouldNotBeNull();
-            repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(InMemoryDataRepository<>));
+            repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(RavenDataRepository<>));
         }
 
 
@@ -63,20 +67,15 @@ namespace Discussion.Web.Tests.StartupSpecs
 
         public static IServiceProvider CreateApplicationServices()
         {
-            return CreateApplicationServices((s) => { });
+            return CreateApplicationServices(c => { },  s => { });
         }
 
-        public static IServiceProvider CreateApplicationServices(Action<IServiceCollection> configureServices) {
+        public static IServiceProvider CreateApplicationServices(Action<IConfigurationRoot> configureSettings, Action<IServiceCollection> configureServices) {
             var services = new ServiceCollection();
             var startup = CreateMockStartup();
+            configureSettings(startup.Configuration);
 
-            // services.AddInstance<IHostingEnvironment>(startup.HostingEnvironment);
             startup.ConfigureServices(services);
-
-            services.AddScoped(typeof(IRepositoryContext), (serviceProvider) =>
-            {
-                return new InMemoryResponsitoryContext();
-            });
             configureServices(services);
 
             return services.BuildServiceProvider();
@@ -85,7 +84,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         public static Startup CreateMockStartup()
         {
             var hostingEnv = new Mock<IHostingEnvironment>();
-            hostingEnv.SetupGet(e => e.EnvironmentName).Returns("Development");
+            hostingEnv.SetupGet(e => e.EnvironmentName).Returns("UnitTest");
             hostingEnv.SetupGet(e => e.ContentRootPath).Returns(TestEnv.WebProjectPath());
 
             return new Startup(hostingEnv.Object);
