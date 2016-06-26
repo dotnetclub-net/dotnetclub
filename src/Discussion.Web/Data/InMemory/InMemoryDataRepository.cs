@@ -95,23 +95,14 @@ namespace Discussion.Web.Data.InMemory
             //    .Select(item => item.Entry)
             //    .ToList();
 
-            var parameters = selector.Parameters;
-            var memberValue = Expression.Invoke(selector, parameters);
-
-            Expression<Func<TMember, bool>> contains = member => keys.Contains(member);
-            var containsMember = Expression.Invoke(contains, memberValue);
-            var valueSelector = Expression.Lambda(containsMember, parameters) as Expression<Func<TEntry, bool>>;
-
-            return All.Where(valueSelector).ToList();
+            var criteria = FilterByMemberCriteriaComposer.Compose(selector, keys);
+            return All.Where(criteria).ToList();
         }
 
         public override IEnumerable<TEntry> Retrive<TMember>(string field, params TMember[] keys)
         {
-            var entryParameter = Expression.Parameter(typeof(TEntry), "entry");
-            var memberExpr = Expression.PropertyOrField(entryParameter, field);
-            var selector = Expression.Lambda(memberExpr, entryParameter) as Expression<Func<TEntry, TMember>>;
-
-            return Retrive(selector, keys);
+            var criteria = FilterByMemberCriteriaComposer.ComposeByField<TEntry, TMember>(field, keys);
+            return All.Where(criteria).ToArray();
         }
 
         public override void Save(TEntry entry)
