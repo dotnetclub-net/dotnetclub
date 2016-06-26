@@ -10,20 +10,31 @@ namespace Discussion.Web.Data
     public class RavenDataRepository<TEntry> : Repository<TEntry> where TEntry : Entity
     {
         private readonly RavenRepositoryContext _ravenContext;
-        private readonly IDocumentSession _session;
+        private IDocumentSession _session;
 
 
         public RavenDataRepository(IRepositoryContext context) : base(context)
         {
             _ravenContext = context as RavenRepositoryContext;
-            _session = _ravenContext.DemandSession();
+            if(_ravenContext == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+        }
+
+        public IDocumentSession Session
+        {
+            get
+            {
+                return _session ?? (_session = _ravenContext.DemandSession());
+            }
         }
 
         public override IQueryable<TEntry> All
         {
             get
             {
-                return _session.Query<TEntry>();
+                return Session.Query<TEntry>();
             }
         }
 
@@ -45,7 +56,7 @@ namespace Discussion.Web.Data
                 throw new InvalidOperationException("Could not create an existing entity again.");
             }
 
-            _session.Store(entry);
+            Session.Store(entry);
         }
 
         public override void Delete(TEntry entry)
@@ -55,7 +66,7 @@ namespace Discussion.Web.Data
                 throw new InvalidOperationException("Could not delete an entity with a negative identity.");
             }
 
-            _session.Delete<TEntry>(entry.Id);
+            Session.Delete<TEntry>(entry.Id);
         }
 
         public override TReutrn Fetch<TReutrn>(Func<IQueryable<TEntry>, TReutrn> query)
@@ -65,13 +76,13 @@ namespace Discussion.Web.Data
 
         public override IEnumerable<TEntry> Retrive(object[] keys)
         {
-            return _session.Load<TEntry>(keys.Cast<ValueType>());
+            return Session.Load<TEntry>(keys.Cast<ValueType>());
         }
 
         public override TEntry Retrive(object id)
         {
             // conventions: int id  ->  string id
-            return _session.Load<TEntry>((int)id);
+            return Session.Load<TEntry>((int)id);
         }
 
         public override IEnumerable<TEntry> Retrive<TMember>(Expression<Func<TEntry, TMember>> selector, params TMember[] keys)
@@ -114,7 +125,7 @@ namespace Discussion.Web.Data
                 throw new InvalidOperationException("Could not create an existing entity again.");
             }
 
-            _session.Store(entry);
+            Session.Store(entry);
         }
     }
 }
