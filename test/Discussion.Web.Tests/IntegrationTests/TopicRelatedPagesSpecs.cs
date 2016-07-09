@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -16,10 +17,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         private Application _theApp;
         public TopicRelatedPagesSpecs(Application theApp)
         {
-            _theApp = theApp;
+            _theApp = theApp.Reset();
         }
-
-
 
         [Fact]
         public async Task should_serve_topic_list_page()
@@ -40,15 +39,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             // arrange
             var request = _theApp.Server.CreateRequest("/topic/create");
-
-            var claims = new List<Claim> {
-                    new Claim(ClaimTypes.NameIdentifier, 15.ToString(), ClaimValueTypes.Integer32),
-                    new Claim(ClaimTypes.Name, "Hehe", ClaimValueTypes.String),
-                    new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
-                };
-            var identity = new ClaimsIdentity(claims, "Cookies");
-            _theApp.User = new ClaimsPrincipal(identity);
-
+            MockUser();
             // act
             var response = await request.GetAsync();
 
@@ -77,6 +68,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             // arrange
             var request = _theApp.Server.CreateRequest("/topic/createtopic");
+            MockUser();
+
             request.And(req =>
             {
                 req.Content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -98,6 +91,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             // arrange
             var request = _theApp.Server.CreateRequest("/topic/createtopic");
+            MockUser();
 
             // act
             var response = await request.PostAsync();
@@ -105,6 +99,18 @@ namespace Discussion.Web.Tests.IntegrationTests
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.BadRequest);
         }
-        
+
+
+        void MockUser()
+        {
+            var claims = new List<Claim> {
+                    new Claim(ClaimTypes.NameIdentifier, 15.ToString(), ClaimValueTypes.Integer32),
+                    new Claim(ClaimTypes.Name, "Hehe", ClaimValueTypes.String),
+                    new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
+                };
+            var identity = new ClaimsIdentity(claims, "Cookies");
+            _theApp.User = new ClaimsPrincipal(identity);
+        }
+
     }
 }

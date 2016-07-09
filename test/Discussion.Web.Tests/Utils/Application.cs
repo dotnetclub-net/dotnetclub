@@ -1,10 +1,8 @@
 ﻿using Discussion.Web.Data.InMemory;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,21 +14,20 @@ using System.Reflection;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Builder;
-using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
-using System.Collections.Generic;
-using System.Security.Principal;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
 
 namespace Discussion.Web.Tests
 {
     public sealed class Application: IApplicationContext, IDisposable
     {
+
+        ClaimsPrincipal _originalUser;
         TestApplicationContext _applicationContext;
         InMemoryResponsitoryContext _dataContext;
+
+
         public TestApplicationContext Context
         {
             get
@@ -41,10 +38,17 @@ namespace Discussion.Web.Tests
                 }
 
                 _applicationContext = BuildApplication();
+                _originalUser = _applicationContext.User;
                 return _applicationContext;
             }
         }
 
+        public Application Reset()
+        {
+            // reset all monifications in test cases
+            User = _originalUser;
+            return this;
+        }
 
         #region Proxy Context Properties
 
