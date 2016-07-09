@@ -11,6 +11,11 @@ using Raven.Client.Document;
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
+using Discussion.Web.Controllers;
+using Microsoft.AspNetCore.Http.Features;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace Discussion.Web
 {
@@ -53,6 +58,8 @@ namespace Discussion.Web
             services.AddLogging();
             services.AddMvc();
             AddDataServicesTo(services, Configuration);
+            services.AddSingleton<IConfigurationRoot>(this.Configuration);
+            services.AddAuthorization();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -66,8 +73,22 @@ namespace Discussion.Web
                 app.UseExceptionHandler("/error");
             }
 
+            app.UseCookieAuthentication(new CookieAuthenticationOptions()
+            {
+                AuthenticationScheme = "Cookie",
+                LoginPath = new PathString("/signin"),
+                AccessDeniedPath = new PathString("/access-denied"),
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true
+            });
+            app.Use((httpContext, next) =>
+            {
+                httpContext.AssignDiscussionPrincipal();
+                return next();
+            });
             app.UseStaticFiles();
             app.UseMvc();
+            
 
             var ravenStore = app.ApplicationServices.GetService<Lazy<IDocumentStore>>();
             if (ravenStore != null)
@@ -150,5 +171,4 @@ namespace Discussion.Web
             services.AddScoped(typeof(IRepository<>), typeof(InMemoryDataRepository<>));
         }
     }
-
 }

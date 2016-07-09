@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
@@ -69,10 +70,12 @@ namespace Discussion.Web.Tests.StartupSpecs
         
         private DefaultHttpContext CreateHttpContext()
         {
-            return new DefaultHttpContext
+            var httpContext = new DefaultHttpContext
             {
                 RequestServices = this.ApplicationServices
             };
+            httpContext.Features.Set<IHttpResponseFeature>(new DummyHttpResponseFeature());
+            return httpContext;
         }
 
     }

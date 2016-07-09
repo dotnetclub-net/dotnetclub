@@ -6,6 +6,7 @@ using System;
 using Discussion.Web.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Jusfr.Persistent;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Discussion.Web.Controllers
 {
@@ -52,12 +53,14 @@ namespace Discussion.Web.Controllers
         }
 
 
+        [Authorize]
         [Route("/Topic/Create")]
         public ActionResult Create()
         {
             return View();
         }
 
+        [Authorize]
         [HttpPost]
         [Route("/Topic/CreateTopic")]
         public ActionResult CreateTopic(TopicCreationModel model)

@@ -23,14 +23,11 @@ namespace Discussion.Web.Controllers
         //}
 
 
-
         [Route("/About")]
-        public  ActionResult About()
+        public ActionResult About()
         {
             return View();
         }
-
-
 
         [Route("/Error")]
         public async Task<IActionResult> Error()
@@ -40,7 +37,7 @@ namespace Discussion.Web.Controllers
             Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             return View();
         }
-
+        
         async Task DiagnosticExceptionDetails()
         {
             return;

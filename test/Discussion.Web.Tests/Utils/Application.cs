@@ -1,5 +1,6 @@
 ﻿using Discussion.Web.Data.InMemory;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -14,6 +15,15 @@ using System.Linq;
 using System.Reflection;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Builder;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
+using Microsoft.AspNetCore.Http.Features.Authentication;
+using System.Security.Claims;
+using System.Collections.Generic;
+using System.Security.Principal;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.Internal;
 
 namespace Discussion.Web.Tests
 {
@@ -45,6 +55,7 @@ namespace Discussion.Web.Tests
         public IServiceProvider ApplicationServices { get { return this.Context.ApplicationServices; }  }
 
         public TestServer Server { get { return this.Context.Server; }  }
+        public ClaimsPrincipal User{ get { return this.Context.User; } set { this.Context.User = value; } }
 
         #endregion
 
@@ -52,17 +63,33 @@ namespace Discussion.Web.Tests
         {
             var testApp = new TestApplicationContext
             {
-                LoggerFactory = new StubLoggerFactory()
+                LoggerFactory = new StubLoggerFactory(),
+                User = new ClaimsPrincipal(new ClaimsIdentity())
             };
-
-
+           
             var hostBuilder = new WebHostBuilder();
             if(configureHost != null)
             {
                 configureHost(hostBuilder);
             }
-            Startup.ConfigureHost(hostBuilder);
+            hostBuilder.ConfigureServices(services =>
+            {
+                services.AddTransient<HttpContextFactory>();
+                services.AddTransient<IHttpContextFactory>((sp) =>
+                {
+                    var defaultContextFactory = sp.GetRequiredService<HttpContextFactory>();
+                    var httpContextFactory = new WrappedHttpContextFactory(defaultContextFactory);
+                    httpContextFactory.ConfigureContextFeature(contextFeatures =>
+                    {
+                        var authFeature = new HttpAuthenticationFeature() { User = testApp.User};
+                        contextFeatures[typeof(IHttpAuthenticationFeature)] = authFeature;
+                    });
+                    return httpContextFactory;
+                });
+            });
 
+            Startup.ConfigureHost(hostBuilder);
+            
             hostBuilder.UseContentRoot(WebProjectPath())
                 .UseEnvironment(environmentName)
                 .UseLoggerFactory(testApp.LoggerFactory);
@@ -136,6 +163,38 @@ namespace Discussion.Web.Tests
          IServiceProvider ApplicationServices { get;  }
 
          TestServer Server { get;  }
+         ClaimsPrincipal User { get; set; }
+    }
+
+    public class WrappedHttpContextFactory : IHttpContextFactory
+    {
+        IHttpContextFactory _contextFactory;
+        Action<IFeatureCollection> _configureFeatures;
+        public WrappedHttpContextFactory(IHttpContextFactory contextFactory)
+        {
+            _contextFactory = contextFactory;
+        }
+
+        public void ConfigureContextFeature(Action<IFeatureCollection> configureFeatures)
+        {
+            _configureFeatures = configureFeatures;
+        }
+
+        public HttpContext Create(IFeatureCollection contextFeatures)
+        {
+            if(_configureFeatures != null)
+            {
+                _configureFeatures(contextFeatures);
+            }
+
+            contextFeatures.Set<IHttpResponseFeature>(new DummyHttpResponseFeature());
+            return _contextFactory.Create(contextFeatures);
+        }
+
+        public void Dispose(HttpContext httpContext)
+        {
+            _contextFactory.Dispose(httpContext);
+        }
     }
 
     public class TestApplicationContext: IApplicationContext
@@ -147,8 +206,7 @@ namespace Discussion.Web.Tests
         public IServiceProvider ApplicationServices { get; set; }
 
         public TestServer Server { get; set; }
-
-
+        public ClaimsPrincipal User { get; set; }
 
 
         #region Disposing
@@ -279,6 +337,22 @@ namespace Discussion.Web.Tests
             public int EventId { get; set; }
             public object State { get; set; }
             public string Message { get; set; }
+        }
+    }
+
+    public class DummyHttpResponseFeature: HttpResponseFeature
+    {
+        // Default IHttpResponseFeature implementation does not implement OnStarting and OnCompleted
+        // see https://github.com/aspnet/HttpAbstractions/issues/669
+
+        public override void OnStarting(Func<object, Task> callback, object state)
+        {
+            
+        }
+
+        public override void OnCompleted(Func<object, Task> callback, object state)
+        {
+            
         }
     }
 
