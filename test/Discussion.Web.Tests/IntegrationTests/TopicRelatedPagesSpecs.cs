@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Features.Authentication;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -84,6 +82,8 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.Redirect);
+            response.Headers.Location.ShouldNotBeNull();
+            response.Headers.Location.ToString().ShouldContain("/Topic/", StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -104,8 +104,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         void MockUser()
         {
             var claims = new List<Claim> {
-                    new Claim(ClaimTypes.NameIdentifier, 15.ToString(), ClaimValueTypes.Integer32),
-                    new Claim(ClaimTypes.Name, "Hehe", ClaimValueTypes.String),
+                    new Claim(ClaimTypes.NameIdentifier, (-1).ToString(), ClaimValueTypes.Integer32),
+                    new Claim(ClaimTypes.Name, "FancyUser", ClaimValueTypes.String),
                     new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
                 };
             var identity = new ClaimsIdentity(claims, "Cookies");

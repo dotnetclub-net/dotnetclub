@@ -30,7 +30,6 @@ namespace Discussion.Web.Tests
             });
         }
 
-
         public static void ShouldNotEmpty(this IEnumerable enumerable)
         {
             NotEmpty(enumerable);
@@ -53,6 +52,26 @@ namespace Discussion.Web.Tests
             {
                 return filter(obj);
             });
+        }
+
+        public static void ShouldContain(this string obj, string expectedSubstring)
+        {
+            Contains(expectedSubstring, obj);
+        }
+
+        public static void ShouldContain(this string obj, string expectedSubstring, StringComparison comparisonType)
+        {
+            Contains(expectedSubstring, obj, comparisonType);
+        }
+
+        public static void ShouldNotContain(this string obj, string expectedSubstring)
+        {
+            DoesNotContain(expectedSubstring, obj);
+        }
+
+        public static void ShouldNotContain(this string obj, string expectedSubstring, StringComparison comparisonType)
+        {
+            DoesNotContain(expectedSubstring, obj, comparisonType);
         }
     }
 }
