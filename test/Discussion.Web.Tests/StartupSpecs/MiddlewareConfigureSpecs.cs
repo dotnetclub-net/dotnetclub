@@ -5,6 +5,7 @@ using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
+using System.Threading.Tasks;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
@@ -40,12 +41,12 @@ namespace Discussion.Web.Tests.StartupSpecs
         }
 
         [Fact]
-        public void should_use_mvc()
+        public async Task should_use_mvc()
         {
             var httpContext = CreateHttpContext();
             httpContext.Request.Path = IntegrationTests.NotFoundSpecs.NotFoundPath;
 
-            RequestHandler.Invoke(httpContext);
+            await RequestHandler.Invoke(httpContext);
 
             var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
             loggerFactory.ShouldNotBeNull();
@@ -53,14 +54,14 @@ namespace Discussion.Web.Tests.StartupSpecs
         }
 
         [Fact]
-        public void should_use_static_files()
+        public async Task should_use_static_files()
         {
             var staticFile = IntegrationTests.NotFoundSpecs.NotFoundStaticFile;
             var httpContext = CreateHttpContext();
             httpContext.Request.Method = "GET";
             httpContext.Request.Path = staticFile;
 
-            RequestHandler.Invoke(httpContext);
+            await RequestHandler.Invoke(httpContext);
 
             var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
             loggerFactory.ShouldNotBeNull();

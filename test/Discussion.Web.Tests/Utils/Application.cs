@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Internal;
 
 namespace Discussion.Web.Tests
 {
@@ -70,9 +72,9 @@ namespace Discussion.Web.Tests
                 LoggerFactory = new StubLoggerFactory(),
                 User = new ClaimsPrincipal(new ClaimsIdentity())
             };
-           
+
             var hostBuilder = new WebHostBuilder();
-            if(configureHost != null)
+            if (configureHost != null)
             {
                 configureHost(hostBuilder);
             }
@@ -85,7 +87,7 @@ namespace Discussion.Web.Tests
                     var httpContextFactory = new WrappedHttpContextFactory(defaultContextFactory);
                     httpContextFactory.ConfigureContextFeature(contextFeatures =>
                     {
-                        var authFeature = new HttpAuthenticationFeature() { User = testApp.User};
+                        var authFeature = new HttpAuthenticationFeature() { User = testApp.User };
                         contextFeatures[typeof(IHttpAuthenticationFeature)] = authFeature;
                     });
                     return httpContextFactory;
@@ -93,23 +95,17 @@ namespace Discussion.Web.Tests
             });
 
             Startup.ConfigureHost(hostBuilder);
-            
+
             hostBuilder.UseContentRoot(WebProjectPath())
                 .UseEnvironment(environmentName)
                 .UseLoggerFactory(testApp.LoggerFactory);
 
             testApp.Server = new TestServer(hostBuilder);
-            testApp.RequestHandler = GetRequestHandler(testApp.Server.Host);
+            var simpleServer = new SimpleTestServer(hostBuilder);
+            testApp.RequestHandler = simpleServer.RequestHandler;
             testApp.ApplicationServices = testApp.Server.Host.Services;
 
             return testApp;
-        }
-        
-        static RequestDelegate GetRequestHandler(IWebHost host)
-        {
-            var type = host.GetType();
-            var field = type.GetField("_application", BindingFlags.NonPublic | BindingFlags.Instance);
-            return field.GetValue(host) as RequestDelegate;
         }
 
         #region Disposing
@@ -405,6 +401,41 @@ namespace Discussion.Web.Tests
             return app.ApplicationServices.GetService<T>();
         }
 
+    }
+    
+    public class SimpleTestServer : IServer
+    {
+        IWebHost _host;
+        RequestDelegate _requestHandler;
+        public SimpleTestServer(IWebHostBuilder hostBuilder)
+        {
+            //var host = Startup.ConfigureHost(new WebHostBuilder())
+            //    .UseServer(testServer)
+            //    .UseLoggerFactory(new StubLoggerFactory())
+            //    .Build();
+            _host = hostBuilder.UseServer(this).Build();
+            _host.Start();
+        }
+
+        public RequestDelegate RequestHandler => _requestHandler;
+        public IFeatureCollection Features => new FeatureCollection();
+        public IWebHost Host => _host;
+
+        public void Start<TContext>(IHttpApplication<TContext> application)
+        {
+            var webApplication = application as HostingApplication;
+            _requestHandler = async (httpContext) => {
+                var logger = httpContext.RequestServices.GetRequiredService<ILogger<HttpContext>>();
+                var scope = logger.BeginScope(httpContext);
+                var context = new HostingApplication.Context { HttpContext = httpContext, Scope = scope, StartTimestamp = DateTime.UtcNow.Ticks };
+                await webApplication.ProcessRequestAsync(context);
+            };
+        }
+
+        public void Dispose()
+        {
+            _requestHandler = null;
+        }
     }
 
 }

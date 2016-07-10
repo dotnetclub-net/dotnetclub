@@ -13,9 +13,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Discussion.Web.Controllers;
-using Microsoft.AspNetCore.Http.Features;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Diagnostics;
 
 namespace Discussion.Web
 {
@@ -39,14 +36,14 @@ namespace Discussion.Web
             host.Run();
         }
 
-        public static void ConfigureHost(IWebHostBuilder hostBuilder, bool addCommandLineArguments = false)
+        public static IWebHostBuilder ConfigureHost(IWebHostBuilder hostBuilder, bool addCommandLineArguments = false)
         {
             var basePath = Directory.GetCurrentDirectory();
             var configBuilder = BuildHostingConfiguration(basePath, addCommandLineArguments ? Environment.GetCommandLineArgs() : null);
             var configuration = configBuilder.Build();
 
-            hostBuilder.UseContentRoot(basePath)
-                .UseIISIntegration()
+            return hostBuilder.UseContentRoot(basePath)
+                 .UseIISIntegration()
                 .UseKestrel()
                 .UseStartup<Startup>()
                 .UseConfiguration(configuration);
@@ -88,7 +85,7 @@ namespace Discussion.Web
             });
             app.UseStaticFiles();
             app.UseMvc();
-            
+
 
             var ravenStore = app.ApplicationServices.GetService<Lazy<IDocumentStore>>();
             if (ravenStore != null)
