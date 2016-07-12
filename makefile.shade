@@ -4,7 +4,7 @@ use namespace='System.IO'
 use import='Environment'
 
 default currentDir = '${Directory.GetCurrentDirectory()}'
-default PublishRuntime = 'win-x64'
+default PublishRuntime = 'win8-x64'
 
 var BUILD_NUMBER = '${Environment.GetEnvironmentVariable("BUILD_NUMBER")}'
 var deployServer = '${Environment.GetEnvironmentVariable("CI_DEPLOY_COORDINATOR_SERVER")}'
@@ -61,21 +61,19 @@ div#help .targets
     	}
 
 		Console.WriteLine("Generating package for {0}", projectFolder);
-
     	DotnetAt("publish --configuration Release --runtime " + runtimeName, projectFolder);
 
     	RestoreExcludedWwwrootFiles(projectFile);
 
     	Console.WriteLine("Package generated at {0}", Path.Combine(projectFolder, "bin", "output"));
 
-    	// todo: only publish packages with web or run commands.
-    	var packageName = new DirectoryInfo(projectFolder).Name;
-    	string packageVersion = null;
     	if(!string.IsNullOrWhiteSpace(BUILD_NUMBER)) {
-    		packageVersion = "1.0." + BUILD_NUMBER;    		
+			var packageName = new DirectoryInfo(projectFolder).Name;
+    		var packageVersion = "1.0." + BUILD_NUMBER;    		
     		Console.WriteLine(@"Creating package file for {0}.{1} for pushing...", packageName, packageVersion);
     		
-    		Exec(@".build\OctopusTools\Octo.exe", string.Format(@"pack --id {0} --version {1} --format zip --basePath src\{0}\bin\Release\netcoreapp1.0\publish --outFolder src\{0}\bin\Release --overwrite", packageName, packageVersion));
+			var publishOutputPath = string.Format(@"src\{0}\bin\Release\netcoreapp1.0\{1}\publish", packageName, runtimeName);
+    		Exec(@".build\OctopusTools\Octo.exe", string.Format(@"pack --id {0} --version {1} --format zip --basePath {2} --outFolder src\{0}\bin\Release --overwrite", packageName, packageVersion, publishOutputPath));
 
     		Console.WriteLine(@"Package created at src\{0}\bin\Release\{0}.{1}.zip", packageName, packageVersion);
 
