@@ -19,9 +19,9 @@ namespace Discussion.Web.Tests
         {
             var detailsProviders = new IMetadataDetailsProvider[]
             {
-                new DefaultBindingMetadataProvider(CreateMessageProvider()),
+//                new DefaultBindingMetadataProvider(CreateMessageProvider()),
                 new DefaultValidationMetadataProvider(),
-                new DataAnnotationsMetadataProvider(),
+//                new DataAnnotationsMetadataProvider(),
                 new DataMemberRequiredBindingMetadataProvider(),
             };
 
@@ -33,9 +33,9 @@ namespace Discussion.Web.Tests
         {
             var detailsProviders = new List<IMetadataDetailsProvider>()
             {
-                new DefaultBindingMetadataProvider(CreateMessageProvider()),
+//                new DefaultBindingMetadataProvider(CreateMessageProvider()),
                 new DefaultValidationMetadataProvider(),
-                new DataAnnotationsMetadataProvider(),
+//                new DataAnnotationsMetadataProvider(),
                 new DataMemberRequiredBindingMetadataProvider(),
             };
 
@@ -67,9 +67,9 @@ namespace Discussion.Web.Tests
         private TestModelMetadataProvider(TestModelMetadataDetailsProvider detailsProvider)
             : base(new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[]
                 {
-                    new DefaultBindingMetadataProvider(CreateMessageProvider()),
+//                    new DefaultBindingMetadataProvider(CreateMessageProvider()),
                     new DefaultValidationMetadataProvider(),
-                    new DataAnnotationsMetadataProvider(),
+//                    new DataAnnotationsMetadataProvider(),
                     detailsProvider
                 }))
         {
@@ -108,16 +108,17 @@ namespace Discussion.Web.Tests
 
         private static ModelBindingMessageProvider CreateMessageProvider()
         {
-            return new ModelBindingMessageProvider
-            {
-                MissingBindRequiredValueAccessor = name => $"A value for the '{ name }' property was not provided.",
-                MissingKeyOrValueAccessor = () => $"A value is required.",
-                ValueMustNotBeNullAccessor = value => $"The value '{ value }' is invalid.",
-                AttemptedValueIsInvalidAccessor = (value, name) => $"The value '{ value }' is not valid for { name }.",
-                UnknownValueIsInvalidAccessor = name => $"The supplied value is invalid for { name }.",
-                ValueIsInvalidAccessor = value => $"The value '{ value }' is invalid.",
-                ValueMustBeANumberAccessor = name => $"The field { name } must be a number.",
-            };
+            var provider = new DefaultModelBindingMessageProvider();
+            
+            provider.SetMissingBindRequiredValueAccessor(name => $"A value for the '{ name }' property was not provided.");
+            provider.SetMissingKeyOrValueAccessor(() => $"A value is required.");
+            provider.SetValueMustNotBeNullAccessor(value => $"The value '{ value }' is invalid.");
+            provider.SetAttemptedValueIsInvalidAccessor((value, name) => $"The value '{ value }' is not valid for { name }.");
+            provider.SetUnknownValueIsInvalidAccessor(name => $"The supplied value is invalid for { name }.");
+            provider.SetValueIsInvalidAccessor(value => $"The value '{ value }' is invalid.");
+            provider.SetValueMustBeANumberAccessor(name => $"The field { name } must be a number.");
+            
+            return provider;
         }
 
         private class TestModelMetadataDetailsProvider :

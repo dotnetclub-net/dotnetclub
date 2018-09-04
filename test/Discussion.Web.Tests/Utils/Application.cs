@@ -16,6 +16,7 @@ using static Discussion.Web.Tests.TestEnv;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Internal;
@@ -97,8 +98,8 @@ namespace Discussion.Web.Tests
             Startup.ConfigureHost(hostBuilder);
 
             hostBuilder.UseContentRoot(WebProjectPath())
-                .UseEnvironment(environmentName)
-                .UseLoggerFactory(testApp.LoggerFactory);
+                .UseEnvironment(environmentName);
+//                .UseLoggerFactory(testApp.LoggerFactory);
 
             testApp.Server = new TestServer(hostBuilder);
             var simpleServer = new SimpleTestServer(hostBuilder);
@@ -388,11 +389,11 @@ namespace Discussion.Web.Tests
                 return;
             }
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
-            controller.ControllerContext = new ControllerContext(operationContext.ActionContext);
-            controller.ObjectValidator = ModelBindingTestHelper.GetObjectValidator(operationContext.MetadataProvider);
-            controller.MetadataProvider = operationContext.MetadataProvider;
-            controller.ControllerContext.ValidatorProviders = new[] { operationContext.ValidatorProvider }.ToList();
+//            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
+//            controller.ControllerContext = new ControllerContext(operationContext.ActionContext);
+//            controller.ObjectValidator = ModelBindingTestHelper.GetObjectValidator(operationContext.MetadataProvider);
+//            controller.MetadataProvider = operationContext.MetadataProvider;
+//            controller.ControllerContext.ValidatorProviders = new[] { operationContext.ValidatorProvider }.ToList();
         }
 
 
@@ -418,6 +419,18 @@ namespace Discussion.Web.Tests
         }
 
         public RequestDelegate RequestHandler => _requestHandler;
+        public Task StartAsync<TContext>(IHttpApplication<TContext> application, CancellationToken cancellationToken)
+        {
+            Start(application);
+            return Task.FromResult(0);
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            Dispose();
+            return Task.FromResult(0);
+        }
+
         public IFeatureCollection Features => new FeatureCollection();
         public IWebHost Host => _host;
 

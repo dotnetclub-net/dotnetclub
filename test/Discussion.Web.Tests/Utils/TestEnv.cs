@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Testing;
-using Microsoft.Extensions.PlatformAbstractions;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Discussion.Web.Tests {
 
@@ -35,7 +34,7 @@ namespace Discussion.Web.Tests {
 
         public static string RuntimeLauncherPath()
         {
-            var isWindows = PlatformServices.Default.Runtime.OperatingSystemPlatform == Platform.Windows;
+            var isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             var envVarSeparateChar = isWindows ? ';' : ':';
             var commandName = isWindows ? "dotnet.exe" : "dotnet";
 

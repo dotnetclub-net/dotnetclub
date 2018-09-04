@@ -1,12 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>Discussion.Web.Tests</AssemblyName>
     <PackageId>Discussion.Web.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50;portable-net45+win8</PackageTargetFallback>
-    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
+
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
@@ -20,32 +19,28 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-preview-20170106-08" />
-    <PackageReference Include="xunit" Version="2.2.0-beta5-build3474" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0-beta5-build1225" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" Version="1.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="1.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.0.3" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="1.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Testing" Version="1.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="1.0.2" />
-    <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Xml" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.0" />
+    
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.0" />
+    
+    <PackageReference Include="System.Security.Claims" Version="4.3.0" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.1.0" />
     <PackageReference Include="Jusfr.Persistent" Version="2.0.0-rc2" />
-    <PackageReference Include="RavenDB.Client" Version="3.5.35129-Unstable" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Xml" Version="1.0.3" />
-    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="1.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Testing" Version="1.0.0-*" />
-    <PackageReference Include="System.Security.Claims" Version="4.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="1.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="1.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="1.0.2" />
-  </ItemGroup>
+    <PackageReference Include="RavenDB.Client" Version="4.1.0" />
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
-    <PackageReference Include="moq.netcore" Version="4.4.0-beta8" />
-    <PackageReference Include="System.Diagnostics.Process" Version="4.1.0" />
-    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.0.0" />
+    <PackageReference Include="Moq" Version="4.9.0" />
+    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
   </ItemGroup>
 
 </Project>
