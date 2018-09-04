@@ -1,9 +1,9 @@
 ﻿using Jusfr.Persistent;
-using Raven.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Raven.Client.Documents.Session;
 
 namespace Discussion.Web.Data
 {
@@ -66,7 +66,7 @@ namespace Discussion.Web.Data
                 throw new InvalidOperationException("Could not delete an entity with a negative identity.");
             }
 
-            Session.Delete<TEntry>(entry.Id);
+            Session.Delete<TEntry>(entry);
         }
 
         public override TReutrn Fetch<TReutrn>(Func<IQueryable<TEntry>, TReutrn> query)
@@ -76,13 +76,13 @@ namespace Discussion.Web.Data
 
         public override IEnumerable<TEntry> Retrive(object[] keys)
         {
-            return Session.Load<TEntry>(keys.Cast<ValueType>());
+            return Session.Load<TEntry>(keys.Select(k => k.ToString())).Values;
         }
 
         public override TEntry Retrive(object id)
         {
             // conventions: int id  ->  string id
-            return Session.Load<TEntry>((int)id);
+            return Session.Load<TEntry>(id.ToString());
         }
 
         public override IEnumerable<TEntry> Retrive<TMember>(Expression<Func<TEntry, TMember>> selector, params TMember[] keys)

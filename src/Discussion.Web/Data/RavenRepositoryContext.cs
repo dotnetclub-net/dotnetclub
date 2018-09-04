@@ -1,6 +1,7 @@
 ﻿using Jusfr.Persistent;
-using Raven.Client;
 using System;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
 
 namespace Discussion.Web.Data
 {

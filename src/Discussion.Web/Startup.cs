@@ -6,13 +6,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Raven.Client;
-using Raven.Client.Document;
 using System;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Discussion.Web.Controllers;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Raven.Client.Documents;
 
 namespace Discussion.Web
 {
@@ -70,14 +70,14 @@ namespace Discussion.Web
                 app.UseExceptionHandler("/error");
             }
 
-            app.UseCookieAuthentication(new CookieAuthenticationOptions()
-            {
-                AuthenticationScheme = "Cookie",
-                LoginPath = new PathString("/signin"),
-                AccessDeniedPath = new PathString("/access-denied"),
-                AutomaticAuthenticate = true,
-                AutomaticChallenge = true
-            });
+//            app.UseCookieAuthentication(new CookieAuthenticationOptions()
+//            {
+//                AuthenticationScheme = "Cookie",
+//                LoginPath = new PathString("/signin"),
+//                AccessDeniedPath = new PathString("/access-denied"),
+//                AutomaticAuthenticate = true,
+//                AutomaticChallenge = true
+//            });
             app.Use((httpContext, next) =>
             {
                 httpContext.AssignDiscussionPrincipal();
@@ -137,14 +137,18 @@ namespace Discussion.Web
 
         static void AddDataServicesTo(IServiceCollection services, IConfiguration _configuration)
         {
-            var ravenConnectionString = _configuration["ravenConnectionString"];
+            var ravenServerUrl = _configuration["ravenServerUrl"];
+            var ravenDatabase = _configuration["ravenDbName"];
 
-            if (!string.IsNullOrWhiteSpace(ravenConnectionString)) {
+            if (!string.IsNullOrWhiteSpace(ravenServerUrl)) {
 
                 services.AddSingleton(new Lazy<IDocumentStore>(() =>
                 {
-                    var store = new DocumentStore();
-                    store.ParseConnectionString(ravenConnectionString);
+                    var store = new DocumentStore()
+                    {
+                        Urls = new[] {ravenServerUrl},
+                        Database = ravenDatabase
+                    };
                     store.Initialize();
 
                     return store;

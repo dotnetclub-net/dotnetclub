@@ -1,4 +1,4 @@
-﻿using MarkdownSharp;
+﻿using HeyRed.MarkdownSharp;
 
 namespace Discussion.Web.Services
 {

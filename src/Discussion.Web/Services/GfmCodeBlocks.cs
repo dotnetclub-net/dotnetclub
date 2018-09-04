@@ -1,4 +1,4 @@
-﻿using MarkdownSharp;
+﻿using HeyRed.MarkdownSharp;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Reflection;
