@@ -39,7 +39,8 @@ namespace Discussion.Web.Tests.StartupSpecs
         {
             // arrange
             var applicationServices = CreateApplicationServices((configuration) => {
-                configuration["ravenConnectionString"] = "Url=http://ravendb.mydomain.com;Database=Northwind";
+                configuration["ravenServerUrl"] = "http://ravendb.mydomain.com";
+                configuration["ravenDbName"] = "Northwind";
             }, s => { });
 
             // act

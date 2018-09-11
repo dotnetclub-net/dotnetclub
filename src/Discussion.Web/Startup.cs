@@ -43,10 +43,15 @@ namespace Discussion.Web
             var configuration = configBuilder.Build();
 
             return hostBuilder.UseContentRoot(basePath)
-                 .UseIISIntegration()
+                .UseIISIntegration()
                 .UseKestrel()
                 .UseStartup<Startup>()
-                .UseConfiguration(configuration);
+                .UseConfiguration(configuration)
+                .ConfigureLogging(loggingBuilder =>
+                {
+                    loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+                    loggingBuilder.AddConsole();
+                });
         }
 
         // ConfigureServices is invoked before Configure
@@ -54,9 +59,18 @@ namespace Discussion.Web
         {
             services.AddLogging();
             services.AddMvc();
+
             AddDataServicesTo(services, Configuration);
-            services.AddSingleton<IConfigurationRoot>(this.Configuration);
+
+            services.AddSingleton(this.Configuration);
             services.AddAuthorization();
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(o =>
+                {
+                    o.LoginPath = new PathString("/signin");
+                    o.AccessDeniedPath = new PathString("/access-denied");
+                });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -69,15 +83,8 @@ namespace Discussion.Web
             {
                 app.UseExceptionHandler("/error");
             }
-
-//            app.UseCookieAuthentication(new CookieAuthenticationOptions()
-//            {
-//                AuthenticationScheme = "Cookie",
-//                LoginPath = new PathString("/signin"),
-//                AccessDeniedPath = new PathString("/access-denied"),
-//                AutomaticAuthenticate = true,
-//                AutomaticChallenge = true
-//            });
+            
+            app.UseAuthentication();
             app.Use((httpContext, next) =>
             {
                 httpContext.AssignDiscussionPrincipal();

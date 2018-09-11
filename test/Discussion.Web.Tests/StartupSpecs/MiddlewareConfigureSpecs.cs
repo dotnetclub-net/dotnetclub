@@ -2,6 +2,7 @@
 using Xunit;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
 using System.Threading.Tasks;
@@ -30,10 +31,12 @@ namespace Discussion.Web.Tests.StartupSpecs
                 host.UseSetting("TOKEN", "dummy-token");
             });
 
-            var iisFilter = app.ApplicationServices.GetRequiredService<IStartupFilter>();
+            var filters = app.Server.Host
+                .Services
+                .GetServices<IStartupFilter>()
+                .ToList();
 
-            var filterName = iisFilter.GetType().FullName;
-            filterName.Contains("IISSetupFilter").ShouldEqual(true);
+            filters.ShouldContain(f => f.GetType().FullName.Contains("IISSetupFilter"));
 
             (app as IDisposable).Dispose();
         }
@@ -45,13 +48,13 @@ namespace Discussion.Web.Tests.StartupSpecs
             await server.SendAsync(ctx =>
             {
                 httpContext = ctx;
-                ctx.Request.Path = IntegrationTests.NotFoundSpecs.NotFoundPath;
+                ctx.Request.Path = IntegrationTests.HomePageSpecs.HomePagePath;
             });
             
 
-            var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
-            loggerFactory.ShouldNotBeNull();
-            loggerFactory.LogItems.ShouldContain(item => item.Message.Equals("Request did not match any routes."));
+            var loggerProvider = httpContext.RequestServices.GetRequiredService<ILoggerProvider>() as StubLoggerProvider;
+            loggerProvider.ShouldNotBeNull();
+            loggerProvider.LogItems.ShouldContain(item => item.Category.StartsWith("Microsoft.AspNetCore.Mvc"));
         }
 
         [Fact]
@@ -63,14 +66,13 @@ namespace Discussion.Web.Tests.StartupSpecs
             await server.SendAsync(ctx =>
             {
                 httpContext = ctx;
-//                ctx.Features.Set<IHttpResponseFeature>(new DummyHttpResponseFeature());
                 ctx.Request.Method = "GET";
                 ctx.Request.Path = staticFile;
             });
 
-            var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
-            loggerFactory.ShouldNotBeNull();
-            loggerFactory.LogItems.ShouldContain(item => item.Message.Equals($"The request path {staticFile} does not match an existing file"));
+            var loggerProvider = httpContext.RequestServices.GetRequiredService<ILoggerProvider>() as StubLoggerProvider;
+            loggerProvider.ShouldNotBeNull();
+            loggerProvider.LogItems.ShouldContain(item => item.Category.StartsWith("Microsoft.AspNetCore.StaticFiles"));
         }
     }
 

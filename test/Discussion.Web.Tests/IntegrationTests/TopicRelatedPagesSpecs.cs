@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
@@ -108,7 +109,7 @@ namespace Discussion.Web.Tests.IntegrationTests
                     new Claim(ClaimTypes.Name, "FancyUser", ClaimValueTypes.String),
                     new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
                 };
-            var identity = new ClaimsIdentity(claims, "Cookies");
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             _theApp.User = new ClaimsPrincipal(identity);
         }
 

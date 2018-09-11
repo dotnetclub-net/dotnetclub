@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Reflection;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
@@ -52,7 +51,7 @@ namespace Discussion.Web.Tests
 
         #region Proxy Context Properties
 
-        public StubLoggerFactory LoggerFactory { get { return this.Context.LoggerFactory; } }
+        public StubLoggerProvider LoggerProvider { get { return this.Context.LoggerProvider; } }
         public IHostingEnvironment HostingEnvironment { get { return this.Context.HostingEnvironment; }  }
 
         public IServiceProvider ApplicationServices { get { return this.Context.ApplicationServices; }  }
@@ -66,7 +65,7 @@ namespace Discussion.Web.Tests
         {
             var testApp = new TestApplicationContext
             {
-                LoggerFactory = new StubLoggerFactory(),
+                LoggerProvider = new StubLoggerProvider(),
                 User = new ClaimsPrincipal(new ClaimsIdentity())
             };
 
@@ -93,9 +92,12 @@ namespace Discussion.Web.Tests
 
             Startup.ConfigureHost(hostBuilder);
 
-            hostBuilder.UseContentRoot(WebProjectPath())
-                .UseEnvironment(environmentName);
-//                .UseLoggerFactory(testApp.LoggerFactory);
+            hostBuilder.ConfigureLogging(loggingBuilder =>
+            {
+                loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+                loggingBuilder.AddProvider(testApp.LoggerProvider);
+            });
+            hostBuilder.UseContentRoot(WebProjectPath()).UseEnvironment(environmentName);
 
             testApp.Server = new TestServer(hostBuilder);
             testApp.ApplicationServices = testApp.Server.Host.Services;
@@ -151,7 +153,7 @@ namespace Discussion.Web.Tests
 
     public interface IApplicationContext: IDisposable
     {
-         StubLoggerFactory LoggerFactory { get;  }
+         StubLoggerProvider LoggerProvider { get;  }
          IHostingEnvironment HostingEnvironment { get;  }
 
          IServiceProvider ApplicationServices { get;  }
@@ -193,7 +195,7 @@ namespace Discussion.Web.Tests
 
     public class TestApplicationContext: IApplicationContext
     {
-        public StubLoggerFactory LoggerFactory { get; set; }
+        public StubLoggerProvider LoggerProvider { get; set; }
         public IHostingEnvironment HostingEnvironment { get; set; }        
 
         public IServiceProvider ApplicationServices { get; set; }
@@ -223,10 +225,10 @@ namespace Discussion.Web.Tests
 
             ApplicationServices = null;
 
-            if (LoggerFactory != null)
+            if (LoggerProvider != null)
             {
-                LoggerFactory.LogItems.Clear();
-                LoggerFactory = null;
+                LoggerProvider.LogItems.Clear();
+                LoggerProvider = null;
             }
 
             if (Server != null)
@@ -239,29 +241,11 @@ namespace Discussion.Web.Tests
         #endregion
     }
 
-    public class StubLoggerFactory : ILoggerFactory, IDisposable
+    public class StubLoggerProvider : ILoggerProvider, IDisposable
     {
-        public LogLevel MinimumLevel
-        {
-            get
-            {
-                return LogLevel.Debug;
-            }
-
-            set
-            {
-
-            }
-        }
-
-        public void AddProvider(ILoggerProvider provider)
-        {
-            
-        }
-
         public ILogger CreateLogger(string categoryName)
         {
-            return new Logger { Factory = this };
+            return new Logger { Provider = this, Category = categoryName };
         }
 
         public ConcurrentStack<LogItem> LogItems { get; private set; } = new ConcurrentStack<LogItem>();
@@ -283,7 +267,8 @@ namespace Discussion.Web.Tests
                 }
             }
 
-            public StubLoggerFactory Factory { get; set; }
+            public StubLoggerProvider Provider { get; set; }
+            public string Category { get; set; }
 
             public IDisposable BeginScope<TState>(TState state)
             {
@@ -299,31 +284,34 @@ namespace Discussion.Web.Tests
             {
                 var log = new LogItem
                 {
+                    Category = this.Category,
                     Level = logLevel,
                     EventId = eventId,
                     State = state,
                     Exception = exception,
                     Message = formatter.Invoke(state, exception)
                 };
-                Factory.LogItems.Push(log);
+                Provider.LogItems.Push(log);
             }
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
             {
                 var log = new LogItem
                 {
+                    Category = this.Category,
                     Level = logLevel,
                     EventId = eventId.Id,
                     State = state,
                     Exception = exception,
                     Message = formatter.Invoke(state, exception)
                 };
-                Factory.LogItems.Push(log);
+                Provider.LogItems.Push(log);
             }
         }
 
         public class LogItem
         {
+            public string Category { get; set; }
             public LogLevel Level { get; set; }
             public Exception Exception { get; set; }
             public int EventId { get; set; }

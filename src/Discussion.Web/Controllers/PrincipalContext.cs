@@ -1,8 +1,8 @@
 ﻿using Discussion.Web.Models;
 using Jusfr.Persistent;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -12,6 +12,8 @@ namespace Discussion.Web.Controllers
 {
     public static class PrincipalContext
     {
+        private const string _cookiesAuth = CookieAuthenticationDefaults.AuthenticationScheme;
+
         public static async Task SigninAsync(this HttpContext httpContext, User user, bool isPersistent = false) {
             var claims = new List<Claim> {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(), ClaimValueTypes.Integer32),
@@ -19,11 +21,11 @@ namespace Discussion.Web.Controllers
                     new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
                 };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(claims, _cookiesAuth);
             var principal = new ClaimsPrincipal(identity);
 
             httpContext.User = principal;
-            await httpContext.Authentication.SignInAsync("Cookie", principal, new AuthenticationProperties { IsPersistent = isPersistent });
+            await httpContext.SignInAsync(_cookiesAuth, principal, new AuthenticationProperties { IsPersistent = isPersistent });
             AssignDiscussionPrincipal(httpContext, user);
         }
 
@@ -31,7 +33,7 @@ namespace Discussion.Web.Controllers
         {
             // didn't remove cookie...
             httpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
-            await httpContext.Authentication.SignOutAsync("Cookie");
+            await httpContext.SignOutAsync(_cookiesAuth);
         }
 
         public static void AssignDiscussionPrincipal(this HttpContext httpContext, IUser user = null)
