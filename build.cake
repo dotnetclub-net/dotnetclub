@@ -14,6 +14,10 @@ Task("Default")
           }
         });
 
+Task("ci")
+   .IsDependentOn("build-all")
+   .IsDependentOn("cs-test");
+
 Task("build-all")
    .IsDependentOn("build-prod")
    .IsDependentOn("build-test")

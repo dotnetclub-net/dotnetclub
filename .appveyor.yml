@@ -5,7 +5,7 @@ branches:
     - master
     - dev
 build_script:
-- ps: .\build.ps1 -Target "build-all"
+- ps: .\build.ps1 -Target "ci"
 clone_depth: 1
 test: off
 deploy: off

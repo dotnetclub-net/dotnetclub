@@ -1,6 +1,10 @@
 language: csharp
-sudo: required
-dist: trusty
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+    - os: osx
+      osx_image: xcode8.3
 addons:
   apt:
     packages:
@@ -10,17 +14,15 @@ addons:
     - libssl-dev
     - libunwind8
     - zlib1g
+
 mono: 5.4.1
 dotnet: 2.1.300
-os:
-  - linux
-  - osx
-osx_image: xcode8.2
+
 branches:
   only:
     - master
     - dev
 script:
-  - if test "$TRAVIS_OS_NAME" == "osx"; then ./build.sh --target=build-all ; fi
-  - if test "$TRAVIS_OS_NAME" == "linux"; then ./build-linux.sh --target=build-all ; fi
+  - if test "$TRAVIS_OS_NAME" == "osx"; then ./build.sh --target=ci ; fi
+  - if test "$TRAVIS_OS_NAME" == "linux"; then ./build-linux.sh --target=ci ; fi
 
