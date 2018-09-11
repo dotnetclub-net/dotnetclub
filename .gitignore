@@ -50,3 +50,8 @@ node_modules
 project.lock.json
 appsettings.Development.json
 
+
+
+tools/*
+!tools/packages.config
+!tools/packages.config.md5sum

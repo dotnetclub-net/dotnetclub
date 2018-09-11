@@ -1,0 +1,26 @@
+language: csharp
+sudo: required
+dist: trusty
+addons:
+  apt:
+    packages:
+    - gettext
+    - libcurl4-openssl-dev
+    - libicu-dev
+    - libssl-dev
+    - libunwind8
+    - zlib1g
+mono: 5.4.1
+dotnet: 2.1.300
+os:
+  - linux
+  - osx
+osx_image: xcode8.2
+branches:
+  only:
+    - master
+    - dev
+script:
+  - if test "$TRAVIS_OS_NAME" == "osx"; then ./build.sh --target=build-all ; fi
+  - if test "$TRAVIS_OS_NAME" == "linux"; then ./build-linux.sh --target=build-all ; fi
+

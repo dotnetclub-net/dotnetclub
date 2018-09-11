@@ -9,10 +9,10 @@ This project is a web application based on the [ASP.NET Core RC2](https://github
 
 | Build server| Branch         | Platform       | Status                                                                                                                                                                                             |
 |-------------|----------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| AppVeyor    | dev            | Windows        | [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/dev)                     |
-| AppVeyor    | master         | Windows        | [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/master)            |
 | Travis      | dev            | Linux          | [![Travis Status-dev](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=dev)](https://travis-ci.org/jijiechen/openaspnetorg/branches)                                                       |
+| AppVeyor    | dev            | Windows        | [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/dev)                     |
 | Travis      | master         | Linux          | [![Travis Status-master](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=master)](https://travis-ci.org/jijiechen/openaspnetorg/branches)                                                 |
+| AppVeyor    | master         | Windows        | [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/master)            |
 
 
 ### Using the source
@@ -29,13 +29,13 @@ You can work on the source with any text editor or IDE.
 To restore packages and compile:
 
 ``` 
-./build build-all
+./build --target=build-all
 ```
 
 To execute tests:
 
 ``` 
-./build test
+./build --target=cs-test
 ```
 
 &nbsp;
@@ -47,7 +47,7 @@ You need the asp.net core basic environment to run this application. It's pretty
 ``` 
 git clone https://github.com/jijiechen/openaspnetorg.git
 cd openaspnetorg
-./build build-all
+./build --target=build-all
 cd src/Discussion.Web
 dotnet run
 ```
