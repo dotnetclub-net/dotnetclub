@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Cake.DoInDirectory</id>
+    <version>3.2.0</version>
+    <title>Cake.DoInDirectory</title>
+    <authors>pitermarx</authors>
+    <owners>pitermarx</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://github.com/pitermarx/Cake.DoInDirectory</projectUrl>
+    <iconUrl>https://cdn.rawgit.com/cake-contrib/graphics/a5cf0f881c390650144b2243ae551d5b9f836196/png/cake-contrib-medium.png</iconUrl>
+    <description>An extension to Cake Build. Changes the current directory.</description>
+    <copyright>Copyright © 2016</copyright>
+    <tags>Cake Script Build</tags>
+    <dependencies>
+      <group targetFramework=".NETStandard2.0" />
+    </dependencies>
+  </metadata>
+</package>
