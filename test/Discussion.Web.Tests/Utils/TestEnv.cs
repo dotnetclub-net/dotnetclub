@@ -9,7 +9,7 @@ namespace Discussion.Web.Tests {
     {
         public static string SolutionPath()
         {
-            const string testProjectSubPath = "test/Discussion.Web.Tests/project.json";
+            const string testProjectSubPath = "test/Discussion.Web.Tests/Discussion.Web.Tests.csproj";
             var currentPath = Directory.GetCurrentDirectory();
 
             do
@@ -24,7 +24,7 @@ namespace Discussion.Web.Tests {
                 currentPath = parent == null ? null : parent.FullName;
             } while (currentPath != null);
 
-            throw new InvalidOperationException("Cannot find test project.");
+            throw new InvalidOperationException("Cannot find the Discussion.Web.Tests test project.");
         }
 
         public static string WebProjectPath()

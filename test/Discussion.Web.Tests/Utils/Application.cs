@@ -16,10 +16,7 @@ using static Discussion.Web.Tests.TestEnv;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Internal;
 
 namespace Discussion.Web.Tests
 {
@@ -58,7 +55,6 @@ namespace Discussion.Web.Tests
         public StubLoggerFactory LoggerFactory { get { return this.Context.LoggerFactory; } }
         public IHostingEnvironment HostingEnvironment { get { return this.Context.HostingEnvironment; }  }
 
-        public RequestDelegate RequestHandler { get { return this.Context.RequestHandler; }  }
         public IServiceProvider ApplicationServices { get { return this.Context.ApplicationServices; }  }
 
         public TestServer Server { get { return this.Context.Server; }  }
@@ -102,8 +98,6 @@ namespace Discussion.Web.Tests
 //                .UseLoggerFactory(testApp.LoggerFactory);
 
             testApp.Server = new TestServer(hostBuilder);
-            var simpleServer = new SimpleTestServer(hostBuilder);
-            testApp.RequestHandler = simpleServer.RequestHandler;
             testApp.ApplicationServices = testApp.Server.Host.Services;
 
             return testApp;
@@ -160,7 +154,6 @@ namespace Discussion.Web.Tests
          StubLoggerFactory LoggerFactory { get;  }
          IHostingEnvironment HostingEnvironment { get;  }
 
-         RequestDelegate RequestHandler { get;  }
          IServiceProvider ApplicationServices { get;  }
 
          TestServer Server { get;  }
@@ -203,7 +196,6 @@ namespace Discussion.Web.Tests
         public StubLoggerFactory LoggerFactory { get; set; }
         public IHostingEnvironment HostingEnvironment { get; set; }        
 
-        public RequestDelegate RequestHandler { get; set; }
         public IServiceProvider ApplicationServices { get; set; }
 
         public TestServer Server { get; set; }
@@ -229,7 +221,6 @@ namespace Discussion.Web.Tests
                 GC.SuppressFinalize(this);
             }
 
-            RequestHandler = null;
             ApplicationServices = null;
 
             if (LoggerFactory != null)
@@ -403,52 +394,4 @@ namespace Discussion.Web.Tests
         }
 
     }
-    
-    public class SimpleTestServer : IServer
-    {
-        IWebHost _host;
-        RequestDelegate _requestHandler;
-        public SimpleTestServer(IWebHostBuilder hostBuilder)
-        {
-            //var host = Startup.ConfigureHost(new WebHostBuilder())
-            //    .UseServer(testServer)
-            //    .UseLoggerFactory(new StubLoggerFactory())
-            //    .Build();
-            _host = hostBuilder.UseServer(this).Build();
-            _host.Start();
-        }
-
-        public RequestDelegate RequestHandler => _requestHandler;
-        public Task StartAsync<TContext>(IHttpApplication<TContext> application, CancellationToken cancellationToken)
-        {
-            Start(application);
-            return Task.FromResult(0);
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            Dispose();
-            return Task.FromResult(0);
-        }
-
-        public IFeatureCollection Features => new FeatureCollection();
-        public IWebHost Host => _host;
-
-        public void Start<TContext>(IHttpApplication<TContext> application)
-        {
-            var webApplication = application as HostingApplication;
-            _requestHandler = async (httpContext) => {
-                var logger = httpContext.RequestServices.GetRequiredService<ILogger<HttpContext>>();
-                var scope = logger.BeginScope(httpContext);
-                var context = new HostingApplication.Context { HttpContext = httpContext, Scope = scope, StartTimestamp = DateTime.UtcNow.Ticks };
-                await webApplication.ProcessRequestAsync(context);
-            };
-        }
-
-        public void Dispose()
-        {
-            _requestHandler = null;
-        }
-    }
-
 }

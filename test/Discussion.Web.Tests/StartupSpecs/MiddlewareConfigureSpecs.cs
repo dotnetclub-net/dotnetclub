@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Http;
 using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http.Features;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.TestHost;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
@@ -13,12 +13,10 @@ namespace Discussion.Web.Tests.StartupSpecs
     public class MiddlewareConfigureSpecs
     {
 
-        private RequestDelegate RequestHandler;
-        private IServiceProvider ApplicationServices;
+        private TestServer server;
         public MiddlewareConfigureSpecs(Application app)
         {
-            RequestHandler = app.RequestHandler;
-            ApplicationServices = app.ApplicationServices;
+            server = app.Server;
         }
 
 
@@ -43,10 +41,13 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public async Task should_use_mvc()
         {
-            var httpContext = CreateHttpContext();
-            httpContext.Request.Path = IntegrationTests.NotFoundSpecs.NotFoundPath;
-
-            await RequestHandler.Invoke(httpContext);
+            HttpContext httpContext = null;
+            await server.SendAsync(ctx =>
+            {
+                httpContext = ctx;
+                ctx.Request.Path = IntegrationTests.NotFoundSpecs.NotFoundPath;
+            });
+            
 
             var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
             loggerFactory.ShouldNotBeNull();
@@ -57,28 +58,20 @@ namespace Discussion.Web.Tests.StartupSpecs
         public async Task should_use_static_files()
         {
             var staticFile = IntegrationTests.NotFoundSpecs.NotFoundStaticFile;
-            var httpContext = CreateHttpContext();
-            httpContext.Request.Method = "GET";
-            httpContext.Request.Path = staticFile;
-
-            await RequestHandler.Invoke(httpContext);
+            HttpContext httpContext = null;
+            
+            await server.SendAsync(ctx =>
+            {
+                httpContext = ctx;
+//                ctx.Features.Set<IHttpResponseFeature>(new DummyHttpResponseFeature());
+                ctx.Request.Method = "GET";
+                ctx.Request.Path = staticFile;
+            });
 
             var loggerFactory = httpContext.RequestServices.GetRequiredService<ILoggerFactory>() as StubLoggerFactory;
             loggerFactory.ShouldNotBeNull();
             loggerFactory.LogItems.ShouldContain(item => item.Message.Equals($"The request path {staticFile} does not match an existing file"));
         }
-        
-        
-        private DefaultHttpContext CreateHttpContext()
-        {
-            var httpContext = new DefaultHttpContext
-            {
-                RequestServices = this.ApplicationServices
-            };
-            httpContext.Features.Set<IHttpResponseFeature>(new DummyHttpResponseFeature());
-            return httpContext;
-        }
-
     }
 
 }
