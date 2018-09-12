@@ -21,7 +21,18 @@ namespace Discussion.Web.Controllers
             _modelMetadataProvider = modelMetadataProvider;
         }
         
-        [Route("/Topic/{id}")]
+
+        [Route("/")]
+        [HttpGet]
+        [Route("/topics")]
+        public ActionResult List()
+        {
+            var topicList = _topicRepo.All.ToList();
+
+            return View(topicList);
+        }
+
+        [Route("/topics/{id}")]
         public ActionResult Index(int id)
         {
             var topic = _topicRepo.Retrive(id);
@@ -43,18 +54,9 @@ namespace Discussion.Web.Controllers
         }
 
 
-        [Route("/")]
-        [Route("/Topic/List")]
-        public ActionResult List()
-        {
-            var topicList = _topicRepo.All.ToList();
-
-            return View(topicList);
-        }
-
 
         [Authorize]
-        [Route("/Topic/Create")]
+        [Route("/topics/create")]
         public ActionResult Create()
         {
             return View();
@@ -62,7 +64,7 @@ namespace Discussion.Web.Controllers
 
         [Authorize]
         [HttpPost]
-        [Route("/Topic/CreateTopic")]
+        [Route("/topics")]
         public ActionResult CreateTopic(TopicCreationModel model)
         {
             if (!ModelState.IsValid)

@@ -23,7 +23,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_topic_list_page()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topic/list");
+            var request = _theApp.Server.CreateRequest("/topics");
 
             // act
             var response = await request.GetAsync();
@@ -37,7 +37,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_create_topic_page()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topic/create");
+            var request = _theApp.Server.CreateRequest("/topics/create");
             MockUser();
             // act
             var response = await request.GetAsync();
@@ -51,7 +51,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_redirect_to_signin_when_access_create_topic_page_without_user_principal()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topic/create");
+            var request = _theApp.Server.CreateRequest("/topics/create");
 
             // act
             var response = await request.GetAsync();
@@ -66,7 +66,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_accept_create_topic_request_with_valid_post_data()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topic/createtopic");
+            var request = _theApp.Server.CreateRequest("/topics");
             MockUser();
 
             request.And(req =>
@@ -84,14 +84,14 @@ namespace Discussion.Web.Tests.IntegrationTests
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.Redirect);
             response.Headers.Location.ShouldNotBeNull();
-            response.Headers.Location.ToString().ShouldContain("/Topic/", StringComparison.OrdinalIgnoreCase);
+            response.Headers.Location.ToString().ShouldContain("/topics/", StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
         public async Task should_not_accept_create_topic_request_with_invalid_post_data()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topic/createtopic");
+            var request = _theApp.Server.CreateRequest("/topics");
             MockUser();
 
             // act

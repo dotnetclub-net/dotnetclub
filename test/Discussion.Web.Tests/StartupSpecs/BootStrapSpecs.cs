@@ -12,7 +12,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_bootstrap_success()
         {
-            const int httpListenPort = 5001;
+            const int httpListenPort = 5010;
             var testCompleted = false;
             HttpWebResponse response = null;
 
@@ -60,7 +60,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             var dotnetProcess = new ProcessStartInfo
             {
                 FileName = dotnetPath,
-                Arguments = "run --environment Integration --server.urls http://localhost:" + port.ToString(),
+                Arguments = "run --environment Integration --server.urls http://localhost:" + port,
                 WorkingDirectory = webProject,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -143,16 +143,7 @@ namespace Discussion.Web.Tests.StartupSpecs
                 {
                     process.Kill();
                 }
-                catch
-                {
-                    
-                }
-
-                //process = GetProcess(id);
-                //if(process != null)
-                //{
-                //    // did not kill
-                //}
+                catch { }
             }            
         }
     }

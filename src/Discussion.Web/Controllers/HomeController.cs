@@ -8,28 +8,14 @@ namespace Discussion.Web.Controllers
 {
     public class HomeController: Controller
     {
-        // IRepository<Article, Article> 
-
-        public HomeController()
-        {
-
-        }
-
-        // Use Topic/List to host home page.
-        //[Route("/")]
-        //public ActionResult Index()
-        //{
-        //    return View();
-        //}
-
-
-        [Route("/About")]
+       
+        [Route("/about")]
         public ActionResult About()
         {
             return View();
         }
 
-        [Route("/Error")]
+        [Route("/error")]
         public async Task<IActionResult> Error()
         {
             await DiagnosticExceptionDetails();
