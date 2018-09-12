@@ -74,11 +74,17 @@ Task("cs-test")
 void Execute(string command){
     var indexOfSpace = command.IndexOf(" ");
     var args = new ProcessSettings();
-    if(indexOfSpace > -1){
-        args.Arguments = command.Substring(indexOfSpace+1);
+    var commandName = command;
+    if (IsRunningOnWindows())
+    {
+        commandName = "powershell.exe";
+        args.Arguments = "-Command \'" + command + "\'";
+    }else{       
+        if(indexOfSpace > -1){
+            args.Arguments = command.Substring(indexOfSpace+1);
+        }
+        commandName = indexOfSpace > -1 ? command.Substring(0, indexOfSpace)  : command;
     }
-    var commandName = indexOfSpace > -1 ? command.Substring(0, indexOfSpace)  : command;
-
     Information($"Executing {command}");
     using(var process = StartAndReturnProcess(commandName, args))
     {
