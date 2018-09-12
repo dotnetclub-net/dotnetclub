@@ -55,4 +55,3 @@ appsettings.Development.json
 
 tools/*
 !tools/packages.config
-!tools/packages.config.md5sum

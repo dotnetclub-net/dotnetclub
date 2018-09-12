@@ -71,27 +71,40 @@ Task("cs-test")
 
 
 
-void Execute(string command){
-    var indexOfSpace = command.IndexOf(" ");
-    var args = new ProcessSettings();
-    var commandName = command;
+void Execute(string command, string workingDir = null){
+    
+ if (string.IsNullOrEmpty(workingDir))
+        workingDir = System.IO.Directory.GetCurrentDirectory();
+
+    System.Diagnostics.ProcessStartInfo processStartInfo;
+
     if (IsRunningOnWindows())
     {
-        commandName = "powershell.exe";
-        args.Arguments = "-Command \'" + command + "\'";
-    }else{       
-        if(indexOfSpace > -1){
-            args.Arguments = command.Substring(indexOfSpace+1);
-        }
-        commandName = indexOfSpace > -1 ? command.Substring(0, indexOfSpace)  : command;
+        processStartInfo = new System.Diagnostics.ProcessStartInfo
+        {
+            UseShellExecute = false,
+            WorkingDirectory = workingDir,
+            FileName = "cmd",
+            Arguments = "/C \"" + command + "\"",
+        };
     }
-    Information($"Executing {command}");
-    using(var process = StartAndReturnProcess(commandName, args))
+    else
+    {
+        processStartInfo = new System.Diagnostics.ProcessStartInfo
+        {
+            UseShellExecute = false,
+            WorkingDirectory = workingDir,
+            FileName = "bash",
+            Arguments = "-c \"" + command + "\"",
+        };
+    }
+
+    using (var process = System.Diagnostics.Process.Start(processStartInfo))
     {
         process.WaitForExit();
-        var code = process.GetExitCode();
-        if(code != 0)
-            throw new Exception($"${commandName} returned a non-zero code: {code}");
+
+        if (process.ExitCode != 0)
+            throw new Exception(string.Format("Exit code {0} from {1}", process.ExitCode, command));
     }
 }
 
