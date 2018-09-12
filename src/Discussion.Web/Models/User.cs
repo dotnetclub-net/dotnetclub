@@ -6,7 +6,10 @@ namespace Discussion.Web.Models
 {
     public class User : Entity, IUser
     {
-        public string Name { get; set; } = null;
+        public string UserName { get; set; }
+        public string DisplayName { get; set; }
+
+        public string HashedPassword { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastSeendAt { get; set; }
     }
@@ -15,7 +18,7 @@ namespace Discussion.Web.Models
     public interface IUser
     {
         int Id { get; }
-        string Name { get; }
+        string DisplayName { get; }
     }
 
     public class Role

@@ -1,0 +1,32 @@
+﻿@model SigninUserViewModel
+@{
+    ViewData["Title"] = "用户登录";
+}
+
+
+<div class="row">
+    <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel-heading">
+            用户登录
+        </div>
+
+        <div class="panel-body">
+            <form action="@Url.Action("DoSignin")" method="post">
+                <fieldset>
+                    <label>
+                        <span>@Html.DisplayNameFor(m => m.UserName)</span>
+                        @Html.TextBoxFor(m => m.UserName)
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <label>
+                        <span>@Html.DisplayNameFor(m => m.Password)</span>
+                        @Html.PasswordFor(m => m.Password)
+                    </label>
+                </fieldset>
+                <br />
+                <button>登录</button>
+            </form>
+        </div>
+    </div>
+</div>

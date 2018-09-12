@@ -357,7 +357,7 @@ namespace Discussion.Web.Tests
             var controller = controllerFactory.CreateController(new ControllerContext(actionContext)) as T;
             AttachValidator(controller);
 
-            return controller as T;
+            return controller;
         }
 
 

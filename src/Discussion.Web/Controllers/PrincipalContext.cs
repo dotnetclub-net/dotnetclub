@@ -17,7 +17,7 @@ namespace Discussion.Web.Controllers
         public static async Task SigninAsync(this HttpContext httpContext, User user, bool isPersistent = false) {
             var claims = new List<Claim> {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(), ClaimValueTypes.Integer32),
-                    new Claim(ClaimTypes.Name, user.Name, ClaimValueTypes.String),
+                    new Claim(ClaimTypes.Name, user.DisplayName, ClaimValueTypes.String),
                     new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
                 };
 
