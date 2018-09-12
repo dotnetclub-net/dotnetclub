@@ -1,5 +1,7 @@
 init:
   - git config --global core.autocrlf true
+install:
+  - ps: Install-Product node 8
 branches:
   only:
     - master

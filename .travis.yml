@@ -18,6 +18,10 @@ addons:
 mono: 5.4.1
 dotnet: 2.1.300
 
+install:
+  - nvm install 8.6.0
+  - nvm use 8.6.0
+
 branches:
   only:
     - master
