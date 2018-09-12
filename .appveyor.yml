@@ -2,13 +2,19 @@ init:
   - git config --global core.autocrlf true
 install:
   - ps: Install-Product node 8
+
 branches:
   only:
     - master
     - dev
-build_script:
-- ps: .\build.ps1 -Target "ci"
+    
 clone_depth: 1
+build_script:
+  - node --version
+  - npm --version
+  - ps: .\build.ps1 -Target "ci"
+  
+
 test: off
 deploy: off
 os: Visual Studio 2017
