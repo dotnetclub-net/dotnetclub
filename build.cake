@@ -1,4 +1,6 @@
 #addin nuget:?package=Cake.DoInDirectory
+#addin "Cake.Npm"
+
 var target = Argument("target", "Default");
 // ./build.sh --target=build-all
 
@@ -16,7 +18,20 @@ Task("Default")
 
 Task("ci")
    .IsDependentOn("build-all")
-   .IsDependentOn("cs-test");
+   .IsDependentOn("cs-test")
+   .Does(() =>
+    {
+        DoInDirectory("./src/Discussion.Web/wwwroot", () =>
+        {
+            Execute("npm install gulp-cli -g");
+            Execute("npm install bower -g");
+
+            NpmInstall();
+
+            Execute("bower install");
+            Execute("gulp");
+        });
+    });
 
 Task("build-all")
    .IsDependentOn("build-prod")
@@ -31,13 +46,7 @@ Task("build-prod")
     {
         DoInDirectory("./src/Discussion.Web/", () =>
         {
-            using(var process = StartAndReturnProcess("dotnet", new ProcessSettings{ Arguments = "build"}))
-            {
-                process.WaitForExit();
-                var code = process.GetExitCode();
-                if(code != 0)
-                    throw new Exception($"dotnet build returned a non-zero code: {code}");
-            }
+            Execute("dotnet build");
         });
     });
 
@@ -46,13 +55,7 @@ Task("build-test")
     {
         DoInDirectory("./test/Discussion.Web.Tests/", () =>
         {
-            using(var process = StartAndReturnProcess("dotnet", new ProcessSettings{ Arguments = "build"}))
-            {
-                process.WaitForExit();
-                var code = process.GetExitCode();
-                if(code != 0)
-                    throw new Exception($"dotnet build returned a non-zero code: {code}");
-            }
+            Execute("dotnet build");
         });
     });
 
@@ -65,5 +68,27 @@ Task("cs-test")
             DotNetCoreTest();
         });
     });
+
+
+
+void Execute(string command){
+    var indexOfSpace = command.IndexOf(" ");
+    var args = new ProcessSettings();
+    if(indexOfSpace > -1){
+        args.Arguments = command.Substring(indexOfSpace+1);
+    }
+    var commandName = indexOfSpace > -1 ? command.Substring(0, indexOfSpace)  : command;
+
+    Information($"Executing {command}");
+    using(var process = StartAndReturnProcess(commandName, args))
+    {
+        process.WaitForExit();
+        var code = process.GetExitCode();
+        if(code != 0)
+            throw new Exception($"${commandName} returned a non-zero code: {code}");
+    }
+}
+
+
 
 RunTarget(target);
