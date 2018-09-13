@@ -13,7 +13,7 @@ namespace Discussion.Web.Tests.IntegrationTests
     public class TopicRelatedPagesSpecs
     {
         
-        private Application _theApp;
+        private readonly Application _theApp;
         public TopicRelatedPagesSpecs(Application theApp)
         {
             _theApp = theApp.Reset();
@@ -38,7 +38,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             // arrange
             var request = _theApp.Server.CreateRequest("/topics/create");
-            MockUser();
+            _theApp.MockUser();
             // act
             var response = await request.GetAsync();
 
@@ -67,7 +67,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             // arrange
             var request = _theApp.Server.CreateRequest("/topics");
-            MockUser();
+            _theApp.MockUser();
 
             request.And(req =>
             {
@@ -92,7 +92,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             // arrange
             var request = _theApp.Server.CreateRequest("/topics");
-            MockUser();
+            _theApp.MockUser();
 
             // act
             var response = await request.PostAsync();
@@ -100,18 +100,5 @@ namespace Discussion.Web.Tests.IntegrationTests
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.BadRequest);
         }
-
-
-        void MockUser()
-        {
-            var claims = new List<Claim> {
-                    new Claim(ClaimTypes.NameIdentifier, (-1).ToString(), ClaimValueTypes.Integer32),
-                    new Claim(ClaimTypes.Name, "FancyUser", ClaimValueTypes.String),
-                    new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
-                };
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            _theApp.User = new ClaimsPrincipal(identity);
-        }
-
     }
 }

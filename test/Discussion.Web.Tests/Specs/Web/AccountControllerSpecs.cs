@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Discussion.Web.Controllers;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -19,9 +20,9 @@ namespace Discussion.Web.Tests.Specs.Web
         [Fact]
         public void should_serve_signin_page_as_view_result()
         {
-            var accountCtrl = new AccountController();
+            var accountCtrl = _myApp.CreateController<AccountController>();
 
-            IActionResult signinPageResult = accountCtrl.Signin();
+            IActionResult signinPageResult = accountCtrl.Signin(null);
 
             var viewResult = signinPageResult as ViewResult;
             Assert.NotNull(viewResult);
@@ -40,6 +41,10 @@ namespace Discussion.Web.Tests.Specs.Web
             
             var sigininResult = await accountCtrl.DoSignin(userModel, null);
 
+            Assert.NotNull(_myApp.User);
+            Assert.NotNull(accountCtrl.User);
+            Assert.Equal("jim", accountCtrl.User.Identities.First().Name);
+            
             Assert.NotNull(sigininResult);
             Assert.IsType<RedirectResult>(sigininResult);
         }
@@ -55,6 +60,20 @@ namespace Discussion.Web.Tests.Specs.Web
             var viewResult = sigininResult as ViewResult;
             Assert.NotNull(viewResult);
             viewResult.ViewName.ShouldEqual("Signin");
+        }
+        
+        
+        [Fact]
+        public async Task should_signout()
+        {
+            var accountCtrl = _myApp.CreateController<AccountController>();
+            _myApp.MockUser();
+            
+            var signoutResult = await accountCtrl.DoSignOut();
+
+            Assert.False(accountCtrl.User.Identity.IsAuthenticated);
+            Assert.NotNull(signoutResult);
+            Assert.IsType<RedirectResult>(signoutResult);
         }
 
 

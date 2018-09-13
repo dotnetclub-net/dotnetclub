@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Discussion.Web.Tests
 {
@@ -139,6 +141,17 @@ namespace Discussion.Web.Tests
         }
 
         #endregion
+
+        public void MockUser()
+        {
+            var claims = new List<Claim> {
+                new Claim(ClaimTypes.NameIdentifier, (-1).ToString(), ClaimValueTypes.Integer32),
+                new Claim(ClaimTypes.Name, "FancyUser", ClaimValueTypes.String),
+                new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
+            };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            this.User = new ClaimsPrincipal(identity);
+        }
     }
 
     // Use shared context to maintain database fixture
