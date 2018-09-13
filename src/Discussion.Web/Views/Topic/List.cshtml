@@ -19,13 +19,14 @@
     static string DescribeTopicType(TopicType topicType)
     {
         switch (topicType){
-            case TopicType.Sharing:
-                return "分享";
+            case TopicType.Discussion:
+                return "讨论";
             case TopicType.Question:
                 return "问答";
+            case TopicType.Job:
+                return "招聘";
         }
         return null;
-
     }
 }
 
@@ -47,7 +48,7 @@
                         <span class="topic-type">@DescribeTopicType(topicItem.TopicType)</span>
                     </div>
                     <a class="topic-title" href="@Url.Action("Index", "Topic", new { id = topicItem.Id})">
-                        @topicItem.Title Id: @topicItem.Id
+                        @topicItem.Title
                     </a>
                     @if (topicItem.LastRepliedAt.HasValue)
                     {

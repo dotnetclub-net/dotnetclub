@@ -22,8 +22,10 @@ namespace Discussion.Web.Models
 
     public enum TopicType
     {
-        Sharing = 1,
+        Discussion = 1,
 
-        Question = 2
+        Question = 2,
+        
+        Job = 4
     }
 }

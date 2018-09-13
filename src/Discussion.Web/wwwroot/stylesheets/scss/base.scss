@@ -28,3 +28,27 @@ body.with-generic-nav {
 	padding: 10px;
 	border-radius: 3px 3px 0 0;
 }
+
+
+.header-user {
+	color:white;
+	margin-top: 15px;
+	
+	.signout-form {
+		display: inline;
+		
+		button {
+			display: inline;
+			border: none;
+			background: transparent;
+			cursor: pointer;
+			outline: none;
+			color:$brand-primary;
+		}
+		
+		&:hover, &:active {
+			color:#834790;
+			text-decoration: underline;
+		}
+	}
+}

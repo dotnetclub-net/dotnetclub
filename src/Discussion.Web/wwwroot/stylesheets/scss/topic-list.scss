@@ -14,8 +14,12 @@
 
 
     .topic-meta-primary{
-      min-width: 50px;
+      width: 100px;
+      text-align: right;
 
+      .counts{
+        font-size:13px;
+      }
       .topic-type{
         background: $gray-lighter;
         color: $text-muted;
@@ -37,8 +41,7 @@
     .topic-title{
       color: $text-color;
       padding: 0 10px;
-      max-width: 60%;
-      max-width: calc(100% - 200px);
+      width: calc(100% - 100px);
       display: inline-block;
       white-space: nowrap;
       overflow: hidden;

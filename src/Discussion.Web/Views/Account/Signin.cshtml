@@ -3,6 +3,15 @@
     ViewData["Title"] = "用户登录";
 }
 
+@section Head{
+    <environment names="Development">
+        <link rel="stylesheet" href="~/stylesheets/css/signin.css" />
+    </environment>
+    <environment names="QA,Integration,Staging,Production">
+        <link rel="stylesheet" href="~/stylesheets/css/signin.min.css" asp-append-version="true" />
+    </environment>
+}
+
 
 <div class="row">
     <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -11,11 +20,11 @@
         </div>
 
         <div class="panel-body">
-            <form action="@Url.Action("DoSignin")" method="post">
+            <form class="login-form" action="@Url.Action("DoSignin")" method="post">
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.UserName)</span>
-                        @Html.TextBoxFor(m => m.UserName)
+                        @Html.TextBoxFor(m => m.UserName, new { autofocus = true  })
                     </label>
                 </fieldset>
                 <fieldset>
@@ -25,7 +34,9 @@
                     </label>
                 </fieldset>
                 <br />
-                <button>登录</button>
+                <button class="btn btn-default signin-button">
+                    <span class="glyphicon glyphicon-user">登录</span>
+                </button>
             </form>
         </div>
     </div>
