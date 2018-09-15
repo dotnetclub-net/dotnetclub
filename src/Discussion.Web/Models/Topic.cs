@@ -1,5 +1,6 @@
 ﻿using Discussion.Web.Data;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Discussion.Web.Models
 {
@@ -22,10 +23,13 @@ namespace Discussion.Web.Models
 
     public enum TopicType
     {
+        [Display(Name="讨论")]
         Discussion = 1,
 
+        [Display(Name="问答")]
         Question = 2,
         
+        [Display(Name="招聘")]
         Job = 4
     }
 }

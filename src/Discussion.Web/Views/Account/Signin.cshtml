@@ -20,7 +20,9 @@
         </div>
 
         <div class="panel-body">
-            <form class="login-form" action="@Url.Action("DoSignin")" method="post">
+            <form class="login-form" 
+                  action="@Url.Action("DoSignin", "Account", new { ReturnUrl = Context.Request.Query["ReturnUrl"] })" 
+                  method="post">
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.UserName)</span>

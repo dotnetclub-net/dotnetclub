@@ -1,0 +1,63 @@
+@import "symbols";
+
+
+.topic-title-container{
+  background: white;
+  margin-top: 30px;
+  padding-top: 15px;
+  padding-bottom: 10px;
+  border-radius: 3px;
+  
+  
+  #new-topic-title{
+    width: calc( 100% - 20px );
+    height: 35px;
+    margin: 0 10px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    border-bottom: 1px solid $gray-body-background;
+  }
+}
+
+
+.note-editor.panel{
+  border:none;
+  border-radius: 0;
+  
+  .panel-heading.note-toolbar{
+    background: transparent;
+    border: none;
+  }
+  
+  .btn.note-btn{
+    border:none;
+    color:$gray;
+  }
+}
+
+
+.topic-submit-section{
+  padding-right: 10px;
+  margin-top: 15px;
+  margin-bottom: 80px;
+  
+  .topic-type-dropdown,.submit-create-btn{
+    float:right;
+  }
+
+  .topic-type-dropdown{
+    margin-right: 20px;
+    
+    .dropdown-toggle{
+      padding-top: 5px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+  }
+
+  .submit-create-btn{
+    width:100px;
+  }
+  
+}

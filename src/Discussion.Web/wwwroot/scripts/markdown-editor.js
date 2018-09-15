@@ -48,9 +48,15 @@ $(document).ready(function() {
     };
 
     $('#content-editor').summernote(editorOptions);
+    $('#topic-type-dropdown .topic-type-item').on('click', function (e) {
+        var item = $(this);
+        
+        $('#topic-type-dropdown .topic-type-item').removeAttr('selected');
+        item.attr('selected', 'selected');
+        $('#topic-type-dropdown .selected-type').text(item.text());
+    });
     $('#submit-create').on('click', function () {
         var button = $(this);
-        // button.attr('disabled', 'disabled');
 
         var contentEditor = $('#content-editor').data('summernote');
         var htmlContent = contentEditor.code();
@@ -64,12 +70,18 @@ $(document).ready(function() {
 
 
         var title = $('#new-topic-title').val();
+        var topicType = $('#topic-type-dropdown .topic-type-item[selected]>a').attr('attr-value');
         var newTopic = {
             title: htmlEncode(title),
-            content: encodedContent
+            content: encodedContent,
+            type: topicType
         };
+        
+        if (!newTopic.title || !newTopic.content || !newTopic.type){
+            return;
+        }
 
-        //return;
+        button.attr('disabled', 'disabled');
         $.post(window.createTopicUrl, newTopic)
             .done(function () {
                 location.replace("/");

@@ -8,12 +8,18 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Discussion.Web.Controllers
+namespace Discussion.Web
 {
     public static class PrincipalContext
     {
         private const string _cookiesAuth = CookieAuthenticationDefaults.AuthenticationScheme;
 
+        public static bool IsAuthenticated(this HttpContext httpContext)
+        {
+            var isAuthedExpr = httpContext?.User?.Identity?.IsAuthenticated;
+            return isAuthedExpr.HasValue && isAuthedExpr.Value; 
+        }
+        
         public static async Task SigninAsync(this HttpContext httpContext, User user, bool isPersistent = false) {
             var claims = new List<Claim> {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(), ClaimValueTypes.Integer32),

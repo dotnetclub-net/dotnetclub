@@ -1,9 +1,5 @@
 ﻿@inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
 
-@{
-    var isAuthedExpr = Context?.User?.Identity?.IsAuthenticated;
-    var isAuthenticated = isAuthedExpr.HasValue && isAuthedExpr.Value; 
-}
 
 <!DOCTYPE html>
 <html>
@@ -46,7 +42,7 @@
                     <li><a href="/about">关于</a></li>
                 </ul>
                 <div class="header-user pull-right">
-                    @if (isAuthenticated)
+                    @if (Context.IsAuthenticated())
                     {
                         <span class="username">欢迎你，@Context.User.Identity.Name</span>
                         <form class="signout-form" action="@Url.Action("DoSignOut", "Account")" method="post">

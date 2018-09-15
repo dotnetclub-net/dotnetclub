@@ -1,9 +1,18 @@
-﻿@model List<Topic>
+﻿@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+@model List<Topic>
 
 @{
     ViewData["Title"] = "My Discussion Site";
 }
 
+@functions{
+    static string DescribeTopicType(TopicType topicType)
+    {
+        var memberInfo = typeof(TopicType).GetMember(topicType.ToString()).FirstOrDefault();
+        return memberInfo.GetCustomAttribute<DisplayAttribute>().Name;
+    }
+}
 
 @section Head{
 <environment names="Development">
@@ -15,28 +24,16 @@
 }
 
 
-@functions{
-    static string DescribeTopicType(TopicType topicType)
-    {
-        switch (topicType){
-            case TopicType.Discussion:
-                return "讨论";
-            case TopicType.Question:
-                return "问答";
-            case TopicType.Job:
-                return "招聘";
-        }
-        return null;
-    }
-}
-
 <div class="row">
     <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="panel-heading">
             全部话题
-            <span class="pull-right">
-                @Html.ActionLink("创建新主题", "Create", "Topic")
-            </span>
+            @if(Context.IsAuthenticated())
+            {
+                <span class="pull-right">
+                    @Html.ActionLink("创建新话题", "Create", "Topic")
+                </span>
+            }
         </div>
 
         <div class="panel-body no-padding">

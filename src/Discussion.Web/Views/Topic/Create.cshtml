@@ -5,23 +5,41 @@
     <environment names="QA,Integration,Staging,Production">
         <link rel="stylesheet" href="~/lib/dist/summernote/summernote.min.css" />
     </environment>
+    
+    <environment names="Development">
+        <link rel="stylesheet" href="~/stylesheets/css/topic-create.css" />
+    </environment>
+    <environment names="QA,Integration,Staging,Production">
+        <link rel="stylesheet" href="~/stylesheets/css/topic-create.min.css" asp-append-version="true" />
+    </environment>
 }
 
 
     <div class="row clearfix">
-        <h2>创建新的话题 </h2>
+        <h2>创建新话题</h2>
         <div class="topic-title-container">
-            <input id="new-topic-title" type="text" />
+            <input id="new-topic-title" type="text" placeholder="标题" maxlength="100" />
         </div>
         <div class="topic-content-container">
             <div id="content-editor"></div>
         </div>
     </div>
-    <div class="row">
-        <button id="submit-create">创建</button>
+    <div class="row topic-submit-section clearfix">
+        <button id="submit-create" class="btn btn-default submit-create-btn">创建</button>
+        <div id="topic-type-dropdown" class="dropdown topic-type-dropdown">
+            <div class="dropdown-toggle topic-type-btn" data-toggle="dropdown" aria-haspopup="true">
+                <span class="selected-type">话题类别</span>
+                <span class="caret"></span>
+            </div>
+            <ul class="dropdown-menu">
+                @foreach (var item in Html.GetEnumSelectList<TopicType>())
+                {
+                    <li class="topic-type-item"><a href="javascript:;" attr-value="@item.Value">@item.Text</a></li>
+                }
+            </ul>
+        </div>
     </div>
-    <p><br /></p>
-    <p><br /></p>
+
 
 @section Tail{
 <environment names="Development">

@@ -1,6 +1,8 @@
 @import "symbols";
 
 .panel-topic-list .panel-body{
+  min-height: 260px;
+  
   .topic-item {
     height: 45px;
     font-size: 1.2em;
