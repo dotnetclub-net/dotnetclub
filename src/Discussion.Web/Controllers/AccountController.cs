@@ -35,19 +35,24 @@ namespace Discussion.Web.Controllers
             {
                 return RedirectTo(returnUrl);
             }
-            
+
+            User user = null;
+            if (ModelState.IsValid)
+            {
+                user = _userRepository.All.SingleOrDefault(
+                    u => u.UserName.Equals(viewModel.UserName, StringComparison.OrdinalIgnoreCase));
+                if (user == null || user.HashedPassword != viewModel.Password)
+                {
+                    ModelState.AddModelError("UserName", "用户名或密码错误");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 return View("Signin");
             }
-            
-            var user = new User
-            {
-                DisplayName = viewModel.UserName,
-                UserName = viewModel.UserName
-            };
+          
             await this.HttpContext.SigninAsync(user);
-
             return RedirectTo(returnUrl);
         }
 

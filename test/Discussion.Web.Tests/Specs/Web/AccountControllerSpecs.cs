@@ -38,6 +38,13 @@ namespace Discussion.Web.Tests.Specs.Web
         public async Task should_signin_user_and_redirect_when_signin_with_valid_user()
         {
             var accountCtrl = _myApp.CreateController<AccountController>();
+            _userRepo.Create(new User
+            {
+                UserName = "jim",
+                DisplayName = "Jim Green",
+                HashedPassword = "111111",
+                CreatedAt = DateTime.UtcNow
+            });
             var userModel = new SigninUserViewModel
             {
                 UserName = "jim",
@@ -46,12 +53,65 @@ namespace Discussion.Web.Tests.Specs.Web
             
             var sigininResult = await accountCtrl.DoSignin(userModel, null);
 
-            Assert.NotNull(_myApp.User);
-            Assert.NotNull(accountCtrl.User);
-            Assert.Equal("jim", accountCtrl.User.Identities.First().Name);
+            Assert.True(accountCtrl.HttpContext.IsAuthenticated());
+            Assert.NotNull(accountCtrl.User  as DiscussionPrincipal);
+            Assert.True(accountCtrl.ModelState.IsValid);            
+            Assert.Equal("Jim Green", accountCtrl.User.Identities.First().Name);
+
+            sigininResult.IsType<RedirectResult>();
+        }
+        
+        [Fact]
+        public async Task should_return_signin_view_when_username_does_not_exist()
+        {
+            var accountCtrl = _myApp.CreateController<AccountController>();
+            var userModel = new SigninUserViewModel
+            {
+                UserName = "jimdoesnotexists",
+                Password = "111111"
+            };
             
-            Assert.NotNull(sigininResult);
-            Assert.IsType<RedirectResult>(sigininResult);
+            var sigininResult = await accountCtrl.DoSignin(userModel, null);
+
+            
+            Assert.False(accountCtrl.HttpContext.IsAuthenticated());
+            Assert.Null(accountCtrl.User  as DiscussionPrincipal);
+            Assert.False(accountCtrl.ModelState.IsValid);
+            Assert.Equal("用户名或密码错误", accountCtrl.ModelState["UserName"].Errors.First().ErrorMessage);
+
+            var viewResult = sigininResult as ViewResult;
+            Assert.NotNull(viewResult);
+            viewResult.ViewName.ShouldEqual("Signin");
+        }
+        
+        [Fact]
+        public async Task should_return_signin_view_when_incorrect_password()
+        {
+            var accountCtrl = _myApp.CreateController<AccountController>();
+            _userRepo.Create(new User
+            {
+                UserName = "jimwrongpwd",
+                DisplayName = "Jim Green",
+                HashedPassword = "11111F",
+                CreatedAt = DateTime.UtcNow
+            });
+            var userModel = new SigninUserViewModel
+            {
+                UserName = "jimwrongpwd",
+                Password = "11111f"
+            };
+
+            
+            var sigininResult = await accountCtrl.DoSignin(userModel, null);
+
+            Assert.False(accountCtrl.HttpContext.IsAuthenticated());
+            Assert.Null(accountCtrl.User as DiscussionPrincipal);
+            Assert.False(accountCtrl.ModelState.IsValid);
+            Assert.Equal("用户名或密码错误", accountCtrl.ModelState["UserName"].Errors.First().ErrorMessage);
+
+            var viewResult = sigininResult as ViewResult;
+            Assert.NotNull(viewResult);
+            viewResult.ViewName.ShouldEqual("Signin");
         }
         
         [Fact]
@@ -78,7 +138,6 @@ namespace Discussion.Web.Tests.Specs.Web
             var viewResult = registerPage as ViewResult;
             Assert.NotNull(viewResult);
         }
-        
         
         [Fact]
         public void should_register_new_user()
