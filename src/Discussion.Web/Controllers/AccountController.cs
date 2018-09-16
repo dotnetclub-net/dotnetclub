@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Web.Models;
+using Discussion.Web.Services;
 using Discussion.Web.ViewModels;
 using Jusfr.Persistent;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +42,7 @@ namespace Discussion.Web.Controllers
             {
                 user = _userRepository.All.SingleOrDefault(
                     u => u.UserName.Equals(viewModel.UserName, StringComparison.OrdinalIgnoreCase));
-                if (user == null || user.HashedPassword != viewModel.Password)
+                if (user == null || !PasswordHasher.VerifyHashedPassword(Convert.FromBase64String(user.HashedPassword), viewModel.Password))
                 {
                     ModelState.AddModelError("UserName", "用户名或密码错误");
                 }
@@ -105,7 +106,7 @@ namespace Discussion.Web.Controllers
             var newUser = new User
             {
                 UserName = userViewModel.UserName,
-                HashedPassword = userViewModel.Password,
+                HashedPassword = Convert.ToBase64String(PasswordHasher.HashPassword(userViewModel.Password)),
                 CreatedAt = DateTime.UtcNow
             };
             _userRepository.Create(newUser);
@@ -122,6 +123,8 @@ namespace Discussion.Web.Controllers
 
             return Redirect(returnUrl);
         }
+
+     
 
     }
 }

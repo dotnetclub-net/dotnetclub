@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Web.Controllers;
 using Discussion.Web.Models;
+using Discussion.Web.Services;
 using Discussion.Web.ViewModels;
 using Jusfr.Persistent;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +43,7 @@ namespace Discussion.Web.Tests.Specs.Web
             {
                 UserName = "jim",
                 DisplayName = "Jim Green",
-                HashedPassword = "111111",
+                HashedPassword = Convert.ToBase64String(PasswordHasher.HashPassword("111111")),
                 CreatedAt = DateTime.UtcNow
             });
             var userModel = new SigninUserViewModel
@@ -92,7 +93,7 @@ namespace Discussion.Web.Tests.Specs.Web
             {
                 UserName = "jimwrongpwd",
                 DisplayName = "Jim Green",
-                HashedPassword = "11111F",
+                HashedPassword = Convert.ToBase64String(PasswordHasher.HashPassword("11111F")),
                 CreatedAt = DateTime.UtcNow
             });
             var userModel = new SigninUserViewModel
@@ -158,6 +159,28 @@ namespace Discussion.Web.Tests.Specs.Web
             // ReSharper disable once PossibleNullReferenceException
             registeredUser.UserName.ShouldEqual(userName);
             registeredUser.Id.ShouldGreaterThan(0);
+        }
+                
+        [Fact]
+        public void should_hash_password_for_user()
+        {
+            var accountCtrl = _myApp.CreateController<AccountController>();
+            var userName = "user";
+            var clearPassword = "password1";
+            var newUser = new SigninUserViewModel
+            {
+                UserName = userName,
+                Password = clearPassword
+            };
+            
+            var registerResult = accountCtrl.DoRegister(newUser);
+            registerResult.IsType<RedirectResult>();
+
+            var registeredUser = _userRepo.All.FirstOrDefault(user => user.UserName == newUser.UserName);
+            registeredUser.ShouldNotBeNull();
+            // ReSharper disable once PossibleNullReferenceException
+            registeredUser.UserName.ShouldEqual(userName);
+            registeredUser.HashedPassword.ShouldNotEqual(clearPassword);
         }
         
         [Fact]
