@@ -369,24 +369,8 @@ namespace Discussion.Web.Tests
 
             var controllerFactory = services.GetService<IControllerFactory>();
             var controller = controllerFactory.CreateController(new ControllerContext(actionContext)) as T;
-            AttachValidator(controller);
 
             return controller;
-        }
-
-
-        private static void AttachValidator(Controller controller)
-        {
-            if(controller == null)
-            {
-                return;
-            }
-
-//            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
-//            controller.ControllerContext = new ControllerContext(operationContext.ActionContext);
-//            controller.ObjectValidator = ModelBindingTestHelper.GetObjectValidator(operationContext.MetadataProvider);
-//            controller.MetadataProvider = operationContext.MetadataProvider;
-//            controller.ControllerContext.ValidatorProviders = new[] { operationContext.ValidatorProvider }.ToList();
         }
 
 
