@@ -41,8 +41,7 @@
             {
                 <div class="topic-item">
                     <div class="topic-meta-primary pull-left">
-                        <span class="counts">@topicItem.ReplyCount/@topicItem.ViewCount</span>
-                        <span class="topic-type">@DescribeTopicType(topicItem.TopicType)</span>
+                        <span class="topic-type">@DescribeTopicType(topicItem.Type)</span>
                     </div>
                     <a class="topic-title" href="@Url.Action("Index", "Topic", new { id = topicItem.Id})">
                         @topicItem.Title
@@ -53,6 +52,13 @@
                             @topicItem.LastRepliedAt
                         </div>
                     }
+                </div>
+            }
+            
+            @if (Model.Count < 1)
+            {
+                <div class="no-topics-notice">
+                    没有主题
                 </div>
             }
         </div>

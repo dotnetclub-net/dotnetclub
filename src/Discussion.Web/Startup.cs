@@ -93,7 +93,6 @@ namespace Discussion.Web
             app.UseStaticFiles();
             app.UseMvc();
 
-
             var ravenStore = app.ApplicationServices.GetService<Lazy<IDocumentStore>>();
             if (ravenStore != null)
             {

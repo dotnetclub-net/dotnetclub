@@ -3,6 +3,11 @@
 .panel-topic-list .panel-body{
   min-height: 260px;
   
+  .no-topics-notice{
+    margin: 10px;
+    color: $gray;
+  }
+  
   .topic-item {
     height: 45px;
     font-size: 1.2em;
@@ -16,7 +21,7 @@
 
 
     .topic-meta-primary{
-      width: 100px;
+      width: 40px;
       text-align: right;
 
       .counts{

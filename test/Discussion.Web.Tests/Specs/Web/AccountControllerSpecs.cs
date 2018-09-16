@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Web.Controllers;
 using Discussion.Web.ViewModels;
@@ -13,9 +14,8 @@ namespace Discussion.Web.Tests.Specs.Web
         private readonly Application _myApp;
         public AccountControllerSpecs(Application app)
         {
-            _myApp = app;
+            _myApp = app.Reset();
         }
-
         
         [Fact]
         public void should_serve_signin_page_as_view_result()
@@ -66,8 +66,8 @@ namespace Discussion.Web.Tests.Specs.Web
         [Fact]
         public async Task should_signout()
         {
-            var accountCtrl = _myApp.CreateController<AccountController>();
             _myApp.MockUser();
+            var accountCtrl = _myApp.CreateController<AccountController>();
             
             var signoutResult = await accountCtrl.DoSignOut();
 

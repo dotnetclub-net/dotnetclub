@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Linq;
+using Discussion.Web.Models;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Models
@@ -25,17 +26,26 @@ namespace Discussion.Web.Tests.Specs.Models
             topicController.ModelState.Keys.ShouldNotContain("Title");
             topicController.ModelState.Keys.ShouldNotContain("Content");
         }
+        
+        [Fact]
+        public void should_validate_type_values_as_valid()
+        {
+            var topicController = CreateControllerAndValidateTopic(CreateString(100), CreateString(2000), (TopicType)0);
+
+            topicController.ModelState.Keys.ShouldContain("Type");
+        }
 
         [Fact]
-        public void should_confirm_title_and_content_are_required_on_creating_a_topic()
+        public void should_confirm_title_content_type_are_required_on_creating_a_topic()
         {
-            var topicController = CreateControllerAndValidateTopic(string.Empty, null);
+            var topicController = CreateControllerAndValidateTopic(string.Empty, null, null);
 
             topicController.ModelState.IsValid.ShouldEqual(false);
-            topicController.ModelState.ErrorCount.ShouldEqual(2);
+            topicController.ModelState.ErrorCount.ShouldEqual(4); // 2 errors for "Type"
 
             topicController.ModelState.Keys.ShouldContain("Title");
             topicController.ModelState.Keys.ShouldContain("Content");
+            topicController.ModelState.Keys.ShouldContain("Type");
         }
 
         [Fact]
@@ -69,15 +79,13 @@ namespace Discussion.Web.Tests.Specs.Models
         }
 
 
-        private TopicController CreateControllerAndValidateTopic(string title, string content)
+        private TopicController CreateControllerAndValidateTopic(string title, string content, TopicType? type = TopicType.Discussion)
         {
-            var createModel = new TopicCreationModel { Title = title, Content = content };
+            var createModel = new TopicCreationModel { Title = title, Content = content, Type = type};
 
-            var valiadtor = _myApp.GetService<Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IObjectModelValidator>();
             var topicController = _myApp.CreateController<TopicController>();
 
             topicController.TryValidateModel(createModel, string.Empty);
-
             return topicController;
         }
 

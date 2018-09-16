@@ -29,6 +29,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
+            response.Content().ShouldContain("全部话题");            
         }
 
 
@@ -43,6 +44,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
+            response.Content().ShouldContain("本站简介");
         }
 
 
@@ -58,6 +60,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.InternalServerError);
+            response.Content().ShouldContain("An error occured");
         }
 
     }

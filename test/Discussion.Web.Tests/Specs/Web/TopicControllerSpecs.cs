@@ -17,9 +17,8 @@ namespace Discussion.Web.Tests.Specs
         public Application _myApp;
         public TopicControllerSpecs(Application app)
         {
-            _myApp = app;
+            _myApp = app.Reset();
         }
-
 
         [Theory]
         [InlineData("List")]
@@ -40,9 +39,9 @@ namespace Discussion.Web.Tests.Specs
         {
             var topicItems = new[]
             {
-                new Topic {Title = "dummy topic 1" },
-                new Topic {Title = "dummy topic 2" },
-                new Topic {Title = "dummy topic 3" },
+                new Topic {Title = "dummy topic 1", Type = TopicType.Discussion},
+                new Topic {Title = "dummy topic 2", Type = TopicType.Discussion },
+                new Topic {Title = "dummy topic 3", Type = TopicType.Discussion },
             };
             var repo = _myApp.GetService<IRepository<Topic>>();
             foreach(var item in topicItems)
@@ -65,10 +64,16 @@ namespace Discussion.Web.Tests.Specs
         [Fact]
         public void should_create_topic()
         {
+            _myApp.MockUser();
             var topicController = _myApp.CreateController<TopicController>();
 
 
-            var model = new TopicCreationModel() { Title = "first topic you created", Content = "**This is the content of this markdown**\r\n* markdown content is greate*" };
+            var model = new TopicCreationModel()
+            {
+                Title = "first topic you created", 
+                Content = "**This is the content of this markdown**\r\n* markdown content is greate*",
+                Type = TopicType.Job
+            };
             topicController.CreateTopic(model);
 
 
@@ -80,8 +85,10 @@ namespace Discussion.Web.Tests.Specs
             createdTopic.ShouldNotBeNull();
             createdTopic.Title.ShouldEqual(model.Title);
             createdTopic.Content.ShouldEqual(model.Content);
+            createdTopic.Type.ShouldEqual(TopicType.Job);
+            createdTopic.CreatedBy.ShouldEqual((_myApp.User as DiscussionPrincipal).User.Id);
 
-            var createdAt = (DateTime.UtcNow - createdTopic.CreatedAt);
+            var createdAt = DateTime.UtcNow - createdTopic.CreatedAt;
             Assert.True(createdAt.TotalMilliseconds >= 0);
             Assert.True(createdAt.TotalMinutes < 2);
 
@@ -93,7 +100,7 @@ namespace Discussion.Web.Tests.Specs
         [Fact]
         public void should_show_topic()
         {
-            var topic = new Topic { Title = "dummy topic 1" };
+            var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion };
             var repo = _myApp.GetService<IRepository<Topic>>();
             repo.Create(topic);
 
@@ -117,6 +124,7 @@ namespace Discussion.Web.Tests.Specs
             var topic = new Topic
             {
                 Title = "dummy topic 1",
+                Type = TopicType.Discussion,
                 Content = @"标题哈
 ###哈呵呵
 **功能**是*很好*的"
@@ -138,7 +146,5 @@ namespace Discussion.Web.Tests.Specs
             topicShown.MarkdownContent.ShouldEqual(topic.Content);
             topicShown.HtmlContent.ShouldEqual("<p>标题哈</p>\n\n<h3>哈呵呵</h3>\n\n<p><strong>功能</strong>是<em>很好</em>的</p>");
         }
-
-
     }
 }

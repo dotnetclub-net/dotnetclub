@@ -20,6 +20,16 @@ namespace Discussion.Web
             return isAuthedExpr.HasValue && isAuthedExpr.Value; 
         }
         
+        public static DiscussionPrincipal DiscussionUser(this HttpContext httpContext)
+        {
+            if (!IsAuthenticated(httpContext))
+            {
+                return null;
+            }
+
+            return httpContext.User as DiscussionPrincipal;
+        }
+        
         public static async Task SigninAsync(this HttpContext httpContext, User user, bool isPersistent = false) {
             var claims = new List<Claim> {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(), ClaimValueTypes.Integer32),
@@ -46,9 +56,7 @@ namespace Discussion.Web
         {
             ClaimsIdentity identity;
             var currentPrincipal = httpContext.User;
-            if (currentPrincipal == null
-                || !currentPrincipal.Identity.IsAuthenticated
-                || (null == (identity = currentPrincipal.Identity as ClaimsIdentity)))
+            if (!IsAuthenticated(httpContext) || (null == (identity = currentPrincipal.Identity as ClaimsIdentity)))
             {
                 return;
             }

@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
@@ -30,7 +32,9 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
+            response.Content().ShouldContain("全部话题");
         }
+
 
 
         [Fact]
@@ -44,6 +48,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
+            response.Content().ShouldContain("创建新话题");
         }
 
 
@@ -75,6 +80,7 @@ namespace Discussion.Web.Tests.IntegrationTests
                 {
                     {"title", "中文的 title" },
                     {"content", "some content" },
+                    {"type", "1"}
                 });
             });
 

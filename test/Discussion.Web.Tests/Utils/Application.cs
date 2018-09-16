@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Discussion.Web.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Discussion.Web.Tests
@@ -38,6 +39,7 @@ namespace Discussion.Web.Tests
                     return _applicationContext;
                 }
 
+//                _applicationContext = BuildApplication("Development");
                 _applicationContext = BuildApplication();
                 _originalUser = _applicationContext.User;
                 return _applicationContext;
@@ -144,13 +146,28 @@ namespace Discussion.Web.Tests
 
         public void MockUser()
         {
-            var claims = new List<Claim> {
-                new Claim(ClaimTypes.NameIdentifier, (-1).ToString(), ClaimValueTypes.Integer32),
-                new Claim(ClaimTypes.Name, "FancyUser", ClaimValueTypes.String),
-                new Claim("SigninTime", System.DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64)
+            var userId = 1;
+            var userName = "FancyUser";
+            var lastSigninTime = DateTime.UtcNow.AddMinutes(-30);
+            
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.Integer32),
+                new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String),
+                new Claim("SigninTime", lastSigninTime.Ticks.ToString(), ClaimValueTypes.Integer64)
             };
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            this.User = new ClaimsPrincipal(identity);
+            this.User = new DiscussionPrincipal(identity)
+            {
+                User = new User
+                {
+                    Id = userId,
+                    CreatedAt = DateTime.UtcNow.AddDays(-1),
+                    DisplayName = "Fancy User",
+                    LastSeendAt = lastSigninTime,
+                    UserName = userName
+                }
+            };
         }
     }
 
@@ -196,7 +213,6 @@ namespace Discussion.Web.Tests
                 _configureFeatures(contextFeatures);
             }
 
-            contextFeatures.Set<IHttpResponseFeature>(new DummyHttpResponseFeature());
             return _contextFactory.Create(contextFeatures);
         }
 
@@ -333,22 +349,6 @@ namespace Discussion.Web.Tests
         }
     }
 
-    public class DummyHttpResponseFeature: HttpResponseFeature
-    {
-        // Default IHttpResponseFeature implementation does not implement OnStarting and OnCompleted
-        // see https://github.com/aspnet/HttpAbstractions/issues/669
-
-        public override void OnStarting(Func<object, Task> callback, object state)
-        {
-            
-        }
-
-        public override void OnCompleted(Func<object, Task> callback, object state)
-        {
-            
-        }
-    }
-
     public static class TestApplicationContextExtensions
     {
         public static T CreateController<T>(this IApplicationContext app) where T : Controller
@@ -358,7 +358,8 @@ namespace Discussion.Web.Tests
             var actionContext = new ActionContext(
                 new DefaultHttpContext
                 {
-                    RequestServices = services
+                    RequestServices = services,
+                    User = app.User
                 },
                 new RouteData(),
                 new ControllerActionDescriptor

@@ -22,8 +22,8 @@ namespace Discussion.Web.Controllers
         }
         
 
-        [Route("/")]
         [HttpGet]
+        [Route("/")]
         [Route("/topics")]
         public ActionResult List()
         {
@@ -76,7 +76,8 @@ namespace Discussion.Web.Controllers
             {
                 Title = model.Title,
                 Content = model.Content,
-                TopicType = TopicType.Discussion,
+                Type = model.Type.Value,
+                CreatedBy = HttpContext.DiscussionUser().User.Id,
                 CreatedAt = DateTime.UtcNow
             };
 

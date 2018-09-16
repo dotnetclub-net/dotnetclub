@@ -8,9 +8,10 @@ namespace Discussion.Web.Models
     {
         public string Title { get; set; }
         public string Content { get; set; }
-        public TopicType TopicType { get; set; }
+        public TopicType Type { get; set; }
 
 
+        public int CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastRepliedAt { get; set; }
 
