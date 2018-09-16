@@ -99,13 +99,14 @@ namespace Discussion.Web.Controllers
                     StringComparison.OrdinalIgnoreCase));
             if (userNameTaken)
             {
-                ModelState.AddModelError("UserName", "用户名已被其他用户占用。");
+                ModelState.AddModelError("UserName", "用户名已被其他用户占用");
                 return View("Register");
             }
           
             var newUser = new User
             {
                 UserName = userViewModel.UserName,
+                DisplayName = userViewModel.UserName,
                 HashedPassword = Convert.ToBase64String(PasswordHasher.HashPassword(userViewModel.Password)),
                 CreatedAt = DateTime.UtcNow
             };

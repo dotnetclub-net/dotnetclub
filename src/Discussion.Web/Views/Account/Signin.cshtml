@@ -20,13 +20,14 @@
         </div>
 
         <div class="panel-body">
-            <form class="login-form" 
-                  action="@Url.Action("DoSignin", "Account", new { ReturnUrl = Context.Request.Query["ReturnUrl"] })" 
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <form class="login-form"
+                  action="@Url.Action("DoSignin", "Account", new {ReturnUrl = Context.Request.Query["ReturnUrl"]})"
                   method="post">
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.UserName)</span>
-                        @Html.TextBoxFor(m => m.UserName, new { autofocus = true  })
+                        @Html.TextBoxFor(m => m.UserName, new {autofocus = true})
                     </label>
                 </fieldset>
                 <fieldset>
@@ -35,7 +36,7 @@
                         @Html.PasswordFor(m => m.Password)
                     </label>
                 </fieldset>
-                <br />
+                <br/>
                 <button class="btn btn-default signin-button">
                     <span class="glyphicon glyphicon-user">登录</span>
                 </button>

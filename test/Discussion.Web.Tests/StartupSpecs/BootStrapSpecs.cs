@@ -52,8 +52,6 @@ namespace Discussion.Web.Tests.StartupSpecs
 
         private void StartWebApp(int port, Action<RunningDotnetProcess> onServerReady, Func<bool> testSuccessed)
         {
-            var args = Environment.GetCommandLineArgs();
-
             var dotnetPath = RuntimeLauncherPath();
             var webProject = WebProjectPath();
 

@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Discussion.Web.Controllers;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Localization;
 using Raven.Client.Documents;
 
 namespace Discussion.Web
@@ -41,7 +42,7 @@ namespace Discussion.Web
             var basePath = Directory.GetCurrentDirectory();
             var configBuilder = BuildHostingConfiguration(basePath, addCommandLineArguments ? Environment.GetCommandLineArgs() : null);
             var configuration = configBuilder.Build();
-
+                
             return hostBuilder.UseContentRoot(basePath)
                 .UseIISIntegration()
                 .UseKestrel()
@@ -49,8 +50,11 @@ namespace Discussion.Web
                 .UseConfiguration(configuration)
                 .ConfigureLogging(loggingBuilder =>
                 {
-                    loggingBuilder.SetMinimumLevel(LogLevel.Trace);
-                    loggingBuilder.AddConsole();
+                    if (string.Equals("Development", configuration["Environment"], StringComparison.OrdinalIgnoreCase))
+                    {
+                        loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+                        loggingBuilder.AddConsole();
+                    }
                 });
         }
 

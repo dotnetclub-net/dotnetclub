@@ -20,22 +20,29 @@
         </div>
 
         <div class="panel-body">
-            <form class="login-form" 
-                  action="@Url.Action("DoRegister", "Account")" 
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <form class="login-form"
+                  action="@Url.Action("DoRegister", "Account")"
                   method="post">
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.UserName)</span>
-                        @Html.TextBoxFor(m => m.UserName, new { autofocus = true  })
+                        @Html.TextBoxFor(m => m.UserName, new {autofocus = "true", autocomplete = "off"})
                     </label>
                 </fieldset>
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.Password)</span>
-                        @Html.PasswordFor(m => m.Password)
+                        @Html.PasswordFor(m => m.Password, new {autocomplete = "off"})
                     </label>
                 </fieldset>
-                <br />
+                <fieldset>
+                    <label>
+                        <span>确认密码</span>
+                        <input id="Password-Confirmation" type="password" class="password-confirmation" autocomplete="false"/>
+                    </label>
+                </fieldset>
+                <br/>
                 <button class="btn btn-default signin-button">
                     <span class="glyphicon glyphicon-user">注册</span>
                 </button>
