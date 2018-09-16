@@ -20,19 +20,6 @@ namespace Discussion.Web.Tests.Specs
             _myApp = app.Reset();
         }
 
-        [Theory]
-        [InlineData("List")]
-        [InlineData("Create")]
-        public void should_serve_pages_as_view_result(string actionName)
-        {
-            var topicController = _myApp.CreateController<TopicController>();
-
-            var topicListResult = topicController.InvokeAction(actionName, null);
-
-            topicListResult.ShouldNotBeNull();
-            topicListResult.IsType<ViewResult>();
-        }
-
 
         [Fact]
         public void should_serve_topic_list_on_page()
@@ -53,12 +40,45 @@ namespace Discussion.Web.Tests.Specs
             var topicController = _myApp.CreateController<TopicController>();
 
             var topicListResult = topicController.List() as ViewResult;
-            var topicList = topicListResult.ViewData.Model as IList<Topic>;
-
-            topicList.ShouldNotBeNull();
+            var listViewModel = topicListResult.ViewData.Model as TopicListViewModel;
+            
+            listViewModel.ShouldNotBeNull();
+            var topicList = listViewModel.Topics;
             topicList.ShouldContain(t => t.Title == "dummy topic 1");
             topicList.ShouldContain(t => t.Title == "dummy topic 2");
             topicList.ShouldContain(t => t.Title == "dummy topic 3");
+        }
+        
+        [Fact]
+        public void should_calc_topic_list_with_paging()
+        {
+            var repo = _myApp.GetService<IRepository<Topic>>();
+            repo.All.ToList().ForEach(topic => repo.Delete(topic));
+            var all = 30;
+            do
+            {
+                repo.Create(new Topic
+                {
+                    Title = "dummy topic " + all, 
+                    Type = TopicType.Discussion, 
+                    CreatedAt = DateTime.Today.AddSeconds(-all)
+                });
+            } while (--all > 0);
+            
+            var topicController = _myApp.CreateController<TopicController>();
+
+            var topicListResult = topicController.List(2) as ViewResult;
+            var listViewModel = topicListResult.ViewData.Model as TopicListViewModel;
+            
+            listViewModel.ShouldNotBeNull();
+            listViewModel.CurrentPage.ShouldEqual(2);
+            listViewModel.HasPreviousPage.ShouldEqual(true);
+            listViewModel.HasNextPage.ShouldEqual(false);
+            
+            var topicList = listViewModel.Topics;
+            topicList.Count.ShouldEqual(10);
+            topicList[0].Title.ShouldEqual("dummy topic 21");
+            topicList[9].Title.ShouldEqual("dummy topic 30");
         }
 
         [Fact]

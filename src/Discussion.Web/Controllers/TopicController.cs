@@ -20,17 +20,35 @@ namespace Discussion.Web.Controllers
             _topicRepo = topicRepo;
             _modelMetadataProvider = modelMetadataProvider;
         }
-        
+
+
+        private const int PageSize = 20;
 
         [HttpGet]
         [Route("/")]
         [Route("/topics")]
-        public ActionResult List()
+        public ActionResult List([FromQuery]int? page = null)
         {
-            var topicList = _topicRepo.All.ToList();
+            var topicCount = _topicRepo.All.Count();
+            var actualPage = NormalizePaging(page, topicCount, out var allPage);
 
-            return View(topicList);
+            var topicList = _topicRepo.All
+                                      .OrderByDescending(topic => topic.CreatedAt)
+                                      .Skip((actualPage - 1) * PageSize)
+                                      .Take(PageSize)
+                                      .ToList();
+            
+            var listModel = new TopicListViewModel
+            {
+                Topics = topicList,
+                CurrentPage = actualPage,
+                HasPreviousPage = actualPage > 1,
+                HasNextPage = actualPage < allPage
+            };
+            return View(listModel);
         }
+
+        
 
         [Route("/topics/{id}")]
         public ActionResult Index(int id)
@@ -83,6 +101,32 @@ namespace Discussion.Web.Controllers
 
             _topicRepo.Create(topic);
             return RedirectToAction("Index", new { topic.Id });
+        }
+        
+        
+        
+        static int NormalizePaging(int? page, int topicCount, out int allPage)
+        {
+            var actualPage = 0;
+
+            if (page == null || page.Value < 1)
+            {
+                actualPage = 1;
+            }
+            else
+            {
+                actualPage = page.Value;
+            }
+
+
+            var basePage = topicCount / PageSize;
+            allPage = topicCount % PageSize == 0 ? basePage : basePage + 1;
+            if (actualPage > allPage)
+            {
+                actualPage = allPage;
+            }
+
+            return actualPage;
         }
     }
 

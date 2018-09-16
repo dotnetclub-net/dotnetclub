@@ -1,9 +1,12 @@
 ﻿@using System.ComponentModel.DataAnnotations
 @using System.Reflection
-@model List<Topic>
+@model TopicListViewModel
 
 @{
     ViewData["Title"] = "全部话题";
+
+    var prevDisabled = Model.HasPreviousPage ? "" : "disabled";
+    var nextDisabled = Model.HasNextPage ? "" : "disabled";
 }
 
 @functions{
@@ -37,7 +40,7 @@
         </div>
 
         <div class="panel-body no-padding">
-            @foreach (var topicItem in Model.OrderByDescending(topic => topic.Id))
+            @foreach (var topicItem in Model.Topics.OrderByDescending(topic => topic.Id))
             {
                 <div class="topic-item">
                     <div class="topic-meta-primary pull-left">
@@ -55,7 +58,7 @@
                 </div>
             }
             
-            @if (Model.Count < 1)
+            @if (Model.Topics.Count < 1)
             {
                 <div class="no-topics-notice">
                     没有主题
@@ -63,7 +66,18 @@
             }
         </div>
         <div class="panel-footer">
-            <!-- Pagination -->
+            @if (Model.Topics.Count > 0)
+            {
+                <a href="@Url.Action("List", "Topic", new {page = Model.CurrentPage - 1})"
+                   class="btn btn-default @prevDisabled">
+                    &lt; 前一页
+                </a>
+                
+                <a href="@Url.Action("List", "Topic", new {page = Model.CurrentPage + 1})"
+                   class="btn btn-default @nextDisabled">
+                    后一页 &gt;
+                </a>
+            }
         </div>
 
     </div>

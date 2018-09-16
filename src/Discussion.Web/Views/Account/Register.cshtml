@@ -21,7 +21,7 @@
 
         <div class="panel-body">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <form class="login-form"
+            <form class="register-form login-form"
                   action="@Url.Action("DoRegister", "Account")"
                   method="post">
                 <fieldset>
@@ -50,3 +50,21 @@
         </div>
     </div>
 </div>
+
+@section Tail{
+    <script>
+        $('.register-form').on('submit',
+            function() {
+                var password = $("#Password").val();
+                var confirmBox = $("#Password-Confirmation");
+                var confirm = confirmBox.val();
+
+                if (password && (confirm !== password)) {
+                    alert('两次输入的密码不一致，请确认。');
+                    confirmBox[0].select();
+                    confirmBox[0].focus();
+                    return false;
+                }
+            });
+    </script>
+}
