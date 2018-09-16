@@ -10,7 +10,7 @@ namespace Discussion.Web.Controllers
 {
     public class AccountController: Controller
     {
-        private IRepository<User> _userRepository;
+        private readonly IRepository<User> _userRepository;
         public AccountController(IRepository<User> userRepository)
         {
             _userRepository = userRepository;
@@ -83,12 +83,14 @@ namespace Discussion.Web.Controllers
         [Route("/register")]  
         public IActionResult DoRegister(SigninUserViewModel userViewModel)
         {
-//            if (!ModelState.IsValid)
-//            {
-//                return View("Register");
-//            }
+            if (!ModelState.IsValid)
+            {
+                return View("Register");
+            }
 
-            var userNameTaken = _userRepository.All.Any(u => u.UserName == userViewModel.UserName);
+            var userNameTaken = _userRepository.All.Any(
+                u => u.UserName.Equals(userViewModel.UserName, 
+                    StringComparison.OrdinalIgnoreCase));
             if (userNameTaken)
             {
                 ModelState.AddModelError("UserName", "用户名已被其他用户占用。");

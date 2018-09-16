@@ -49,6 +49,12 @@ namespace Discussion.Web.ViewModels
     {
         public override bool IsValid(object value)
         {
+            if (value == null)
+            {
+                // 此处不检查空值，空值留给 Required 检查
+                return true;
+            }
+            
             TopicType topicType = 0;
             var isInt = (value is int);
             if (isInt)

@@ -144,31 +144,7 @@ namespace Discussion.Web.Tests
 
         #endregion
 
-        public void MockUser()
-        {
-            var userId = 1;
-            var userName = "FancyUser";
-            var lastSigninTime = DateTime.UtcNow.AddMinutes(-30);
-            
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.Integer32),
-                new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String),
-                new Claim("SigninTime", lastSigninTime.Ticks.ToString(), ClaimValueTypes.Integer64)
-            };
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            this.User = new DiscussionPrincipal(identity)
-            {
-                User = new User
-                {
-                    Id = userId,
-                    CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    DisplayName = "Fancy User",
-                    LastSeendAt = lastSigninTime,
-                    UserName = userName
-                }
-            };
-        }
+        
     }
 
     // Use shared context to maintain database fixture
@@ -378,6 +354,45 @@ namespace Discussion.Web.Tests
         {
             return app.ApplicationServices.GetService<T>();
         }
-
+        
+        public static void MockUser(this Application app)
+        {
+            var userId = 1;
+            var userName = "FancyUser";
+            var lastSigninTime = DateTime.UtcNow.AddMinutes(-30);
+            
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.Integer32),
+                new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String),
+                new Claim("SigninTime", lastSigninTime.Ticks.ToString(), ClaimValueTypes.Integer64)
+            };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            app.User = new DiscussionPrincipal(identity)
+            {
+                User = new User
+                {
+                    Id = userId,
+                    CreatedAt = DateTime.UtcNow.AddDays(-1),
+                    DisplayName = "Fancy User",
+                    LastSeendAt = lastSigninTime,
+                    UserName = userName
+                }
+            };
+        }
+        
+        public static TController CreateControllerAndValidate<TController>(this IApplicationContext app, object model) where TController: Controller
+        {
+            var controller = app.CreateController<TController>();
+            controller.TryValidateModel(model, null);
+            return controller;
+        }
+        
+        
+        public static IEnumerable<StubLoggerProvider.LogItem> GetLogs(this IApplicationContext app)
+        {
+            var loggerProvider = app.ApplicationServices.GetRequiredService<ILoggerProvider>() as StubLoggerProvider;
+            return loggerProvider?.LogItems;
+        }
     }
 }

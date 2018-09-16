@@ -12,7 +12,7 @@ namespace Discussion.Web.Tests.Specs.Models
     [Collection("AppSpecs")]
     public class CreateTopicModelValidationSpecs
     {
-        public Application _myApp;
+        private readonly Application _myApp;
         public CreateTopicModelValidationSpecs(Application app)
         {
             _myApp = app;
@@ -41,7 +41,7 @@ namespace Discussion.Web.Tests.Specs.Models
             var topicController = CreateControllerAndValidateTopic(string.Empty, null, null);
 
             topicController.ModelState.IsValid.ShouldEqual(false);
-            topicController.ModelState.ErrorCount.ShouldEqual(4); // 2 errors for "Type"
+            topicController.ModelState.ErrorCount.ShouldEqual(3);
 
             topicController.ModelState.Keys.ShouldContain("Title");
             topicController.ModelState.Keys.ShouldContain("Content");
@@ -82,11 +82,7 @@ namespace Discussion.Web.Tests.Specs.Models
         private TopicController CreateControllerAndValidateTopic(string title, string content, TopicType? type = TopicType.Discussion)
         {
             var createModel = new TopicCreationModel { Title = title, Content = content, Type = type};
-
-            var topicController = _myApp.CreateController<TopicController>();
-
-            topicController.TryValidateModel(createModel, string.Empty);
-            return topicController;
+            return _myApp.CreateControllerAndValidate<TopicController>(createModel);
         }
 
         private static string CreateString(int length)

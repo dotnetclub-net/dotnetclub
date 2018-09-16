@@ -102,6 +102,30 @@ namespace Discussion.Web.Tests.Specs.Web
         }
         
         [Fact]
+        public void should_not_register_with_invalid_request()
+        {
+            var accountCtrl = _myApp.CreateController<AccountController>();
+            var notToBeCreated = "not-to-be-created";
+            var newUser = new SigninUserViewModel
+            {
+                UserName = notToBeCreated,
+                Password = "hello"
+            };
+            
+            accountCtrl.ModelState.AddModelError("UserName", "Some Error");
+            var registerResult = accountCtrl.DoRegister(newUser);
+
+
+            var userIsRegistered = _userRepo.All.Any(user => user.UserName == notToBeCreated);
+            Assert.False(userIsRegistered);
+            
+            registerResult.IsType<ViewResult>();
+            var viewResult = registerResult as ViewResult;
+            // ReSharper disable once PossibleNullReferenceException
+            viewResult.ViewName.ShouldEqual("Register");
+        }
+        
+        [Fact]
         public void should_not_register_an_user_with_existing_username()
         {
             var userName = "someuser";
@@ -116,7 +140,7 @@ namespace Discussion.Web.Tests.Specs.Web
             
             var newUser = new SigninUserViewModel
             {
-                UserName = userName,
+                UserName = userName.ToUpper(),
                 Password = "hello"
             };
             var registerResult = accountCtrl.DoRegister(newUser);

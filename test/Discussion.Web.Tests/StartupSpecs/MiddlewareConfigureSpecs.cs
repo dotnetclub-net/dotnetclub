@@ -14,9 +14,11 @@ namespace Discussion.Web.Tests.StartupSpecs
     public class MiddlewareConfigureSpecs
     {
 
-        private TestServer server;
+        private readonly TestServer server;
+        private readonly Application _app;
         public MiddlewareConfigureSpecs(Application app)
         {
+            this._app = app;
             server = app.Server;
         }
 
@@ -52,9 +54,9 @@ namespace Discussion.Web.Tests.StartupSpecs
             });
             
 
-            var loggerProvider = httpContext.RequestServices.GetRequiredService<ILoggerProvider>() as StubLoggerProvider;
-            loggerProvider.ShouldNotBeNull();
-            loggerProvider.LogItems.ShouldContain(item => item.Category.StartsWith("Microsoft.AspNetCore.Mvc"));
+            var logs = _app.GetLogs();
+            logs.ShouldNotBeNull();
+            logs.ShouldContain(item => item.Category.StartsWith("Microsoft.AspNetCore.Mvc"));
         }
 
         [Fact]
@@ -70,9 +72,9 @@ namespace Discussion.Web.Tests.StartupSpecs
                 ctx.Request.Path = staticFile;
             });
 
-            var loggerProvider = httpContext.RequestServices.GetRequiredService<ILoggerProvider>() as StubLoggerProvider;
-            loggerProvider.ShouldNotBeNull();
-            loggerProvider.LogItems.ShouldContain(item => item.Category.StartsWith("Microsoft.AspNetCore.StaticFiles"));
+            var logs = _app.GetLogs();
+            logs.ShouldNotBeNull();
+            logs.ShouldContain(item => item.Category.StartsWith("Microsoft.AspNetCore.StaticFiles"));
         }
     }
 
