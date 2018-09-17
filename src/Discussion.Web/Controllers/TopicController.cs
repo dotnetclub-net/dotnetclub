@@ -6,6 +6,7 @@ using System;
 using Discussion.Web.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Jusfr.Persistent;
+using Markdig;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Discussion.Web.Controllers
@@ -65,7 +66,7 @@ namespace Discussion.Web.Controllers
                 Id = topic.Id,
                 Title = topic.Title,
                 MarkdownContent = topic.Content,
-                HtmlContent = markdownRenderer.RenderMarkdownAsHtml(topic.Content)
+                HtmlContent = Markdown.ToHtml(topic.Content ?? string.Empty)
             };
 
             return View(showModel);

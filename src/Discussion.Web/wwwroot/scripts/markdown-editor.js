@@ -405,7 +405,7 @@ function convertToMarkdown(htmlContent) {
                 replacement: function (content, node) {
                     // to-markdown supports Syntax-highlighted code blocks (search 'Syntax-highlighted code blocks' in to-markdown.js)
                     var language = node.getAttribute('language') || '';
-                    return '\n\n``` ' + language + '\n' + node.firstChild.textContent + '\n```\n\n';
+                    return '\n\n```' + language + '\n' + node.firstChild.textContent.replace(/\n+$/,'') + '\n```\n\n';
                 }
             }
         ]

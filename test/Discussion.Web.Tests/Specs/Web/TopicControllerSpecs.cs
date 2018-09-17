@@ -146,7 +146,9 @@ namespace Discussion.Web.Tests.Specs
                 Title = "dummy topic 1",
                 Type = TopicType.Discussion,
                 Content = @"标题哈
-###哈呵呵
+
+### 哈呵呵
+
 **功能**是*很好*的"
             };
             var repo = _myApp.GetService<IRepository<Topic>>();
@@ -164,7 +166,7 @@ namespace Discussion.Web.Tests.Specs
             topicShown.Id.ShouldEqual(topic.Id);
             topicShown.Title.ShouldEqual(topic.Title);
             topicShown.MarkdownContent.ShouldEqual(topic.Content);
-            topicShown.HtmlContent.ShouldEqual("<p>标题哈</p>\n\n<h3>哈呵呵</h3>\n\n<p><strong>功能</strong>是<em>很好</em>的</p>");
+            topicShown.HtmlContent.ShouldEqual("<p>标题哈</p>\n<h3>哈呵呵</h3>\n<p><strong>功能</strong>是<em>很好</em>的</p>\n");
         }
     }
 }
