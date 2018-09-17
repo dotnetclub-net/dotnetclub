@@ -4,6 +4,7 @@ using System.Linq;
 using Discussion.Web.ViewModels;
 using System;
 using Discussion.Web.Services;
+using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Jusfr.Persistent;
 using Markdig;
@@ -60,19 +61,16 @@ namespace Discussion.Web.Controllers
                 return NotFound();
             }
 
-            var markdownRenderer = new MarkdownRenderService();
             var showModel = new TopicShowModel
             {
                 Id = topic.Id,
                 Title = topic.Title,
                 MarkdownContent = topic.Content,
-                HtmlContent = Markdown.ToHtml(topic.Content ?? string.Empty)
+                HtmlContent = MarkdownConverter.ToHtml(topic.Content)
             };
 
             return View(showModel);
         }
-
-
 
         [Authorize]
         [Route("/topics/create")]

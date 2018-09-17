@@ -13,39 +13,6 @@
 
 $(document).ready(function() {
     var editorOptions = defaultEditorOptions();
-    editorOptions.callbacks.onPaste = function (ev) {
-        ev.preventDefault();
-        var editor = $(this).data('summernote');
-
-        var clipboardData = (ev.originalEvent || ev).clipboardData || window.clipboardData;
-        var copiedNode;
-        var copiedNodeContent = clipboardData.getData('text/html');
-        if(!copiedNodeContent){
-            copiedNodeContent = clipboardData.getData('text/plain') || clipboardData.getData('text');
-            editor.invoke('editor.insertText', copiedNodeContent);
-        }else{
-            copiedNode = $('<div>').append($(copiedNodeContent));
-            var htmlOptions = htmlFragmentOptions();
-            processTag(copiedNode[0], null, htmlOptions);
-            $.each($.makeArray(copiedNode[0].childNodes), function(i, node){
-                if(node.nodeName === 'P' && !$.trim(node.textContent)) {
-                    copiedNode[0].removeChild(node);
-                }
-            });
-            var rng = editor.invoke('editor.createRange');
-            var editable = editor.layoutInfo.editable;
-
-            if(!rng.isCollapsed() || rng.sc.nodeName !== 'P' || rng.sc.parentNode !== editable[0]){
-                editor.invoke('editor.insertParagraph');
-                rng = editor.invoke('editor.createRange');
-            }
-            var paragraph = $(rng.sc).closest('.note-editable>p', editable)[0];
-            $.each($.makeArray(copiedNode[0].childNodes), function(i, node){
-                editable[0].insertBefore(node, paragraph);
-            });
-            editor.invoke('editor.focus');
-        }
-    };
 
     $('#content-editor').summernote(editorOptions);
     $('#topic-type-dropdown .topic-type-item').on('click', function (e) {
@@ -112,6 +79,7 @@ function defaultEditorOptions(){
             {title: 'HTML', value: 'html'},
             {title: 'CSS', value: 'css'}
         ],
+        placeholder: '正文',
         height: 300,
         callbacks: {
             onChange: function () { },
@@ -123,6 +91,39 @@ function defaultEditorOptions(){
                 var patchedPre = patchPreTag.apply(this, [editor, ev]);
                 if(!patchedPre){
                     editor.invoke('editor.insertParagraph');
+                }
+            },
+            onPaste : function (ev) {
+                ev.preventDefault();
+                var editor = $(this).data('summernote');
+
+                var clipboardData = (ev.originalEvent || ev).clipboardData || window.clipboardData;
+                var copiedNode;
+                var copiedNodeContent = clipboardData.getData('text/html');
+                if(!copiedNodeContent){
+                    copiedNodeContent = clipboardData.getData('text/plain') || clipboardData.getData('text');
+                    editor.invoke('editor.insertText', copiedNodeContent);
+                }else{
+                    copiedNode = $('<div>').append($(copiedNodeContent));
+                    var htmlOptions = htmlFragmentOptions();
+                    processTag(copiedNode[0], null, htmlOptions);
+                    $.each($.makeArray(copiedNode[0].childNodes), function(i, node){
+                        if(node.nodeName === 'P' && !$.trim(node.textContent)) {
+                            copiedNode[0].removeChild(node);
+                        }
+                    });
+                    var rng = editor.invoke('editor.createRange');
+                    var editable = editor.layoutInfo.editable;
+
+                    if(!rng.isCollapsed() || rng.sc.nodeName !== 'P' || rng.sc.parentNode !== editable[0]){
+                        editor.invoke('editor.insertParagraph');
+                        rng = editor.invoke('editor.createRange');
+                    }
+                    var paragraph = $(rng.sc).closest('.note-editable>p', editable)[0];
+                    $.each($.makeArray(copiedNode[0].childNodes), function(i, node){
+                        editable[0].insertBefore(node, paragraph);
+                    });
+                    editor.invoke('editor.focus');
                 }
             }
         },
@@ -373,46 +374,46 @@ function patchPreTag(editor, ev){
 }
 
 function convertToMarkdown(htmlContent) {
-    var markdownOptions = {
-        converters: [
-            {
-                filter: ['strike', 'del', 's'],
-                replacement: function (content) {
-                    return '~~' + content + '~~';
-                }
-            },
-            {
-                filter: ['i', 'em'],
-                replacement: function (content) {
-                    return '*' + content + '*';
-                }
-            },
-            {
-                filter: ['b', 'strong'],
-                replacement: function (content) {
-                    return '**' + content + '**';
-                }
-            }, {
-                filter: 'br',
-                replacement: function () {
-                    // http://stackoverflow.com/a/28633712/1817042
-                    return '&nbsp;\n\n';
-                }
-            },
-            // Fenced code blocks
-            {
-                filter: 'pre',
-                replacement: function (content, node) {
-                    // to-markdown supports Syntax-highlighted code blocks (search 'Syntax-highlighted code blocks' in to-markdown.js)
-                    var language = node.getAttribute('language') || '';
-                    return '\n\n```' + language + '\n' + node.firstChild.textContent.replace(/\n+$/,'') + '\n```\n\n';
-                }
+    var converters = [
+        {
+            filter: ['strike', 'del', 's'],
+            replacement: function (content) {
+                return '~~' + content + '~~';
             }
-        ]
-    };
-
-    var markdown = toMarkdown(htmlContent, markdownOptions);
-    return markdown;
+        },
+        {
+            filter: ['i', 'em'],
+            replacement: function (content) {
+                return '*' + content + '*';
+            }
+        },
+        {
+            filter: ['b', 'strong'],
+            replacement: function (content) {
+                return '**' + content + '**';
+            }
+        }, {
+            filter: ['br'],
+            replacement: function () {
+                // http://stackoverflow.com/a/28633712/1817042
+                return '&nbsp;\n\n';
+            }
+        },
+        // Fenced code blocks
+        {
+            filter: ['pre'],
+            replacement: function (content, node) {
+                // to-markdown supports Syntax-highlighted code blocks (search 'Syntax-highlighted code blocks' in to-markdown.js)
+                var language = node.getAttribute('language') || '';
+                return '\n\n```' + language + '\n' + node.firstChild.textContent.replace(/\n+$/,'') + '\n```\n\n';
+            }
+        }
+    ];
+    var turndownService = new TurndownService({codeBlockStyle: 'fenced'});
+    $.each(converters, function (i, rule) {
+        turndownService.addRule(rule.filter.join(''), rule);
+    });
+    return turndownService.turndown(htmlContent);
 }
 
 function htmlFragmentOptions(){

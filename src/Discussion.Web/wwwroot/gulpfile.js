@@ -48,7 +48,7 @@ gulp.task('lint', function() {
 });
 
 
-gulp.task('sass', function() {
+gulp.task('scss', function() {
     return gulp.src(paths.scssSource)
         .pipe(sass({sourceComments: true}))
         .pipe(gulp.dest(paths.cssDist));
@@ -98,22 +98,14 @@ gulp.task("use-libs", function *() {
     yield gulp.src([paths.libSource + '/summernote/dist/**/*' ]).pipe(gulp.dest(paths.libDist + '/summernote'));
 
     // to-markdown
-    yield gulp.src([paths.libSource + '/to-markdown/dist/**/*' ]).pipe(gulp.dest(paths.libDist + '/to-markdown'));
-    yield gulp.src(paths.libDist + '/to-markdown/to-markdown.js', { base: "./" })
+    yield gulp.src([paths.libSource + '/turndown/turndown.js' ]).pipe(gulp.dest(paths.libDist + '/turndown'));
+    yield gulp.src(paths.libDist + '/turndown/turndown.js', { base: "./" })
         .pipe(uglify())
         .pipe(rename(function (path) {
             path.extname = ".min.js";
         }))
         .pipe(gulp.dest('.'));
-
-    // marked
-    yield gulp.src([paths.libSource + '/marked/lib/**/*' ]).pipe(gulp.dest(paths.libDist + '/marked'));
-    yield gulp.src(paths.libDist + '/marked/marked.js', { base: "./" })
-        .pipe(uglify())
-        .pipe(rename(function (path) {
-            path.extname = ".min.js";
-        }))
-        .pipe(gulp.dest('.'));
+    
 });
 
 gulp.task("minify", function *() {
@@ -224,7 +216,7 @@ function definePaths() {
 
 // Task chains
 gulp.task('default', function (callback) {
-    runSequence('clean', ['babel', 'sass'], 'use-libs', callback);
+    runSequence('clean', ['babel', 'scss'], 'use-libs', callback);
 });
 gulp.task('publish', ['default'], function (callback) {
     runSequence('minify', callback);
