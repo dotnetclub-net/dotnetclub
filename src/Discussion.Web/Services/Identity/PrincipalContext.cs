@@ -1,14 +1,14 @@
-﻿using Discussion.Web.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Discussion.Web.Models;
 using Jusfr.Persistent;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
-namespace Discussion.Web
+namespace Discussion.Web.Services.Identity
 {
     public static class PrincipalContext
     {

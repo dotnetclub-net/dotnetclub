@@ -1,5 +1,4 @@
-﻿using Discussion.Web.Data.InMemory;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -16,18 +15,16 @@ using static Discussion.Web.Tests.TestEnv;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Discussion.Web.Models;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Hosting.Internal;
+using Microsoft.AspNetCore.Identity;
 
 namespace Discussion.Web.Tests
 {
     public sealed class Application: IApplicationContext, IDisposable
     {
-
         ClaimsPrincipal _originalUser;
         TestApplicationContext _applicationContext;
-        InMemoryResponsitoryContext _dataContext;
 
 
         public TestApplicationContext Context
@@ -39,8 +36,8 @@ namespace Discussion.Web.Tests
                     return _applicationContext;
                 }
 
-//                _applicationContext = BuildApplication("Development");
-                _applicationContext = BuildApplication();
+                _applicationContext = BuildApplication("Development");
+//                _applicationContext = BuildApplication();
                 _originalUser = _applicationContext.User;
                 return _applicationContext;
             }
@@ -50,6 +47,7 @@ namespace Discussion.Web.Tests
         {
             // reset all monifications in test cases
             User = _originalUser;
+            ReplacableServiceProvider.Reset();
             return this;
         }
 
@@ -59,6 +57,7 @@ namespace Discussion.Web.Tests
         public IHostingEnvironment HostingEnvironment { get { return this.Context.HostingEnvironment; }  }
 
         public IServiceProvider ApplicationServices { get { return this.Context.ApplicationServices; }  }
+        public ReplacableServiceProvider ServiceReplacer { get {return this.Context.ServiceReplacer;} }
 
         public TestServer Server { get { return this.Context.Server; }  }
         public ClaimsPrincipal User{ get { return this.Context.User; } set { this.Context.User = value; } }
@@ -74,21 +73,18 @@ namespace Discussion.Web.Tests
             };
 
             var hostBuilder = new WebHostBuilder();
-            if (configureHost != null)
-            {
-                configureHost(hostBuilder);
-            }
+            configureHost?.Invoke(hostBuilder);
             hostBuilder.ConfigureServices(services =>
             {
                 services.AddTransient<HttpContextFactory>();
                 services.AddTransient<IHttpContextFactory>((sp) =>
                 {
-                    var defaultContextFactory = sp.GetRequiredService<HttpContextFactory>();
+                    var defaultContextFactory = sp.GetService<HttpContextFactory>();
                     var httpContextFactory = new WrappedHttpContextFactory(defaultContextFactory);
-                    httpContextFactory.ConfigureContextFeature(contextFeatures =>
+                    httpContextFactory.ConfigureFeatureWithContext((features, httpCtx) =>
                     {
-                        var authFeature = new HttpAuthenticationFeature() { User = testApp.User };
-                        contextFeatures[typeof(IHttpAuthenticationFeature)] = authFeature;
+                        features.Set<IHttpAuthenticationFeature>(new HttpAuthenticationFeature { User = testApp.User });
+                        features.Set<IServiceProvidersFeature>(new RequestServicesFeature(httpCtx, testApp.ServiceReplacer.CreateScopeFactory()));
                     });
                     return httpContextFactory;
                 });
@@ -102,10 +98,11 @@ namespace Discussion.Web.Tests
                 loggingBuilder.AddProvider(testApp.LoggerProvider);
             });
             hostBuilder.UseContentRoot(WebProjectPath()).UseEnvironment(environmentName);
-
+            
             testApp.Server = new TestServer(hostBuilder);
             testApp.ApplicationServices = testApp.Server.Host.Services;
-
+            testApp.ServiceReplacer = new ReplacableServiceProvider(testApp.ApplicationServices);
+            
             return testApp;
         }
 
@@ -128,12 +125,6 @@ namespace Discussion.Web.Tests
                 GC.SuppressFinalize(this);
             }
 
-
-            if (_dataContext != null)
-            {
-                (_dataContext as IDisposable).Dispose();
-                _dataContext = null;
-            }
 
             if(_applicationContext != null)
             {
@@ -163,6 +154,8 @@ namespace Discussion.Web.Tests
          IHostingEnvironment HostingEnvironment { get;  }
 
          IServiceProvider ApplicationServices { get;  }
+         ReplacableServiceProvider ServiceReplacer { get; }
+
 
          TestServer Server { get;  }
          ClaimsPrincipal User { get; set; }
@@ -171,25 +164,23 @@ namespace Discussion.Web.Tests
     public class WrappedHttpContextFactory : IHttpContextFactory
     {
         IHttpContextFactory _contextFactory;
-        Action<IFeatureCollection> _configureFeatures;
+        Action<IFeatureCollection, HttpContext> _configureContextFeatures;
         public WrappedHttpContextFactory(IHttpContextFactory contextFactory)
         {
             _contextFactory = contextFactory;
         }
-
-        public void ConfigureContextFeature(Action<IFeatureCollection> configureFeatures)
+        
+        public void ConfigureFeatureWithContext(Action<IFeatureCollection, HttpContext> configureFeatures)
         {
-            _configureFeatures = configureFeatures;
+            _configureContextFeatures = configureFeatures;
         }
 
         public HttpContext Create(IFeatureCollection contextFeatures)
         {
-            if(_configureFeatures != null)
-            {
-                _configureFeatures(contextFeatures);
-            }
+            var httpContext = _contextFactory.Create(contextFeatures);
+            _configureContextFeatures?.Invoke(contextFeatures, httpContext);
 
-            return _contextFactory.Create(contextFeatures);
+            return httpContext;
         }
 
         public void Dispose(HttpContext httpContext)
@@ -204,6 +195,7 @@ namespace Discussion.Web.Tests
         public IHostingEnvironment HostingEnvironment { get; set; }        
 
         public IServiceProvider ApplicationServices { get; set; }
+        public ReplacableServiceProvider ServiceReplacer { get; set; }
 
         public TestServer Server { get; set; }
         public ClaimsPrincipal User { get; set; }
@@ -329,30 +321,35 @@ namespace Discussion.Web.Tests
     {
         public static T CreateController<T>(this IApplicationContext app) where T : Controller
         {
-            var services = app.ApplicationServices;
-
+            var httpContext = app.GetService<IHttpContextFactory>().Create(new DefaultHttpContext().Features);
+            httpContext.User = app.User;
+            
             var actionContext = new ActionContext(
-                new DefaultHttpContext
-                {
-                    RequestServices = services,
-                    User = app.User
-                },
+                httpContext,
                 new RouteData(),
                 new ControllerActionDescriptor
                 {
                     ControllerTypeInfo = typeof(T).GetTypeInfo()
                 });
 
-            var controllerFactory = services.GetService<IControllerFactory>();
-            var controller = controllerFactory.CreateController(new ControllerContext(actionContext)) as T;
-
-            return controller;
+            return app.GetService<IControllerFactory>()
+                      .CreateController(new ControllerContext(actionContext)) as T;
         }
 
 
         public static T GetService<T>(this IApplicationContext app) where T : class
         {
             return app.ApplicationServices.GetService<T>();
+        }
+        
+        public static T GetService<T>(this HttpContext httpContext) where T : class
+        {
+            return httpContext.RequestServices.GetService<T>();
+        }
+                
+        public static T GetService<T>(this Controller controller) where T : class
+        {
+            return controller.HttpContext.RequestServices.GetService<T>();
         }
         
         public static void MockUser(this Application app)
@@ -367,7 +364,7 @@ namespace Discussion.Web.Tests
                 new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String),
                 new Claim("SigninTime", lastSigninTime.Ticks.ToString(), ClaimValueTypes.Integer64)
             };
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
             app.User = new DiscussionPrincipal(identity)
             {
                 User = new User

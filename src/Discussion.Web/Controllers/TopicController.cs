@@ -4,6 +4,7 @@ using System.Linq;
 using Discussion.Web.ViewModels;
 using System;
 using Discussion.Web.Services;
+using Discussion.Web.Services.Identity;
 using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Jusfr.Persistent;

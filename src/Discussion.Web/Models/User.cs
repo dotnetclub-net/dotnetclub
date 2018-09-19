@@ -18,6 +18,7 @@ namespace Discussion.Web.Models
     public interface IUser
     {
         int Id { get; }
+        string UserName { get; set; }
         string DisplayName { get; }
     }
 

@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Discussion.Web.Controllers;
 using Discussion.Web.Models;
 using Discussion.Web.Services;
+using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Jusfr.Persistent;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Web
@@ -38,28 +45,49 @@ namespace Discussion.Web.Tests.Specs.Web
         [Fact]
         public async Task should_signin_user_and_redirect_when_signin_with_valid_user()
         {
+            // Arrange
+             ClaimsPrincipal signedInClaimsPrincipal = null;
+             var authService = new Mock<IAuthenticationService>();
+             authService.Setup(auth => auth.SignInAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<ClaimsPrincipal>(), It.IsAny<AuthenticationProperties>()))
+                 .Returns(Task.CompletedTask)
+                 .Callback((HttpContext ctx, string scheme, ClaimsPrincipal claimsPrincipal, AuthenticationProperties props) =>
+                 {
+                     signedInClaimsPrincipal = claimsPrincipal;
+                 })
+                .Verifiable();
+            ReplacableServiceProvider.Replace(services =>
+                {
+                    services.AddSingleton(authService.Object);
+                });
+            
             var accountCtrl = _myApp.CreateController<AccountController>();
-            _userRepo.Create(new User
+            var userManager = _myApp.GetService<UserManager<User>>();
+
+            const string password = "111111";
+            await userManager.CreateAsync(new User
             {
                 UserName = "jim",
                 DisplayName = "Jim Green",
-                HashedPassword = Convert.ToBase64String(PasswordHasher.HashPassword("111111")),
                 CreatedAt = DateTime.UtcNow
-            });
+            }, password);
+            
+            
+            // Act
             var userModel = new SigninUserViewModel
             {
                 UserName = "jim",
-                Password = "111111"
+                Password = password
             };
-            
             var sigininResult = await accountCtrl.DoSignin(userModel, null);
 
-            Assert.True(accountCtrl.HttpContext.IsAuthenticated());
-            Assert.NotNull(accountCtrl.User  as DiscussionPrincipal);
+            // Assert
             Assert.True(accountCtrl.ModelState.IsValid);            
-            Assert.Equal("Jim Green", accountCtrl.User.Identities.First().Name);
-
             sigininResult.IsType<RedirectResult>();
+            
+            authService.Verify();
+            Assert.IsType<DiscussionPrincipal>(signedInClaimsPrincipal);
+            var discussionUser = signedInClaimsPrincipal as DiscussionPrincipal;
+            Assert.Equal("jim", discussionUser.User.UserName);
         }
         
         [Fact]
@@ -141,17 +169,17 @@ namespace Discussion.Web.Tests.Specs.Web
         }
         
         [Fact]
-        public void should_register_new_user()
+        public async Task should_register_new_user()
         {
             var accountCtrl = _myApp.CreateController<AccountController>();
             var userName = "newuser";
             var newUser = new SigninUserViewModel
             {
                 UserName = userName,
-                Password = "hello"
+                Password = "hello1"
             };
             
-            var registerResult = accountCtrl.DoRegister(newUser);
+            var registerResult = await accountCtrl.DoRegister(newUser);
             registerResult.IsType<RedirectResult>();
 
             var registeredUser = _userRepo.All.FirstOrDefault(user => user.UserName == newUser.UserName);
@@ -162,7 +190,7 @@ namespace Discussion.Web.Tests.Specs.Web
         }
                 
         [Fact]
-        public void should_hash_password_for_user()
+        public async Task should_hash_password_for_user()
         {
             var accountCtrl = _myApp.CreateController<AccountController>();
             var userName = "user";
@@ -173,7 +201,7 @@ namespace Discussion.Web.Tests.Specs.Web
                 Password = clearPassword
             };
             
-            var registerResult = accountCtrl.DoRegister(newUser);
+            var registerResult = await accountCtrl.DoRegister(newUser);
             registerResult.IsType<RedirectResult>();
 
             var registeredUser = _userRepo.All.FirstOrDefault(user => user.UserName == newUser.UserName);
@@ -184,7 +212,7 @@ namespace Discussion.Web.Tests.Specs.Web
         }
         
         [Fact]
-        public void should_not_register_with_invalid_request()
+        public async Task should_not_register_with_invalid_request()
         {
             var accountCtrl = _myApp.CreateController<AccountController>();
             var notToBeCreated = "not-to-be-created";
@@ -195,7 +223,7 @@ namespace Discussion.Web.Tests.Specs.Web
             };
             
             accountCtrl.ModelState.AddModelError("UserName", "Some Error");
-            var registerResult = accountCtrl.DoRegister(newUser);
+            var registerResult = await accountCtrl.DoRegister(newUser);
 
 
             var userIsRegistered = _userRepo.All.Any(user => user.UserName == notToBeCreated);
@@ -208,7 +236,7 @@ namespace Discussion.Web.Tests.Specs.Web
         }
         
         [Fact]
-        public void should_not_register_an_user_with_existing_username()
+        public async Task should_not_register_an_user_with_existing_username()
         {
             var userName = "someuser";
             _userRepo.Create(new User
@@ -225,7 +253,7 @@ namespace Discussion.Web.Tests.Specs.Web
                 UserName = userName.ToUpper(),
                 Password = "hello"
             };
-            var registerResult = accountCtrl.DoRegister(newUser);
+            var registerResult = await accountCtrl.DoRegister(newUser);
             
 
             Assert.False(accountCtrl.ModelState.IsValid);
@@ -245,14 +273,20 @@ namespace Discussion.Web.Tests.Specs.Web
         [Fact]
         public async Task should_signout()
         {
+            var authService = new Mock<IAuthenticationService>();
+            authService.Setup(auth => auth.SignOutAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<AuthenticationProperties>())).Returns(Task.CompletedTask).Verifiable();
+            ReplacableServiceProvider.Replace(services =>
+            {
+                services.AddSingleton(authService.Object);
+            });
             _myApp.MockUser();
             var accountCtrl = _myApp.CreateController<AccountController>();
             
             var signoutResult = await accountCtrl.DoSignOut();
 
-            Assert.False(accountCtrl.User.Identity.IsAuthenticated);
             Assert.NotNull(signoutResult);
             signoutResult.IsType<RedirectResult>();
+            authService.Verify();
         }
 
 

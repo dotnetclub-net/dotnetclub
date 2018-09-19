@@ -9,10 +9,12 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Linq;
+using Discussion.Web.Models;
+using Discussion.Web.Services;
+using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Http;
-using Discussion.Web.Controllers;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Localization;
+using Microsoft.AspNetCore.Identity;
 using Raven.Client.Documents;
 
 namespace Discussion.Web
@@ -62,6 +64,11 @@ namespace Discussion.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
+            services.AddIdentity<User, Role>()
+                    .AddUserStore<RepositoryUserStore>()
+                    .AddRoleStore<NullRoleStore>()
+                    .AddClaimsPrincipalFactory<DiscussionUserClaimsPrincipalFactory>()
+                    .AddDefaultTokenProviders();
             services.AddMvc();
 
             AddDataServicesTo(services, Configuration);
@@ -69,17 +76,25 @@ namespace Discussion.Web
             services.AddSingleton(this.Configuration);
             services.AddAuthorization();
 
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(o =>
-                {
-                    o.LoginPath = new PathString("/signin");
-                    o.AccessDeniedPath = new PathString("/access-denied");
-                });
+            services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
+            services.Configure<IdentityOptions>(options =>
+            {
+                // 我们在 SigninUserViewModel 中的 PasswordRules 类中进行验证
+                options.Password.RequiredLength = 6;
+                options.Password.RequiredUniqueChars = 0;
+                options.Password.RequireDigit = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                
+//                options.User.RequireUniqueEmail = true;
+            });
+
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (HostingEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -89,11 +104,6 @@ namespace Discussion.Web
             }
             
             app.UseAuthentication();
-            app.Use((httpContext, next) =>
-            {
-                httpContext.AssignDiscussionPrincipal();
-                return next();
-            });
             app.UseStaticFiles();
             app.UseMvc();
 

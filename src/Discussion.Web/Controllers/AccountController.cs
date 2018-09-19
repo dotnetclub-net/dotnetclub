@@ -2,19 +2,24 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Web.Models;
-using Discussion.Web.Services;
+using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
-using Jusfr.Persistent;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Discussion.Web.Controllers
 {
     public class AccountController: Controller
     {
-        private readonly IRepository<User> _userRepository;
-        public AccountController(IRepository<User> userRepository)
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User>_signInManager;
+
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
         {
-            _userRepository = userRepository;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
         
         [Route("/signin")]
@@ -36,25 +41,22 @@ namespace Discussion.Web.Controllers
             {
                 return RedirectTo(returnUrl);
             }
-
-            User user = null;
+            
             if (ModelState.IsValid)
             {
-                user = _userRepository.All.SingleOrDefault(
-                    u => u.UserName.Equals(viewModel.UserName, StringComparison.OrdinalIgnoreCase));
-                if (user == null || !PasswordHasher.VerifyHashedPassword(Convert.FromBase64String(user.HashedPassword), viewModel.Password))
+                var result = await _signInManager.PasswordSignInAsync(
+                    viewModel.UserName,
+                    viewModel.Password,
+                    isPersistent: false,
+                    lockoutOnFailure: true);
+                
+                if (!result.Succeeded)
                 {
                     ModelState.AddModelError("UserName", "用户名或密码错误");
                 }
             }
 
-            if (!ModelState.IsValid)
-            {
-                return View("Signin");
-            }
-          
-            await this.HttpContext.SigninAsync(user);
-            return RedirectTo(returnUrl);
+            return ModelState.IsValid ? RedirectTo(returnUrl) : View("Signin");
         }
 
         
@@ -68,7 +70,7 @@ namespace Discussion.Web.Controllers
                 return redirectToHome;
             }
 
-            await this.HttpContext.SignoutAsync();
+            await _signInManager.SignOutAsync();
             return redirectToHome;
         }
         
@@ -87,30 +89,27 @@ namespace Discussion.Web.Controllers
         
         [HttpPost]
         [Route("/register")]  
-        public IActionResult DoRegister(SigninUserViewModel userViewModel)
+        public async Task<IActionResult> DoRegister(SigninUserViewModel userViewModel)
         {
             if (!ModelState.IsValid)
             {
                 return View("Register");
             }
-
-            var userNameTaken = _userRepository.All.Any(
-                u => u.UserName.Equals(userViewModel.UserName, 
-                    StringComparison.OrdinalIgnoreCase));
-            if (userNameTaken)
-            {
-                ModelState.AddModelError("UserName", "用户名已被其他用户占用");
-                return View("Register");
-            }
-          
+            
             var newUser = new User
             {
                 UserName = userViewModel.UserName,
                 DisplayName = userViewModel.UserName,
-                HashedPassword = Convert.ToBase64String(PasswordHasher.HashPassword(userViewModel.Password)),
                 CreatedAt = DateTime.UtcNow
             };
-            _userRepository.Create(newUser);
+            
+            var result = await _userManager.CreateAsync(newUser, userViewModel.Password);
+            if (!result.Succeeded)
+            {
+                var errorMessage = string.Join(";", result.Errors.Select(err => err.Description));
+                ModelState.AddModelError("UserName", errorMessage);
+                return View("Register");
+            }
             return RedirectTo("/");
         }
         
@@ -124,8 +123,5 @@ namespace Discussion.Web.Controllers
 
             return Redirect(returnUrl);
         }
-
-     
-
     }
 }
