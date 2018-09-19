@@ -11,7 +11,7 @@ namespace Discussion.Web.Tests.Specs.Repository
     public class ArticleRepoSpecs
     {
         private readonly IServiceProvider _applicationServices;
-        public ArticleRepoSpecs(Application app)
+        public ArticleRepoSpecs(TestApplication app)
         {
             _applicationServices = app.ApplicationServices;
         }

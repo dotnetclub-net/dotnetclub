@@ -14,8 +14,8 @@ namespace Discussion.Web.Tests.Specs
     [Collection("AppSpecs")]
     public class TopicControllerSpecs
     {
-        public Application _myApp;
-        public TopicControllerSpecs(Application app)
+        public TestApplication _myApp;
+        public TopicControllerSpecs(TestApplication app)
         {
             _myApp = app.Reset();
         }

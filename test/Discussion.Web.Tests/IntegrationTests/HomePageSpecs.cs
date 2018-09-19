@@ -8,8 +8,8 @@ namespace Discussion.Web.Tests.IntegrationTests
     [Collection("AppSpecs")]
     public class HomePageSpecs
     {
-        private Application _theApp;
-        public HomePageSpecs(Application theApp) {
+        private TestApplication _theApp;
+        public HomePageSpecs(TestApplication theApp) {
             _theApp = theApp;
         }
 

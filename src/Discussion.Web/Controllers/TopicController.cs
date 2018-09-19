@@ -17,11 +17,9 @@ namespace Discussion.Web.Controllers
     {
 
         private readonly IRepository<Topic> _topicRepo;
-        private readonly IModelMetadataProvider _modelMetadataProvider;
-        public TopicController(IRepository<Topic> topicRepo, IModelMetadataProvider modelMetadataProvider)
+        public TopicController(IRepository<Topic> topicRepo)
         {
             _topicRepo = topicRepo;
-            _modelMetadataProvider = modelMetadataProvider;
         }
 
 

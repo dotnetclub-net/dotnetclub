@@ -7,8 +7,8 @@ namespace Discussion.Web.Tests.IntegrationTests
     [Collection("AppSpecs")]
     public class AccountRelatedPageSpecs
     {
-        private Application _theApp;
-        public AccountRelatedPageSpecs(Application theApp) {
+        private TestApplication _theApp;
+        public AccountRelatedPageSpecs(TestApplication theApp) {
             _theApp = theApp.Reset();
         }
 

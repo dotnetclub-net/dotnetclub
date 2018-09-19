@@ -12,8 +12,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         public const string NotFoundPath = "/something-not-defined";
         public const string NotFoundStaticFile = "/something-not-defined.css";
 
-        private Application _theApp;
-        public NotFoundSpecs(Application theApp)
+        private TestApplication _theApp;
+        public NotFoundSpecs(TestApplication theApp)
         {
             _theApp = theApp;
         }

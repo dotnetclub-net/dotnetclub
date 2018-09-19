@@ -21,10 +21,10 @@ namespace Discussion.Web.Tests.Specs.Web
     [Collection("AppSpecs")]
     public class AccountControllerSpecs
     {
-        private readonly Application _myApp;
+        private readonly TestApplication _myApp;
         private readonly IRepository<User> _userRepo;
 
-        public AccountControllerSpecs(Application app)
+        public AccountControllerSpecs(TestApplication app)
         {
             _myApp = app.Reset();
             _userRepo = _myApp.GetService<IRepository<User>>();
@@ -116,12 +116,13 @@ namespace Discussion.Web.Tests.Specs.Web
         [Fact]
         public async Task should_return_signin_view_when_incorrect_password()
         {
+            var passwordHasher = _myApp.GetService<IPasswordHasher<User>>();
             var accountCtrl = _myApp.CreateController<AccountController>();
             _userRepo.Create(new User
             {
                 UserName = "jimwrongpwd",
                 DisplayName = "Jim Green",
-                HashedPassword = Convert.ToBase64String(PasswordHasher.HashPassword("11111F")),
+                HashedPassword = passwordHasher.HashPassword(null, "11111F"),
                 CreatedAt = DateTime.UtcNow
             });
             var userModel = new SigninUserViewModel
@@ -129,7 +130,6 @@ namespace Discussion.Web.Tests.Specs.Web
                 UserName = "jimwrongpwd",
                 Password = "11111f"
             };
-
             
             var sigininResult = await accountCtrl.DoSignin(userModel, null);
 

@@ -8,8 +8,8 @@ namespace Discussion.Web.Tests.Specs.Models
     [Collection("AppSpecs")]
     public class SigninUserModelValidationSpecs
     {
-        private readonly Application _myApp;
-        public SigninUserModelValidationSpecs(Application app)
+        private readonly TestApplication _myApp;
+        public SigninUserModelValidationSpecs(TestApplication app)
         {
             _myApp = app;
         }

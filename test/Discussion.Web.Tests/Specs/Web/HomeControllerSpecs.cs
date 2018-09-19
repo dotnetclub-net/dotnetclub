@@ -8,8 +8,8 @@ namespace Discussion.Web.Tests.Specs.Web
     [Collection("AppSpecs")]
     public class HomeControllerSpecs
     {
-        private readonly Application _myApp;
-        public HomeControllerSpecs(Application app)
+        private readonly TestApplication _myApp;
+        public HomeControllerSpecs(TestApplication app)
         {
             _myApp = app;
         }

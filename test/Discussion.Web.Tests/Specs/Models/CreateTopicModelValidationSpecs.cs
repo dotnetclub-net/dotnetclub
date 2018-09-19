@@ -12,8 +12,8 @@ namespace Discussion.Web.Tests.Specs.Models
     [Collection("AppSpecs")]
     public class CreateTopicModelValidationSpecs
     {
-        private readonly Application _myApp;
-        public CreateTopicModelValidationSpecs(Application app)
+        private readonly TestApplication _myApp;
+        public CreateTopicModelValidationSpecs(TestApplication app)
         {
             _myApp = app;
         }

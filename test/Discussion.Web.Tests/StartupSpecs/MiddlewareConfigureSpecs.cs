@@ -15,8 +15,8 @@ namespace Discussion.Web.Tests.StartupSpecs
     {
 
         private readonly TestServer server;
-        private readonly Application _app;
-        public MiddlewareConfigureSpecs(Application app)
+        private readonly TestApplication _app;
+        public MiddlewareConfigureSpecs(TestApplication app)
         {
             this._app = app;
             server = app.Server;
@@ -26,7 +26,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_use_iis_platform()
         {
-            var app = Application.BuildApplication("Dev", host =>
+            var app = TestApplication.BuildApplication(new TestApplication(), "Dev", host =>
             {
                 host.UseSetting("PORT", "5000");
                 host.UseSetting("APPL_PATH", "/");

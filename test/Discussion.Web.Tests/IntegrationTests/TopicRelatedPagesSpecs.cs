@@ -15,8 +15,8 @@ namespace Discussion.Web.Tests.IntegrationTests
     public class TopicRelatedPagesSpecs
     {
         
-        private readonly Application _theApp;
-        public TopicRelatedPagesSpecs(Application theApp)
+        private readonly TestApplication _theApp;
+        public TopicRelatedPagesSpecs(TestApplication theApp)
         {
             _theApp = theApp.Reset();
         }
