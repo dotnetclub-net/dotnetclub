@@ -39,8 +39,8 @@ namespace Discussion.Web.Tests.StartupSpecs
         {
             // arrange
             var applicationServices = CreateApplicationServices((configuration) => {
-                configuration["ravenServerUrl"] = "http://ravendb.mydomain.com";
-                configuration["ravenDbName"] = "Northwind";
+                configuration.SetupGet(c => c["ravenServerUrl"]).Returns("http://ravendb.mydomain.com");
+                configuration.SetupGet(c => c["ravenDbName"]).Returns("Northwind");
             }, s => { });
 
             // act
@@ -66,29 +66,30 @@ namespace Discussion.Web.Tests.StartupSpecs
             repo.GetType().ShouldEqual(typeof(InMemoryDataRepository<Article>));
         }
 
-        public static IServiceProvider CreateApplicationServices()
+        static IServiceProvider CreateApplicationServices()
         {
             return CreateApplicationServices(c => { },  s => { });
         }
 
-        public static IServiceProvider CreateApplicationServices(Action<IConfigurationRoot> configureSettings, Action<IServiceCollection> configureServices) {
+        static IServiceProvider CreateApplicationServices(Action<Mock<IConfiguration>> configureSettings, Action<IServiceCollection> configureServices) {
             var services = new ServiceCollection();
-            var startup = CreateMockStartup();
-            configureSettings(startup.Configuration);
-
+            var startup = CreateMockStartup(configureSettings);
             startup.ConfigureServices(services);
             configureServices(services);
 
             return services.BuildServiceProvider();
         }
 
-        public static Startup CreateMockStartup()
+        private static Startup CreateMockStartup(Action<Mock<IConfiguration>> configureSettings)
         {
             var hostingEnv = new Mock<IHostingEnvironment>();
             hostingEnv.SetupGet(e => e.EnvironmentName).Returns("UnitTest");
             hostingEnv.SetupGet(e => e.ContentRootPath).Returns(TestEnv.WebProjectPath());
 
-            return new Startup(hostingEnv.Object);
+            var appConfig = new Mock<IConfiguration>();
+            appConfig.SetupGet(e => e[It.IsAny<string>()]).Returns((string)null);
+            configureSettings(appConfig);
+            return new Startup(hostingEnv.Object, appConfig.Object);
         }
 
     }

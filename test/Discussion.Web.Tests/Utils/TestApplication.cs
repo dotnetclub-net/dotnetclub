@@ -9,6 +9,7 @@ using static Discussion.Web.Tests.TestEnv;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
+using Discussion.Web.ApplicationSupport;
 using Microsoft.AspNetCore.Hosting.Internal;
 
 namespace Discussion.Web.Tests
@@ -34,7 +35,6 @@ namespace Discussion.Web.Tests
             return this;
         }
 
-        #region Proxy Context Properties
 
         public StubLoggerProvider LoggerProvider { get; private set; }
         public IHostingEnvironment HostingEnvironment { get; private set; }
@@ -45,7 +45,6 @@ namespace Discussion.Web.Tests
         public TestServer Server {get; private set;  }
         public ClaimsPrincipal User{ get; set;}
 
-        #endregion
 
         public static TestApplication BuildApplication(TestApplication testApp, string environmentName = "Production", Action<IWebHostBuilder> configureHost = null)
         {
@@ -70,7 +69,7 @@ namespace Discussion.Web.Tests
                 });
             });
 
-            Startup.ConfigureHost(hostBuilder);
+            Configurer.ConfigureHost(hostBuilder);
 
             hostBuilder.ConfigureLogging(loggingBuilder =>
             {
@@ -105,6 +104,8 @@ namespace Discussion.Web.Tests
                 GC.SuppressFinalize(this);
             }
 
+            Reset();
+            
             ApplicationServices = null;
 
             if (LoggerProvider != null)
