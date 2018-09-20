@@ -14,7 +14,7 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("/error")]
-        public async Task<IActionResult> Error()
+        public IActionResult Error()
         {
             Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             return View();

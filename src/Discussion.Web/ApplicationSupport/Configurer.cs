@@ -22,15 +22,18 @@ namespace Discussion.Web.ApplicationSupport
                 .ConfigureAppConfiguration(ConfigureApplication)
                 .ConfigureLogging((hostingContext, logging) =>
                 {
-                    logging.AddConsole();
-                    logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
-
                     if (hostingContext.HostingEnvironment.IsDevelopment())
                     {
                         // Default is Information
                         // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-2.1
                         logging.SetMinimumLevel(LogLevel.Trace);
                     }
+                    
+                    var loggingConfiguration = hostingContext.Configuration.GetSection("Logging");
+                    
+                    logging.AddConsole();
+                    logging.AddFile(loggingConfiguration);
+                    logging.AddConfiguration(loggingConfiguration);
                 })
                 .UseStartup<Startup>();
         }
