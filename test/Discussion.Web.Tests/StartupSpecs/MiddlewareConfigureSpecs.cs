@@ -26,7 +26,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_use_iis_platform()
         {
-            var app = TestApplication.BuildApplication(new TestApplication(), "Dev", host =>
+            var app = TestApplication.BuildApplication(new TestApplication(initlizeApp: false), "Dev", host =>
             {
                 host.UseSetting("PORT", "5000");
                 host.UseSetting("APPL_PATH", "/");
@@ -75,6 +75,19 @@ namespace Discussion.Web.Tests.StartupSpecs
             var logs = _app.GetLogs();
             logs.ShouldNotBeNull();
             logs.ShouldContain(item => item.Category.StartsWith("Microsoft.AspNetCore.StaticFiles"));
+        }
+        
+        
+        [Fact]
+        public async Task should_use_in_memory_database_when_no_database_connection_string_specified()
+        {
+            var app = TestApplication.BuildApplication(new TestApplication(initlizeApp: false), "Dev");
+
+            var logs = app.GetLogs();
+            (app as IDisposable).Dispose();
+            
+            logs.ShouldNotBeNull();
+            logs.ShouldContain(item => item.Message.Contains("将使用内存数据库"));
         }
     }
 

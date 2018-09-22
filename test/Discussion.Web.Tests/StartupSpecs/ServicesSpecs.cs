@@ -1,5 +1,4 @@
 ﻿using Discussion.Web.Models;
-using Discussion.Web.Data.InMemory;
 using Jusfr.Persistent;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +13,7 @@ namespace Discussion.Web.Tests.StartupSpecs
     public class ServicesSpecs
     {
         [Fact]
-        public void should_add_mvc_service()
+        public void should_add_mvc_services()
         {
             // arrage
             IServiceCollection services = null;
@@ -35,35 +34,17 @@ namespace Discussion.Web.Tests.StartupSpecs
 
 
         [Fact]
-        public void should_add_ravendb_reposotiry()
+        public void should_use_ef_repository()
         {
             // arrange
-            var applicationServices = CreateApplicationServices((configuration) => {
-                configuration.SetupGet(c => c["ravenServerUrl"]).Returns("http://ravendb.mydomain.com");
-                configuration.SetupGet(c => c["ravenDbName"]).Returns("Northwind");
-            }, s => { });
+            var applicationServices = CreateApplicationServices();
 
             // act
             var repo = applicationServices.GetRequiredService<Repository<Article>>();
 
             // assert
             repo.ShouldNotBeNull();
-            repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(RavenDataRepository<>));
-        }
-
-
-        [Fact]
-        public void should_add_base_implemention_for_repository()
-        {
-            // arrage
-            var applicationServices = CreateApplicationServices();
-
-            // act
-            var repo = applicationServices.GetRequiredService<IRepository<Article>>();
-
-            // assert
-            repo.ShouldNotBeNull();
-            repo.GetType().ShouldEqual(typeof(InMemoryDataRepository<Article>));
+            repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(EfRepository<>));
         }
 
         static IServiceProvider CreateApplicationServices()

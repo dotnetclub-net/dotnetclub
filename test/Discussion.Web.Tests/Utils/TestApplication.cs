@@ -19,10 +19,16 @@ namespace Discussion.Web.Tests
         readonly ClaimsPrincipal _originalUser;
 
 
-        public TestApplication()
+        public TestApplication() : this(true){ }
+
+        public TestApplication(bool initlizeApp)
         {
-            BuildApplication(this, "Development");
-//          BuildApplication(this);
+            if (initlizeApp)
+            {
+                BuildApplication(this, "Development");
+                // BuildApplication(this);
+            }
+
             _originalUser = User;
         }
 

@@ -71,8 +71,7 @@ namespace Discussion.Web
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseMvc();
-
-            DataInfrastructure.SetupDisposing(app);
+            app.RegisterDatabaseInitializing();
         }
     }
 }

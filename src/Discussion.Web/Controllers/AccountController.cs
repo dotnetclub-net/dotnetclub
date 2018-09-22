@@ -4,10 +4,8 @@ using System.Threading.Tasks;
 using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Discussion.Web.Controllers
 {

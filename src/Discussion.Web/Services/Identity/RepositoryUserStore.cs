@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Discussion.Web.Data;
 using Discussion.Web.Models;
-using Jusfr.Persistent;
 using Microsoft.AspNetCore.Identity;
 
 namespace Discussion.Web.Services.Identity
@@ -47,7 +47,7 @@ namespace Discussion.Web.Services.Identity
 
         public Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
         {
-            _useRepository.Create(user);
+            _useRepository.Save(user);
             return Task.FromResult(IdentityResult.Success);
         }
 
@@ -65,13 +65,13 @@ namespace Discussion.Web.Services.Identity
 
         public Task<User> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            var user = _useRepository.Retrive(int.Parse(userId));
+            var user = _useRepository.Get(int.Parse(userId));
             return Task.FromResult(user);
         }
 
         public Task<User> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
-            var user = _useRepository.All.FirstOrDefault(u => string.Equals(u.UserName, normalizedUserName, StringComparison.InvariantCultureIgnoreCase));
+            var user = _useRepository.All().FirstOrDefault(u => string.Equals(u.UserName, normalizedUserName, StringComparison.InvariantCultureIgnoreCase));
             return Task.FromResult(user);
         }
 

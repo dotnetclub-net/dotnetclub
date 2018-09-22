@@ -1,15 +1,12 @@
 ﻿using Discussion.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using Discussion.Web.ViewModels;
 using System;
-using Discussion.Web.Services;
+using Discussion.Web.Data;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.Services.Markdown;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Jusfr.Persistent;
-using Markdig;
 using Microsoft.AspNetCore.Authorization;
+using System.Linq;
 
 namespace Discussion.Web.Controllers
 {
@@ -23,6 +20,7 @@ namespace Discussion.Web.Controllers
         }
 
 
+
         private const int PageSize = 20;
 
         [HttpGet]
@@ -30,10 +28,10 @@ namespace Discussion.Web.Controllers
         [Route("/topics")]
         public ActionResult List([FromQuery]int? page = null)
         {
-            var topicCount = _topicRepo.All.Count();
+            var topicCount = _topicRepo.All().Count();
             var actualPage = NormalizePaging(page, topicCount, out var allPage);
 
-            var topicList = _topicRepo.All
+            var topicList = _topicRepo.All()
                                       .OrderByDescending(topic => topic.CreatedAt)
                                       .Skip((actualPage - 1) * PageSize)
                                       .Take(PageSize)
@@ -54,7 +52,7 @@ namespace Discussion.Web.Controllers
         [Route("/topics/{id}")]
         public ActionResult Index(int id)
         {
-            var topic = _topicRepo.Retrive(id);
+            var topic = _topicRepo.Get(id);
             if(topic == null)
             {
                 return NotFound();
@@ -97,7 +95,7 @@ namespace Discussion.Web.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            _topicRepo.Create(topic);
+            _topicRepo.Save(topic);
             return RedirectToAction("Index", new { topic.Id });
         }
         
