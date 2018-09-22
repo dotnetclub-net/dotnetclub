@@ -17,6 +17,8 @@ addons:
 
 mono: 5.4.1
 dotnet: 2.1.300
+services:
+  - docker
 
 install:
   - nvm install 8.6.0

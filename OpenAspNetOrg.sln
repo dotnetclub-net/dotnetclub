@@ -11,6 +11,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discussion.Web.Tests", "tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discussion.Migrations", "src\Discussion.Migrations\Discussion.Migrations.csproj", "{42458253-F6AE-4176-B617-CEB185B640C6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Scratches", "_Scratches", "{B724901A-4E11-4815-BA81-19D2A356E130}"
+ProjectSection(SolutionItems) = preProject
+	build-linux.sh = build-linux.sh
+	build.cake = build.cake
+	build.ps1 = build.ps1
+	build.sh = build.sh
+	Readme.md = Readme.md
+	.gitignore = .gitignore
+	DockerFile = DockerFile
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

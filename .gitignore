@@ -41,6 +41,8 @@ node_modules
 *.sln.ide
 
 src/Discussion.Web/logs/*
+src/Discussion.Web/publish/*
+dotnetclub.db
 
 */*.Web/wwwroot/lib
 */*.Web/wwwroot/stylesheets/css

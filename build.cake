@@ -16,31 +16,6 @@ Task("Default")
           }
         });
 
-Task("ci")
-   .IsDependentOn("build-all")
-   .IsDependentOn("cs-test")
-   .Does(() =>
-    {
-        DoInDirectory("./src/Discussion.Web/wwwroot", () =>
-        {
-            Execute("npm install gulp-cli -g");
-            Execute("npm install bower -g");
-
-            NpmInstall();
-
-            Execute("bower install");
-            Execute("gulp");
-        });
-    });
-
-Task("build-all")
-   .IsDependentOn("build-prod")
-   .IsDependentOn("build-test")
-  .Does(() =>
-    {
-        Information("Build successfully.");
-    });
-
 Task("build-prod")
   .Does(() =>
     {
@@ -59,6 +34,21 @@ Task("build-test")
         });
     });
 
+Task("build-web")
+  .Does(() => {
+        
+        DoInDirectory("./src/Discussion.Web/wwwroot", () =>
+        {
+            Execute("npm install gulp-cli -g");
+            Execute("npm install bower -g");
+
+            NpmInstall();
+
+            Execute("bower install");
+            Execute("gulp");
+        });
+    });
+
 Task("cs-test")
   .Does(() =>
 
@@ -69,6 +59,35 @@ Task("cs-test")
         });
     });
 
+
+Task("package")
+  .Does(() =>
+
+    {
+        DoInDirectory("./src/Discussion.Web/", () =>
+        {
+            Execute("dotnet publish -c Release -o publish");
+        });
+
+        DoInDirectory("./src/Discussion.Web/publish", () =>
+        {
+            var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
+            var imageTag = $"jijiechen/dotnetclub:{now}"; 
+            Execute($"docker build . -t {imageTag} -f ../../../DockerFile");
+        });
+    });
+
+
+
+Task("build-all")
+   .IsDependentOn("build-prod")
+   .IsDependentOn("build-test")
+   .IsDependentOn("build-web");
+
+Task("ci")
+   .IsDependentOn("build-all")
+   .IsDependentOn("cs-test")
+   .IsDependentOn("package");
 
 
 void Execute(string command, string workingDir = null){

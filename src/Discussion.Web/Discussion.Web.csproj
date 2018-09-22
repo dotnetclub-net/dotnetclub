@@ -16,7 +16,7 @@
   <ItemGroup>
     <Compile Remove="wwwroot\**\*;node_modules;tmp_wwwroot" />
     <EmbeddedResource Remove="wwwroot\**\*;node_modules;tmp_wwwroot" />
-    <None Update="logs\**\*;Views\**\*;wwwroot\**\*">
+    <None Update="Views\**\*;wwwroot\**\*">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
