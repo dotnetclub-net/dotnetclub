@@ -61,20 +61,17 @@ Task("cs-test")
 
 
 Task("package")
+  .WithCriteria(() => !IsRunningOnWindows())
   .Does(() =>
-
     {
         DoInDirectory("./src/Discussion.Web/", () =>
         {
             Execute("dotnet publish -c Release -o publish");
         });
-
-        DoInDirectory("./src/Discussion.Web/publish", () =>
-        {
-            var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-            var imageTag = $"jijiechen/dotnetclub:{now}"; 
-            Execute($"docker build . -t {imageTag} -f ../../../DockerFile");
-        });
+ 
+        var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
+        var imageTag = $"jijiechen/dotnetclub:{now}"; 
+        Execute($"docker build ./src/Discussion.Web/publish -t {imageTag}");
     });
 
 
