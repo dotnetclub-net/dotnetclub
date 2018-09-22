@@ -67,9 +67,9 @@ namespace Discussion.Web.Tests
                 User = new User
                 {
                     Id = userId,
-                    CreatedAt = DateTime.UtcNow.AddDays(-1),
+                    CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
                     DisplayName = "Fancy User",
-                    LastSeendAt = lastSigninTime,
+                    LastSeenAt = lastSigninTime,
                     UserName = userName
                 }
             };

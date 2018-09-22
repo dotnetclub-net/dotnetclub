@@ -98,7 +98,7 @@ namespace Discussion.Web.Controllers
             {
                 UserName = userViewModel.UserName,
                 DisplayName = userViewModel.UserName,
-                CreatedAt = DateTime.UtcNow
+                CreatedAtUtc = DateTime.UtcNow
             };
             
             var result = await _userManager.CreateAsync(newUser, userViewModel.Password);

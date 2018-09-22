@@ -10,8 +10,7 @@ namespace Discussion.Web.Models
         public string DisplayName { get; set; }
 
         public string HashedPassword { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime LastSeendAt { get; set; }
+        public DateTime? LastSeenAt { get; set; }
     }
 
 

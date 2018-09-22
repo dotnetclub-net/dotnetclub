@@ -6,6 +6,7 @@ using Discussion.Web.ApplicationSupport;
 using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace Discussion.Web
 {
@@ -13,10 +14,12 @@ namespace Discussion.Web
     {
         public IConfiguration ApplicationConfiguration { get;  }
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public Startup(IHostingEnvironment env, IConfiguration config)
+        public Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory loggerFactory)
         {
             _hostingEnvironment = env;
+            _loggerFactory = loggerFactory;
             ApplicationConfiguration = config;
         }
 
@@ -37,7 +40,7 @@ namespace Discussion.Web
                     .AddDefaultTokenProviders();
             services.AddMvc();
 
-            services.AddDataServices(ApplicationConfiguration);
+            services.AddDataServices(ApplicationConfiguration, _loggerFactory);
 
             services.AddAuthorization();
 

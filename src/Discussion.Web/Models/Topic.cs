@@ -12,7 +12,6 @@ namespace Discussion.Web.Models
 
 
         public int CreatedBy { get; set; }
-        public DateTime CreatedAt { get; set; }
         public DateTime? LastRepliedAt { get; set; }
 
         public int ReplyCount { get; set; }

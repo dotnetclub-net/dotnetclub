@@ -28,7 +28,7 @@ namespace Discussion.Web.ApplicationSupport
                 .ConfigureRunner(rb => rb
                     .AddSQLite()
                     .WithGlobalConnectionString(connectionString)
-                    .ScanIn(typeof(CreateUserTable).Assembly).For.Migrations())
+                    .ScanIn(typeof(CreateArticleTable).Assembly).For.Migrations())
                 .AddLogging(logging =>
                 {
                     logging.AddFluentMigratorConsole();

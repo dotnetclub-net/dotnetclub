@@ -79,15 +79,16 @@ namespace Discussion.Web.Tests.StartupSpecs
         
         
         [Fact]
-        public async Task should_use_in_memory_database_when_no_database_connection_string_specified()
+        public void should_use_temporary_database_when_no_database_connection_string_specified()
         {
             var app = TestApplication.BuildApplication(new TestApplication(initlizeApp: false), "Dev");
 
             var logs = app.GetLogs();
-            (app as IDisposable).Dispose();
             
             logs.ShouldNotBeNull();
-            logs.ShouldContain(item => item.Message.Contains("将使用内存数据库"));
+            logs.ShouldContain(item => item.Message.Contains("将创建临时的数据库"));
+            
+            (app as IDisposable).Dispose();
         }
     }
 

@@ -3,11 +3,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Discussion.Web.Controllers;
+using Discussion.Web.Data;
 using Discussion.Web.Models;
-using Discussion.Web.Services;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
-using Jusfr.Persistent;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -68,7 +67,7 @@ namespace Discussion.Web.Tests.Specs.Web
             {
                 UserName = "jim",
                 DisplayName = "Jim Green",
-                CreatedAt = DateTime.UtcNow
+                CreatedAtUtc = DateTime.UtcNow
             }, password);
             
             
@@ -118,12 +117,12 @@ namespace Discussion.Web.Tests.Specs.Web
         {
             var passwordHasher = _myApp.GetService<IPasswordHasher<User>>();
             var accountCtrl = _myApp.CreateController<AccountController>();
-            _userRepo.Create(new User
+            _userRepo.Save(new User
             {
                 UserName = "jimwrongpwd",
                 DisplayName = "Jim Green",
                 HashedPassword = passwordHasher.HashPassword(null, "11111F"),
-                CreatedAt = DateTime.UtcNow
+                CreatedAtUtc = DateTime.UtcNow
             });
             var userModel = new SigninUserViewModel
             {
@@ -182,7 +181,7 @@ namespace Discussion.Web.Tests.Specs.Web
             var registerResult = await accountCtrl.DoRegister(newUser);
             registerResult.IsType<RedirectResult>();
 
-            var registeredUser = _userRepo.All.FirstOrDefault(user => user.UserName == newUser.UserName);
+            var registeredUser = _userRepo.All().FirstOrDefault(user => user.UserName == newUser.UserName);
             registeredUser.ShouldNotBeNull();
             // ReSharper disable once PossibleNullReferenceException
             registeredUser.UserName.ShouldEqual(userName);
@@ -204,7 +203,7 @@ namespace Discussion.Web.Tests.Specs.Web
             var registerResult = await accountCtrl.DoRegister(newUser);
             registerResult.IsType<RedirectResult>();
 
-            var registeredUser = _userRepo.All.FirstOrDefault(user => user.UserName == newUser.UserName);
+            var registeredUser = _userRepo.All().FirstOrDefault(user => user.UserName == newUser.UserName);
             registeredUser.ShouldNotBeNull();
             // ReSharper disable once PossibleNullReferenceException
             registeredUser.UserName.ShouldEqual(userName);
@@ -226,7 +225,7 @@ namespace Discussion.Web.Tests.Specs.Web
             var registerResult = await accountCtrl.DoRegister(newUser);
 
 
-            var userIsRegistered = _userRepo.All.Any(user => user.UserName == notToBeCreated);
+            var userIsRegistered = _userRepo.All().Any(user => user.UserName == notToBeCreated);
             Assert.False(userIsRegistered);
             
             registerResult.IsType<ViewResult>();
@@ -239,11 +238,11 @@ namespace Discussion.Web.Tests.Specs.Web
         public async Task should_not_register_an_user_with_existing_username()
         {
             var userName = "someuser";
-            _userRepo.Create(new User
+            _userRepo.Save(new User
             {
                 UserName = userName,
                 DisplayName = "old user",
-                CreatedAt = new DateTime(2018, 02, 14)
+                CreatedAtUtc = new DateTime(2018, 02, 14)
             });
             var accountCtrl = _myApp.CreateController<AccountController>();
 
@@ -259,7 +258,7 @@ namespace Discussion.Web.Tests.Specs.Web
             Assert.False(accountCtrl.ModelState.IsValid);
             accountCtrl.ModelState.Keys.ShouldContain("UserName");
             
-            var allUsers = _userRepo.All.Where(user => user.UserName == userName).ToList();
+            var allUsers = _userRepo.All().Where(user => user.UserName == userName).ToList();
             allUsers.Count.ShouldEqual(1);
             allUsers[0].DisplayName.ShouldEqual("old user");
 

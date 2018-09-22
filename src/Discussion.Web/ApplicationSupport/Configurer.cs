@@ -42,8 +42,13 @@ namespace Discussion.Web.ApplicationSupport
                 // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-2.1
                 logging.SetMinimumLevel(LogLevel.Trace);
             }
-            
-            logging.AddFile(loggingConfiguration); // See doc at nghttps://github.com/serilog/serilog-extensions-logging-file
+
+            var seriConfigType = typeof(FileLoggerExtensions).Assembly.GetType("Serilog.Extensions.Logging.File.FileLoggingConfiguration");
+            var fileLoggingConfig = loggingConfiguration?.Get(seriConfigType);
+            if (fileLoggingConfig != null)
+            {
+                logging.AddFile(loggingConfiguration); // See doc at nghttps://github.com/serilog/serilog-extensions-logging-file
+            }
             logging.AddConfiguration(loggingConfiguration);
         }
 

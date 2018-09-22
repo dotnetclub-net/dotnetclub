@@ -1,5 +1,4 @@
 ﻿using Discussion.Web.Models;
-using Jusfr.Persistent;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -7,6 +6,9 @@ using System;
 using Xunit;
 using Microsoft.Extensions.Configuration;
 using Discussion.Web.Data;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Abstractions.Internal;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
@@ -40,7 +42,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             var applicationServices = CreateApplicationServices();
 
             // act
-            var repo = applicationServices.GetRequiredService<Repository<Article>>();
+            var repo = applicationServices.GetRequiredService<IRepository<Article>>();
 
             // assert
             repo.ShouldNotBeNull();
@@ -70,7 +72,11 @@ namespace Discussion.Web.Tests.StartupSpecs
             var appConfig = new Mock<IConfiguration>();
             appConfig.SetupGet(e => e[It.IsAny<string>()]).Returns((string)null);
             configureSettings(appConfig);
-            return new Startup(hostingEnv.Object, appConfig.Object);
+
+            var loggerFactory = new Mock<ILoggerFactory>();
+            loggerFactory.Setup(f => f.CreateLogger(TypeNameHelper.GetTypeDisplayName(typeof(Startup)))).Returns(NullLogger.Instance);
+                
+            return new Startup(hostingEnv.Object, appConfig.Object, loggerFactory.Object);
         }
 
     }

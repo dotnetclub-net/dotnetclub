@@ -32,7 +32,7 @@ namespace Discussion.Web.Controllers
             var actualPage = NormalizePaging(page, topicCount, out var allPage);
 
             var topicList = _topicRepo.All()
-                                      .OrderByDescending(topic => topic.CreatedAt)
+                                      .OrderByDescending(topic => topic.CreatedAtUtc)
                                       .Skip((actualPage - 1) * PageSize)
                                       .Take(PageSize)
                                       .ToList();
@@ -92,7 +92,7 @@ namespace Discussion.Web.Controllers
                 Content = model.Content,
                 Type = model.Type.Value,
                 CreatedBy = HttpContext.DiscussionUser().User.Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedAtUtc = DateTime.UtcNow
             };
 
             _topicRepo.Save(topic);

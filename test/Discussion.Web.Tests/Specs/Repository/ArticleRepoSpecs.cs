@@ -1,7 +1,7 @@
 ﻿using Discussion.Web.Models;
-using Jusfr.Persistent;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using Discussion.Web.Data;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Repository
@@ -23,11 +23,11 @@ namespace Discussion.Web.Tests.Specs.Repository
             var article = new Article() {Title = Guid.NewGuid().ToString() };
             var repo = _applicationServices.GetRequiredService<IRepository<Article>>();
 
-            repo.Create(article);
+            repo.Save(article);
 
             article.Id.ShouldGreaterThan(0);            
 
-            var articleGot = repo.Retrive(article.Id);
+            var articleGot = repo.Get(article.Id);
             articleGot.ShouldNotBeNull();
             articleGot.Title.ShouldEqual(article.Title);
         }

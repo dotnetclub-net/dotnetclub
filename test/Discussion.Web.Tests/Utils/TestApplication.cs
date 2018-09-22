@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
 using Microsoft.AspNetCore.Http.Features;
@@ -21,7 +22,7 @@ namespace Discussion.Web.Tests
 
         public TestApplication() : this(true){ }
 
-        public TestApplication(bool initlizeApp)
+        internal TestApplication(bool initlizeApp)
         {
             if (initlizeApp)
             {
@@ -75,6 +76,7 @@ namespace Discussion.Web.Tests
                 });
             });
 
+            Environment.SetEnvironmentVariable("DOTNETCLUB_sqliteConnectionString", " ");
             Configurer.ConfigureHost(hostBuilder);
 
             hostBuilder.ConfigureLogging(loggingBuilder =>

@@ -1,12 +1,11 @@
 ﻿using Discussion.Web.Controllers;
 using Discussion.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using Xunit;
 using Discussion.Web.ViewModels;
-using System.Linq;
 using System;
-using Jusfr.Persistent;
+using System.Linq;
+using Discussion.Web.Data;
 
 namespace Discussion.Web.Tests.Specs
 {
@@ -33,7 +32,7 @@ namespace Discussion.Web.Tests.Specs
             var repo = _myApp.GetService<IRepository<Topic>>();
             foreach(var item in topicItems)
             {
-                repo.Create(item);
+                repo.Save(item);
             }
 
 
@@ -53,15 +52,15 @@ namespace Discussion.Web.Tests.Specs
         public void should_calc_topic_list_with_paging()
         {
             var repo = _myApp.GetService<IRepository<Topic>>();
-            repo.All.ToList().ForEach(topic => repo.Delete(topic));
+            repo.All().ToList().ForEach(topic => repo.Delete(topic));
             var all = 30;
             do
             {
-                repo.Create(new Topic
+                repo.Save(new Topic
                 {
                     Title = "dummy topic " + all, 
                     Type = TopicType.Discussion, 
-                    CreatedAt = DateTime.Today.AddSeconds(-all)
+                    CreatedAtUtc = DateTime.Today.AddSeconds(-all)
                 });
             } while (--all > 0);
             
@@ -98,7 +97,7 @@ namespace Discussion.Web.Tests.Specs
 
 
             var repo = _myApp.GetService<IRepository<Topic>>();
-            var allTopics = repo.All.ToList();
+            var allTopics = repo.All().ToList();
 
             var createdTopic = allTopics.Find(topic => topic.Title == model.Title);
 
@@ -108,7 +107,7 @@ namespace Discussion.Web.Tests.Specs
             createdTopic.Type.ShouldEqual(TopicType.Job);
             createdTopic.CreatedBy.ShouldEqual((_myApp.User as DiscussionPrincipal).User.Id);
 
-            var createdAt = DateTime.UtcNow - createdTopic.CreatedAt;
+            var createdAt = DateTime.UtcNow - createdTopic.CreatedAtUtc;
             Assert.True(createdAt.TotalMilliseconds >= 0);
             Assert.True(createdAt.TotalMinutes < 2);
 
@@ -122,7 +121,7 @@ namespace Discussion.Web.Tests.Specs
         {
             var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion };
             var repo = _myApp.GetService<IRepository<Topic>>();
-            repo.Create(topic);
+            repo.Save(topic);
 
 
             var topicController = _myApp.CreateController<TopicController>();
@@ -152,7 +151,7 @@ namespace Discussion.Web.Tests.Specs
 **功能**是*很好*的"
             };
             var repo = _myApp.GetService<IRepository<Topic>>();
-            repo.Create(topic);
+            repo.Save(topic);
 
 
             var topicController = _myApp.CreateController<TopicController>();

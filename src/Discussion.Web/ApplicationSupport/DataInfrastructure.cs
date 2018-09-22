@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Discussion.Web.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,12 +15,18 @@ namespace Discussion.Web.ApplicationSupport
     {
         const string ConfigKey_ConnectionString = "sqliteConnectionString";
         
-        internal static void AddDataServices(this IServiceCollection services, IConfiguration appConfiguration)
+        internal static void AddDataServices(this IServiceCollection services, IConfiguration appConfiguration, ILoggerFactory loggerFactory)
         {
-            var connectionString = NormalizeSqliteConnectionString(appConfiguration[ConfigKey_ConnectionString], out var useInMemory);
+            var connectionString = NormalizeSqliteConnectionString(appConfiguration[ConfigKey_ConnectionString], out var useTemporary);
+            if (useTemporary)
+            {
+                loggerFactory.CreateLogger<Startup>().LogCritical("没有配置数据库连接字符串，将创建临时的数据库");
+                appConfiguration[ConfigKey_ConnectionString] = connectionString;
+            }
+            
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlite(connectionString);   
+                options.UseSqlite(connectionString);
             });
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
         }
@@ -28,26 +35,21 @@ namespace Discussion.Web.ApplicationSupport
         {
             var services = app.ApplicationServices;
             var appConfiguration = services.GetService<IConfiguration>();
-            var connectionString = NormalizeSqliteConnectionString(appConfiguration[ConfigKey_ConnectionString], out var useInMemory);
-
-            var logger = services.GetService<ILogger<Startup>>();
-            if (useInMemory)
-            {
-                logger.LogCritical("未配置数据库连接字符串，将使用内存数据库（进程停止后数据即丢失）。");
-            }
+            var connectionString = NormalizeSqliteConnectionString(appConfiguration[ConfigKey_ConnectionString], out var useTemporary);
 
             var loggingConfigurtion = appConfiguration.GetSection(Configurer.ConfigKey_Logging);
             services.GetService<IApplicationLifetime>()
                 .ApplicationStarted
-                .Register(() => InitializeDatabase(useInMemory, connectionString, logger, loggingConfigurtion));
+                .Register(() => InitializeDatabase(connectionString, services.GetService<ILogger<Startup>>(), loggingConfigurtion));
         }
 
-        static void InitializeDatabase(bool useInMemory, string connectionString, 
-            ILogger<Startup> logger, IConfiguration loggingConfiguration)
+        static void InitializeDatabase(string connectionString, ILogger<Startup> logger, IConfiguration loggingConfiguration)
         {
             var sqliteConnection = new SqliteConnection(connectionString);
-            var createDatabase = useInMemory || !File.Exists(sqliteConnection.DataSource);
-            if (createDatabase)
+            var dataSource = sqliteConnection.DataSource;
+
+            logger.LogInformation($"数据库位置：{dataSource}");
+            if (!File.Exists(dataSource))
             {
                 logger.LogCritical("正在创建新的数据库结构...");
                 
@@ -57,13 +59,17 @@ namespace Discussion.Web.ApplicationSupport
             }
         }
 
-        static string NormalizeSqliteConnectionString(string configuredConnectionString, out bool useInMemory)
+        static string NormalizeSqliteConnectionString(string configuredConnectionString, out bool useTemporary)
         {
-            useInMemory = string.IsNullOrWhiteSpace(configuredConnectionString);
-            return useInMemory 
-                ? "DataSource=:memory:" 
+            string randomDbName()
+            {
+                return Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N").Substring(10, 8) + "-dnclub.db");
+            }
+            
+            useTemporary = string.IsNullOrWhiteSpace(configuredConnectionString);
+            return useTemporary 
+                ? $"DataSource={randomDbName()}" 
                 : configuredConnectionString;
         }
-        
     }
 }
