@@ -17,7 +17,7 @@ namespace Discussion.Web.Services.Identity
             };
 
             var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
-            return Task.FromResult((ClaimsPrincipal)(new DiscussionPrincipal(identity) {User = user}));
+            return Task.FromResult(new ClaimsPrincipal(identity));
         }
     }
 }

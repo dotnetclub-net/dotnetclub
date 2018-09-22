@@ -91,7 +91,7 @@ namespace Discussion.Web.Controllers
                 Title = model.Title,
                 Content = model.Content,
                 Type = model.Type.Value,
-                CreatedBy = HttpContext.DiscussionUser().User.Id,
+                CreatedBy = HttpContext.DiscussionUser().Id,
                 CreatedAtUtc = DateTime.UtcNow
             };
 

@@ -6,6 +6,7 @@ using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Discussion.Web.Controllers
 {
@@ -13,11 +14,16 @@ namespace Discussion.Web.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User>_signInManager;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public AccountController(
+            UserManager<User> userManager, 
+            SignInManager<User> signInManager,
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _logger = logger;
         }
         
         [Route("/signin")]
@@ -39,19 +45,27 @@ namespace Discussion.Web.Controllers
             {
                 return RedirectTo(returnUrl);
             }
-            
+
+            var result = Microsoft.AspNetCore.Identity.SignInResult.Failed;
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(
+                result = await _signInManager.PasswordSignInAsync(
                     viewModel.UserName,
                     viewModel.Password,
                     isPersistent: false,
                     lockoutOnFailure: true);
                 
-                if (!result.Succeeded)
-                {
-                    ModelState.AddModelError("UserName", "用户名或密码错误");
-                }
+                _logger.LogInformation($"用户 {viewModel.UserName} 尝试登录，结果 {result}");
+            }
+            else
+            {
+                _logger.LogInformation($"用户 {viewModel.UserName} 尝试登录，但用户名密码的格式不正确");
+            }
+
+            if (!result.Succeeded)
+            {
+                ModelState.Clear();   // 将真正的验证结果隐藏掉（如果有的话）
+                ModelState.AddModelError("UserName", "用户名或密码错误");
             }
 
             return ModelState.IsValid ? RedirectTo(returnUrl) : View("Signin");

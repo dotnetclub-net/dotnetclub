@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Reflection;
 using System.Security.Claims;
+using Discussion.Web.Data;
 using Discussion.Web.Models;
+using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -51,28 +53,33 @@ namespace Discussion.Web.Tests
         
         public static void MockUser(this TestApplication app)
         {
-            var userId = 1;
-            var userName = "FancyUser";
-            var lastSigninTime = DateTime.UtcNow.AddMinutes(-30);
+            var userRepo = app.GetService<IRepository<User>>();
+            var passwordHasher = app.GetService<IPasswordHasher<User>>();
+
+            var user = new User
+            {
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
+                UserName = "FancyUser",
+                DisplayName = "FancyUser",
+                HashedPassword = passwordHasher.HashPassword(null, "111111")
+            };
+            userRepo.Save(user);
             
+            var lastSigninTime = DateTime.UtcNow.AddMinutes(-30);
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.Integer32),
-                new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(), ClaimValueTypes.Integer32),
+                new Claim(ClaimTypes.Name, user.UserName, ClaimValueTypes.String),
                 new Claim("SigninTime", lastSigninTime.Ticks.ToString(), ClaimValueTypes.Integer64)
             };
             var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
-            app.User = new DiscussionPrincipal(identity)
-            {
-                User = new User
-                {
-                    Id = userId,
-                    CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
-                    DisplayName = "Fancy User",
-                    LastSeenAt = lastSigninTime,
-                    UserName = userName
-                }
-            };
+            app.User = new ClaimsPrincipal(identity);
+        }
+        
+        public static User GetDiscussionUser(this TestApplication app)
+        {
+            var userRepo = app.GetService<IRepository<User>>();
+            return app.User.ToDiscussionUser(userRepo);
         }
         
         public static TController CreateControllerAndValidate<TController>(this TestApplication app, object model) where TController: Controller

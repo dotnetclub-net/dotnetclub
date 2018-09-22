@@ -105,7 +105,7 @@ namespace Discussion.Web.Tests.Specs
             createdTopic.Title.ShouldEqual(model.Title);
             createdTopic.Content.ShouldEqual(model.Content);
             createdTopic.Type.ShouldEqual(TopicType.Job);
-            createdTopic.CreatedBy.ShouldEqual((_myApp.User as DiscussionPrincipal).User.Id);
+            createdTopic.CreatedBy.ShouldEqual(_myApp.GetDiscussionUser().Id);
 
             var createdAt = DateTime.UtcNow - createdTopic.CreatedAtUtc;
             Assert.True(createdAt.TotalMilliseconds >= 0);

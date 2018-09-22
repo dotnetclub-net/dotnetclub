@@ -25,14 +25,4 @@ namespace Discussion.Web.Models
     {
         public string Name { get; }
     }
-
-    public class DiscussionPrincipal : ClaimsPrincipal
-    {
-        public DiscussionPrincipal(ClaimsIdentity identity) :base(identity)
-        {
-
-        }
-
-        public IUser User { get; set; }
-    }
 }

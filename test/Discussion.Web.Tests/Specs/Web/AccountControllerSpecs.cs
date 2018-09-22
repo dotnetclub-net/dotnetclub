@@ -61,6 +61,7 @@ namespace Discussion.Web.Tests.Specs.Web
             
             var accountCtrl = _myApp.CreateController<AccountController>();
             var userManager = _myApp.GetService<UserManager<User>>();
+            var userRepo = _myApp.GetService<IRepository<User>>();
 
             const string password = "111111";
             await userManager.CreateAsync(new User
@@ -84,9 +85,7 @@ namespace Discussion.Web.Tests.Specs.Web
             sigininResult.IsType<RedirectResult>();
             
             authService.Verify();
-            Assert.IsType<DiscussionPrincipal>(signedInClaimsPrincipal);
-            var discussionUser = signedInClaimsPrincipal as DiscussionPrincipal;
-            Assert.Equal("jim", discussionUser.User.UserName);
+            Assert.Equal("jim", signedInClaimsPrincipal.ToDiscussionUser(userRepo).UserName);
         }
         
         [Fact]
@@ -103,7 +102,6 @@ namespace Discussion.Web.Tests.Specs.Web
 
             
             Assert.False(accountCtrl.HttpContext.IsAuthenticated());
-            Assert.Null(accountCtrl.User  as DiscussionPrincipal);
             Assert.False(accountCtrl.ModelState.IsValid);
             Assert.Equal("用户名或密码错误", accountCtrl.ModelState["UserName"].Errors.First().ErrorMessage);
 
@@ -133,7 +131,6 @@ namespace Discussion.Web.Tests.Specs.Web
             var sigininResult = await accountCtrl.DoSignin(userModel, null);
 
             Assert.False(accountCtrl.HttpContext.IsAuthenticated());
-            Assert.Null(accountCtrl.User as DiscussionPrincipal);
             Assert.False(accountCtrl.ModelState.IsValid);
             Assert.Equal("用户名或密码错误", accountCtrl.ModelState["UserName"].Errors.First().ErrorMessage);
 

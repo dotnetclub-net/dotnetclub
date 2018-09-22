@@ -1,28 +1,46 @@
-﻿using Discussion.Web.Models;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using Discussion.Web.Data;
+using Discussion.Web.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Discussion.Web.Services.Identity
 {
-    public static class PrincipalContext
+    public static class HttpContextExtensions
     {
-
         public static bool IsAuthenticated(this HttpContext httpContext)
         {
             var isAuthedExpr = httpContext?.User?.Identity?.IsAuthenticated;
             return isAuthedExpr.HasValue && isAuthedExpr.Value; 
         }
         
-        public static DiscussionPrincipal DiscussionUser(this HttpContext httpContext)
+        public static User DiscussionUser(this HttpContext httpContext)
         {
             if (!IsAuthenticated(httpContext))
             {
                 return null;
             }
 
-            return httpContext.User as DiscussionPrincipal;
+            return ToDiscussionUser(httpContext.User,  httpContext.RequestServices.GetRequiredService<IRepository<User>>());
         }
+        
+        public static User ToDiscussionUser(this ClaimsPrincipal claimsPrincipal, IRepository<User> userRepo)
+        {
+            bool IsIdClaim(Claim claim)
+            {
+                return claim.Type == ClaimTypes.NameIdentifier;
+            }
+            
+            var identity = claimsPrincipal.Identities.FirstOrDefault(id => id.HasClaim(IsIdClaim));
+            var userIdClaim = identity?.Claims.FirstOrDefault(IsIdClaim)?.Value;
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
+            {
+                return null;
+            }
 
-
-
+            return userRepo.Get(userId);
+        }
     }
 }
