@@ -1,13 +1,14 @@
-OpenASPNET.ORG
+dotnetClub.net
 ----------------------
 
-**Welcome to the OpenASPNET.ORG project.**
+**欢迎关注 dotnetClub.net 项目。 [Click here to see English readme](https://github.com/jijiechen/openaspnetorg/blob/dev/readme-en.md).**
 
-This project is source code for a discussion website, which is used to demonstrate how asp.net core can be used to make a user generated web application. The online instance of this project is hosted at [openaspnet.org](http://openaspnet.org) which is exactly a real community for discussing asp.net core technical topics.
+本项目是一个论坛网站的源码，完整地展示了如何用 ASP.NET Core 技术开发一个用户参与的 Web 应用。您可以在 [dotnetclub.net](http://dotnetclub.net) 直接访问本项目的在线实例，并且在该网站上参与 .NET Core 相关技术的讨论。
 
-This project is a web application based on the [ASP.NET Core RC2](https://github.com/aspnet/Home/tree/v1.0.0-rc1-update1) open source and cross platform framework. This project will run on [.net core](https://dotnet.github.io/) runtime, but unit testing will still rely on full CLR frameworks(.NET Frmework on Windows and Mono on other systems).
+本项目是一个 Web 应用程序，基于开源和跨平台的 [.NET Core 2.1](https://www.microsoft.com/net/download/dotnet-core/2.1) 运行时。如果你打算研究或者参与贡献，您仍需要完整的 .NET Framework 或者 Mono 运行时来运行相关的开发任务。 
 
-| Build server| Branch         | Platform       | Status                                                                                                                                                                                             |
+
+| 集成服务      | 分支            | 平台       | 当前状态                                                                                                                                                                                             |
 |-------------|----------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Travis      | dev            | Linux          | [![Travis Status-dev](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=dev)](https://travis-ci.org/jijiechen/openaspnetorg/branches)                                                       |
 | AppVeyor    | dev            | Windows        | [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/dev)                     |
@@ -15,60 +16,67 @@ This project is a web application based on the [ASP.NET Core RC2](https://github
 | AppVeyor    | master         | Windows        | [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/master)            |
 
 
-### Using the source
+&nbsp;
 
-First, clone this repository and compile it to get everything ready:
+
+### 使用源代码
+
+
+首先，克隆当前仓库，并完成编译一次，就可以将所需要的环境准备好：
+
 
 ``` 
 git clone https://github.com/jijiechen/openaspnetorg.git
 cd openaspnetorg
 ```
 
-You can work on the source with any text editor or IDE.
+本项目使用了 [cakebuild](https://cakebuild.net) 作为构建工具。在执行下面描述的构建命令时，请将 `./build` 换成您自己所在平台对应的文件：
 
-To restore packages and compile:
+* Windows: `build.sh`
+* Linux: `build-linux.sh`
+* macOS: `build.sh`
 
-``` 
-./build --target=build-all
+可以使用下面的命令，来还源、安装所有依赖的包，并编译项目：
+
+```sh
+./build --target=build-all   # 可能需要修改入口文件的名字
 ```
 
-To execute tests:
+可以使用下面的命令，来运行单元测试：
 
-``` 
-./build --target=cs-test
+```sh
+./build --target=cs-test     # 可能需要修改入口文件的名字
 ```
 
 &nbsp;
 
-### Installation
+### 安装
 
-You need the asp.net core basic environment to run this application. It's pretty simple to run locally when following these steps:
 
-``` 
+如果只是要运行本项目，您可以直接使用 [Docker](https://www.docker.com/) 来安装。下面的命令可以帮助您在本地运行一个示例：
+
+```sh
+docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201809231041
+```
+
+您也可以直接在本地编译并运行，但您需要在本地安装 .NET Core SDK、node.js （如果是在非 Windows 电脑上，还需要 Mono）等一系列依赖才能编译。环境准备就绪后，实际的编译过程很简单：
+
+
+```sh
 git clone https://github.com/jijiechen/openaspnetorg.git
 cd openaspnetorg
-./build --target=build-all
-cd src/Discussion.Web
-dotnet run
+./build --target=ci      # 可能需要修改入口文件的名字
+cd src/Discussion.Web/publish
+dotnet ./Discussion.Web.dll
 ```
 
-By default, the application will use in-memory storage, which will be cleared on process exiting. 
-
-Besides, you can also package artifacts and publish this project to a server. &nbsp;
-
-``` 
-./build publish
-```
-
-By executing this command, you can get output generated for deploying. Go to `src/Discussion.Web/bin/output` and push contents to your server.
+默认情况下，应用程序会自动创建一个 Sqlite 数据库用于存储，这个数据库会在进程退出时失效。因此，如果你需要留存这些数据话，请修改 `appsettings.json` 或者 `appsettings.<环境>.json` 配置文件来配置数据库位置。
 
 &nbsp;
 
-### Contributing
+### 贡献代码
 
-Since this project is still under development, so It will be great to have your contribution. 
-If you are planning to push back some code, please use the [Git Flow](http://nvie.com/posts/a-successful-git-branching-model/), when you are going to fix an issue or submit a feature, please create a branch for your work and then issue a pull request through that branch.
-This project is open source under [the MIT license](https://opensource.org/licenses/MIT).
+当前项目还处于活跃的开发之中，非常欢迎您参与贡献。如果您打算提交代码，请您按照 [Git Flow](http://nvie.com/posts/a-successful-git-branching-model/) 的流程，使用 [Pull Request](https://help.github.com/articles/about-pull-requests/) 的方式向我提交代码。简单来说，就是在编写功能或者修复问题时，先创建一个对应的分支，然后再提交 Pull Request。本项目采用 [MIT 开源协议](https://opensource.org/licenses/MIT) 开源。
 
 &nbsp;
 

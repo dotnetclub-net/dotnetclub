@@ -17,11 +17,12 @@ ProjectSection(SolutionItems) = preProject
 	build.cake = build.cake
 	build.ps1 = build.ps1
 	build.sh = build.sh
-	Readme.md = Readme.md
 	.gitignore = .gitignore
 	DockerFile = DockerFile
 	deploy-on-hyper.sh = deploy-on-hyper.sh
 	upgrade-from-existing.sh = upgrade-from-existing.sh
+	readme.md = readme.md
+	readme-en.md = readme-en.md
 EndProjectSection
 EndProject
 Global
