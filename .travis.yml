@@ -32,3 +32,6 @@ script:
   - if test "$TRAVIS_OS_NAME" == "osx"; then ./build.sh --target=ci ; fi
   - if test "$TRAVIS_OS_NAME" == "linux"; then ./build-linux.sh --target=ci ; fi
 
+cache:
+  directories:
+  - /home/travis/.nuget/packages

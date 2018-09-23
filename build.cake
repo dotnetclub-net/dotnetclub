@@ -62,16 +62,22 @@ Task("cs-test")
 
 Task("package")
   .WithCriteria(() => !IsRunningOnWindows())
-  .Does(() =>
+  .Does((context) =>
     {
         DoInDirectory("./src/Discussion.Web/", () =>
         {
             Execute("dotnet publish -c Release -o publish");
         });
  
-        var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-        var imageTag = $"jijiechen/dotnetclub:{now}"; 
-        Execute($"docker build ./src/Discussion.Web/publish -t {imageTag}");
+        var isMac = context.Environment.Platform.Family == Cake.Core.PlatformFamily.OSX;
+        var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TRAVIS"));
+        var skipDocker = isCI && isMac;
+
+        if(!skipDocker){
+            var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
+            var imageTag = $"jijiechen/dotnetclub:{now}"; 
+            Execute($"docker build ./src/Discussion.Web/publish -t {imageTag} -f ./DockerFile");
+        }
     });
 
 
