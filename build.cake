@@ -2,6 +2,8 @@
 #addin "Cake.Npm"
 
 var target = Argument("target", "Default");
+var imagetag = Argument("imagetag", string.Empty);
+
 // ./build.sh --target=build-all
 
 // Available methods: https://github.com/cake-build/cake/blob/develop/src/Cake.Core/Scripting/ScriptHost.cs
@@ -45,7 +47,7 @@ Task("build-web")
             NpmInstall();
 
             Execute("bower install");
-            Execute("gulp");
+            Execute("gulp publish");
         });
     });
 
@@ -74,9 +76,13 @@ Task("package")
         var skipDocker = isCI && isMac;
 
         if(!skipDocker){
-            var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-            var imageTag = $"jijiechen/dotnetclub:{now}"; 
-            Execute($"docker build ./src/Discussion.Web/publish -t {imageTag} -f ./DockerFile");
+            if(string.IsNullOrWhiteSpace(imagetag)){
+                var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
+                imagetag = $"jijiechen/dotnetclub:{now}";
+            } 
+
+            CopyFile("./DockerFile", "./src/Discussion.Web/publish/DockerFile");
+            Execute($"docker build ./src/Discussion.Web/publish -t {imagetag} -f ./src/Discussion.Web/publish/DockerFile");
         }
     });
 
