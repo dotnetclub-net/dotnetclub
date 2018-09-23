@@ -31,7 +31,7 @@ branches:
     
 script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ./build.sh --target=ci ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then tag=`date +%Y%m%d%H%M` ; export imagetag="jijiechen/dotnetclub:$tag" ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then tag=`date -u +%Y%m%d%H%M` ; export imagetag="jijiechen/dotnetclub:$tag" ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./build-linux.sh --target=ci --imagetag="$imagetag" ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$DOCKER_USERNAME" != "" ]; then docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push $imagetag ; fi
 

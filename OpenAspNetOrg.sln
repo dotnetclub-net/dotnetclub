@@ -20,6 +20,8 @@ ProjectSection(SolutionItems) = preProject
 	Readme.md = Readme.md
 	.gitignore = .gitignore
 	DockerFile = DockerFile
+	deploy-on-hyper.sh = deploy-on-hyper.sh
+	upgrade-from-existing.sh = upgrade-from-existing.sh
 EndProjectSection
 EndProject
 Global

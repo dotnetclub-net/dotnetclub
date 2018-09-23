@@ -1,7 +1,7 @@
 # How to run this image?
 # 1. (optional) At (WorkDir), Create your appsettings.json or appsettings.<env>.json
 # 2. (optional) At (WorkDir), Create your database file
-# 3. execute docker run -d -v (WorkDir):/club-data -p 5000:5000 jijiechen/dotnetclub 
+# 3. Execute docker run -d -v (WorkDir):/club-data -p 5000:5000 jijiechen/dotnetclub 
 
 
 
@@ -12,9 +12,11 @@ VOLUME /club-data
 
 COPY . /club-app
 
+
 RUN useradd --uid 5000 --create-home --home /home/clubadm clubadm
 RUN chown -R clubadm /home/clubadm
 RUN chown -R clubadm /club-data
+
 
 USER clubadm
 WORKDIR /club-data

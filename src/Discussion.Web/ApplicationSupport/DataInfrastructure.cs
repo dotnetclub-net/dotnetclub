@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Discussion.Migrations.Supporting;
 using Discussion.Web.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -53,7 +54,7 @@ namespace Discussion.Web.ApplicationSupport
             {
                 logger.LogCritical("正在创建新的数据库结构...");
                 
-                DatabaseMigrator.Migrate(connectionString, loggingConfiguration);
+                SqliteMigrator.Migrate(connectionString, logging => Configurer.ConfigureFileLogging(logging, true, loggingConfiguration));
                 
                 logger.LogCritical("数据库结构创建完成");
             }

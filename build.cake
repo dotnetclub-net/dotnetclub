@@ -82,6 +82,11 @@ Task("package")
             } 
 
             CopyFile("./DockerFile", "./src/Discussion.Web/publish/DockerFile");
+            
+            CopyFile("./upgrade-from-existing.sh", "./src/Discussion.Web/publish/upgrade-from-existing.sh ");
+            CopyFile("src/Discussion.Migrations/bin/Release/netcoreapp2.1/Discussion.Migrations.deps.json", "./src/Discussion.Web/publish/Discussion.Migrations.deps.json");
+            CopyFile("src/Discussion.Migrations/bin/Release/netcoreapp2.1/Discussion.Migrations.runtimeconfig.json", "./src/Discussion.Web/publish/Discussion.Migrations.runtimeconfig.json");
+
             Execute($"docker build ./src/Discussion.Web/publish -t {imagetag} -f ./src/Discussion.Web/publish/DockerFile");
         }
     });
