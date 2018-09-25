@@ -8,48 +8,48 @@ using Xunit;
 namespace Discussion.Web.Tests.IntegrationTests
 {
     [Collection("AppSpecs")]
-    public class CommentPageSpecs
+    public class ReplyPageSpecs
     {
         private readonly TestApplication _theApp;
 
-        public CommentPageSpecs(TestApplication theApp)
+        public ReplyPageSpecs(TestApplication theApp)
         {
             _theApp = theApp.Reset();
         }
 
         [Fact]
-        public async Task should_comment_a_topic_by_an_authorized_user()
+        public async Task should_reply_a_topic_by_an_authorized_user()
         {
             _theApp.MockUser();
-            var (topic, userId) = CommentControllerSpecs.CreateTopic(_theApp);
+            var (topic, userId) = ReplyControllerSpecs.CreateTopic(_theApp);
 
-            var response = await RequestToCreateComment(topic.Id);
+            var response = await RequestToCreateReply(topic.Id);
 
             response.StatusCode.ShouldEqual(HttpStatusCode.NoContent);
         }
 
 
         [Fact]
-        public async Task should_not_be_able_to_comment_a_topic_by_anonymous_user()
+        public async Task should_not_be_able_to_reply_a_topic_by_anonymous_user()
         {
             _theApp.MockUser();
-            var (topic, userId) = CommentControllerSpecs.CreateTopic(_theApp);
+            var (topic, userId) = ReplyControllerSpecs.CreateTopic(_theApp);
             
             _theApp.Reset();
-            var response = await RequestToCreateComment(topic.Id);
+            var response = await RequestToCreateReply(topic.Id);
 
             response.StatusCode.ShouldEqual(HttpStatusCode.Redirect);
             response.Headers.Location.ToString().Contains("signin").ShouldEqual(true);
         }
         
         
-        private async Task<HttpResponseMessage> RequestToCreateComment(int topicId)
+        private async Task<HttpResponseMessage> RequestToCreateReply(int topicId)
         {
             var request = _theApp.Server
-                .CreateRequest($"/topics/{topicId}/comments/")
+                .CreateRequest($"/topics/{topicId}/replies")
                 .WithFormContent(new Dictionary<string, string>
                 {
-                    {"Content", "comment content" }
+                    {"Content", "reply content" }
                 });
 
             return await request.PostAsync();

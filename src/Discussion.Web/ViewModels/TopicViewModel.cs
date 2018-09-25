@@ -13,14 +13,14 @@ namespace Discussion.Web.ViewModels
         public string MarkdownContent { get; set; }
 
         public string HtmlContent { get; set; }
-        public List<Comment> Comments { get; set; }
+        public List<Reply> Replies { get; set; }
         
         public int ReplyCount { get; set; }
         public int ViewCount { get; set; }
 
 
 
-        public static TopicViewModel CreateFrom(Topic topic, List<Comment> comments)
+        public static TopicViewModel CreateFrom(Topic topic, List<Reply> reply)
         {
             return new TopicViewModel
             {
@@ -30,7 +30,7 @@ namespace Discussion.Web.ViewModels
                 ReplyCount = topic.ReplyCount,
                 ViewCount = topic.ViewCount,
                 HtmlContent = MarkdownConverter.ToHtml(topic.Content),
-                Comments = comments
+                Replies = reply
             };
         }
     }

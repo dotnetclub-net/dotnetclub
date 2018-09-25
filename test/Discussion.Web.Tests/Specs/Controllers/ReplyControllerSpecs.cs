@@ -11,17 +11,17 @@ using Xunit;
 namespace Discussion.Web.Tests.Specs.Controllers
 {
     [Collection("AppSpecs")]
-    public class CommentControllerSpecs
+    public class ReplyControllerSpecs
     {
         private TestApplication _app;
-        public CommentControllerSpecs(TestApplication app)
+        public ReplyControllerSpecs(TestApplication app)
         {
             _app = app.Reset();
         }
 
 
         [Fact]
-        public void should_add_comment()
+        public void should_add_reply()
         {
             // Arrange
             _app.MockUser();
@@ -29,22 +29,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             
             // Act
-            var commentController = _app.CreateController<CommentController>();
-            commentController.Comment(topic.Id, new CommentCreationModel
+            var replyController = _app.CreateController<ReplyController>();
+            replyController.Reply(topic.Id, new ReplyCreationModel
             {
-                Content = "my comment"
+                Content = "my reply"
             });
             
             
             // Assert
-            var allComments = _app.GetService<IRepository<Comment>>()
+            var replies = _app.GetService<IRepository<Reply>>()
                         .All()
                         .Where(c => c.TopicId == topic.Id)
                         .ToList();
-            allComments.Count.ShouldEqual(1);
-            allComments[0].TopicId.ShouldEqual(topic.Id);
-            allComments[0].CreatedBy.ShouldEqual(userId);
-            allComments[0].Content.ShouldEqual("my comment");
+            replies.Count.ShouldEqual(1);
+            replies[0].TopicId.ShouldEqual(topic.Id);
+            replies[0].CreatedBy.ShouldEqual(userId);
+            replies[0].Content.ShouldEqual("my reply");
             
             
             var dbContext = _app.GetService<ApplicationDbContext>();
@@ -57,47 +57,47 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         [Fact]
-        public void should_not_add_comment_when_model_state_invalid()
+        public void should_not_add_reply_when_model_state_invalid()
         {
             // Arrange
             _app.MockUser();
             var (topic, userId) = CreateTopic(_app);
 
-            var commentController = _app.CreateController<CommentController>();
-            commentController.ModelState.AddModelError("Content", "必须填写评论内容");
+            var replyController = _app.CreateController<ReplyController>();
+            replyController.ModelState.AddModelError("Content", "必须填写回复内容");
             
             
             
             // Act
-            var commentResult = commentController.Comment(topic.Id, new CommentCreationModel
+            var replyResult = replyController.Reply(topic.Id, new ReplyCreationModel
             {
-                Content = "my comment"
+                Content = "my reply"
             });
 
             
             // Assert
-            var statusCodeResult = commentResult as BadRequestObjectResult;
+            var statusCodeResult = replyResult as BadRequestObjectResult;
             Assert.NotNull(statusCodeResult);
             Assert.Equal(400, statusCodeResult.StatusCode);
             
             var errors = statusCodeResult.Value as SerializableError;
             Assert.NotNull(errors);
-            Assert.Contains("必须填写评论内容", errors.Values.Cast<string[]>().SelectMany(err => err).ToList());
+            Assert.Contains("必须填写回复内容", errors.Values.Cast<string[]>().SelectMany(err => err).ToList());
         }
         
         [Fact]
-        public void should_not_add_comment_when_topic_id_does_not_exist()
+        public void should_not_add_reply_when_topic_id_does_not_exist()
         {
             _app.MockUser();
 
-            var commentController = _app.CreateController<CommentController>();
+            var replyController = _app.CreateController<ReplyController>();
             
-            var commentResult = commentController.Comment(99999, new CommentCreationModel
+            var replyResult = replyController.Reply(99999, new ReplyCreationModel
             {
-                Content = "my comment"
+                Content = "my reply"
             });
 
-            var statusCodeResult = commentResult as BadRequestObjectResult;
+            var statusCodeResult = replyResult as BadRequestObjectResult;
             Assert.NotNull(statusCodeResult);
             Assert.Equal(400, statusCodeResult.StatusCode);
         }

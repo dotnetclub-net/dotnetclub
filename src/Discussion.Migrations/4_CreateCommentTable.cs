@@ -4,11 +4,11 @@ using FluentMigrator.Builders.Create.Table;
 namespace Discussion.Migrations
 {
     [Migration(4)]
-    public class CreateCommentTable: CreateEntityTableMigration
+    public class CreateReplyTable: CreateEntityTableMigration
     {
         protected override string TableName()
         {
-            return "Comment";
+            return "Reply";
         }
 
         protected override void CreateEntityColumns(ICreateTableWithColumnSyntax entityTable)

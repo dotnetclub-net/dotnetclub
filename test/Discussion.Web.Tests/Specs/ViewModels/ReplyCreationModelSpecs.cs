@@ -4,11 +4,11 @@ using Xunit;
 namespace Discussion.Web.Tests.Specs.ViewModels
 {
     [Collection("AppSpecs")]
-    public class CommentCreationModelSpecs
+    public class ReplyCreationModelSpecs
     {
         private readonly TestApplication _myApp;
 
-        public CommentCreationModelSpecs(TestApplication app)
+        public ReplyCreationModelSpecs(TestApplication app)
         {
             _myApp = app;
         }
@@ -18,9 +18,9 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         [Fact]
         public void should_validate_empty_content_as_invalid()
         {
-            var comment = new CommentCreationModel();
+            var replyModel = new ReplyCreationModel();
             
-            var modelState = _myApp.ValidateModel(comment);
+            var modelState = _myApp.ValidateModel(replyModel);
             
             Assert.False(modelState.IsValid);
         }

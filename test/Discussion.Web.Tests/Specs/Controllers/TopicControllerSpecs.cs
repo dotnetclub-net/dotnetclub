@@ -138,20 +138,20 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
 
         [Fact]
-        public void should_show_topic_with_comment_list()
+        public void should_show_topic_with_reply_list()
         {
             // Arrange
             var topicRepo = _myApp.GetService<IRepository<Topic>>();
-            var commentRepo = _myApp.GetService<IRepository<Comment>>();
+            var replyRepo = _myApp.GetService<IRepository<Reply>>();
             
             var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion };
             topicRepo.Save(topic);
 
-            var commentContent = "comment content ";
-            var commentNew = new Comment { CreatedAtUtc = DateTime.Today.AddDays(1), Content = commentContent + "2", TopicId = topic.Id};
-            var commentOld = new Comment { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = commentContent + "1", TopicId = topic.Id};
-            commentRepo.Save(commentNew);
-            commentRepo.Save(commentOld);
+            var replyContent = "reply content ";
+            var replyNew = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = replyContent + "2", TopicId = topic.Id};
+            var replyOld = new Reply { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = replyContent + "1", TopicId = topic.Id};
+            replyRepo.Save(replyNew);
+            replyRepo.Save(replyOld);
 
             
             // Act
@@ -167,14 +167,14 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var topicShown = viewModel as TopicViewModel;
             topicShown.ShouldNotBeNull();
             topicShown.Id.ShouldEqual(topic.Id);
-            topicShown.Comments.ShouldNotBeNull();
+            topicShown.Replies.ShouldNotBeNull();
             
-            topicShown.Comments.Count.ShouldEqual(2);
-            topicShown.Comments[0].Content.ShouldEqual(commentContent + "1");
-            topicShown.Comments[0].TopicId.ShouldEqual(topic.Id);
+            topicShown.Replies.Count.ShouldEqual(2);
+            topicShown.Replies[0].Content.ShouldEqual(replyContent + "1");
+            topicShown.Replies[0].TopicId.ShouldEqual(topic.Id);
             
-            topicShown.Comments[1].Content.ShouldEqual(commentContent + "2");
-            topicShown.Comments[1].TopicId.ShouldEqual(topic.Id);
+            topicShown.Replies[1].Content.ShouldEqual(replyContent + "2");
+            topicShown.Replies[1].TopicId.ShouldEqual(topic.Id);
         }
     
 

@@ -8,22 +8,22 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Web.Controllers
 {
-    public class CommentController: Controller
+    public class ReplyController: Controller
     {
-        private IRepository<Comment> _commentRepo;
+        private IRepository<Reply> _replyRepo;
         private IRepository<Topic> _topicRepo;
 
-        public CommentController(IRepository<Comment> commentRepo, IRepository<Topic> topicRepo)
+        public ReplyController(IRepository<Reply> replyRepo, IRepository<Topic> topicRepo)
         {
-            _commentRepo = commentRepo;
+            _replyRepo = replyRepo;
             _topicRepo = topicRepo;
         }
 
 
-        [Route("/topics/{topicId}/comments")]
+        [Route("/topics/{topicId}/replies")]
         [HttpPost]
         [Authorize]
-        public IActionResult Comment(int topicId, CommentCreationModel commentCreationModel)
+        public IActionResult Reply(int topicId, ReplyCreationModel replyCreationModel)
         {
             var topic = _topicRepo.Get(topicId);
             if (topic == null)
@@ -40,13 +40,13 @@ namespace Discussion.Web.Controllers
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
             
-            var comment = new Comment
+            var reply = new Reply
             {
                 TopicId = topicId,
                 CreatedBy = User.ExtractUserId().Value,
-                Content = commentCreationModel.Content
+                Content = replyCreationModel.Content
             };
-            _commentRepo.Save(comment);
+            _replyRepo.Save(reply);
             return NoContent();
         }
     }

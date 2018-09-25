@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
 using Discussion.Web.Data;
 using Discussion.Web.Models;
@@ -12,7 +11,12 @@ namespace Discussion.Web.Services.Identity
     {
         public static bool IsAuthenticated(this HttpContext httpContext)
         {
-            var isAuthedExpr = httpContext?.User?.Identity?.IsAuthenticated;
+            return IsAuthenticated(httpContext?.User); 
+        }
+        
+        public static bool IsAuthenticated(this ClaimsPrincipal claimsPrincipal)
+        {
+            var isAuthedExpr = claimsPrincipal?.Identity?.IsAuthenticated;
             return isAuthedExpr.HasValue && isAuthedExpr.Value; 
         }
         

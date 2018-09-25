@@ -14,12 +14,12 @@ namespace Discussion.Web.Controllers
     {
 
         private readonly IRepository<Topic> _topicRepo;
-        private readonly IRepository<Comment> _commentRepo;
+        private readonly IRepository<Reply> _replyRepo;
 
-        public TopicController(IRepository<Topic> topicRepo, IRepository<Comment> commentRepo)
+        public TopicController(IRepository<Topic> topicRepo, IRepository<Reply> replyRepo)
         {
             _topicRepo = topicRepo;
-            _commentRepo = commentRepo;
+            _replyRepo = replyRepo;
         }
 
 
@@ -61,11 +61,11 @@ namespace Discussion.Web.Controllers
                 return NotFound();
             }
 
-            var comments = _commentRepo.All()
+            var replies = _replyRepo.All()
                                         .Where(c => c.TopicId == id)
                                         .OrderBy(c => c.CreatedAtUtc)
                                         .ToList();
-            var showModel = TopicViewModel.CreateFrom(topic, comments);
+            var showModel = TopicViewModel.CreateFrom(topic, replies);
 
             return View(showModel);
         }

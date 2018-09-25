@@ -31,11 +31,11 @@
             </div>
 
             <div class="panel-body">
-                @foreach (var comment in Model.Comments)
+                @foreach (var reply in Model.Replies)
                 {
                     <div class="reply-item">
-                        @comment.CreatedBy
-                        @comment.Content
+                        @reply.CreatedBy
+                        @reply.Content
                     </div>
                 }
             </div>
@@ -43,7 +43,7 @@
     </div>
 }
 
-@if (Context.IsAuthenticated())
+@if (User.IsAuthenticated())
 {
     <div class="row">
         <div class="panel no-padding panel-topic-create-reply col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -72,13 +72,22 @@
                     return false;
                 }
 
-                var comment = { content: replyContent };
                 var topicId = parseInt('@Model.Id');
-                $.post('/topics/' + topicId + '/comments', comment, function(data) {
-                    debugger;
-                    console.log(data);
-                    location.reload();
-                }, 'json');
+                var postUrl = '/topics/' + topicId + '/replies';
+                $.ajax({
+                    url: postUrl,
+                    method: 'POST',
+                    data: { content: replyContent },
+                    // contentType: 'json',
+                    dataType: 'json',
+                    success: function() {
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        var errors = JSON.parse(xhr.responseText);
+                        // Object.values(errors);  [], [], []
+                    }
+                });
             });
     </script>
 }
