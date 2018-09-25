@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Discussion.Web.Models;
 using Discussion.Web.Services.Markdown;
 
@@ -6,31 +7,27 @@ namespace Discussion.Web.ViewModels
 {
     public class TopicViewModel
     {
-        public int Id { get; set; }
+        private TopicViewModel(Topic topic)
+        {
+            this.Topic = topic;
+        }
+        
+        public int Id => this.Topic.Id;
 
-        public string Title { get; set; }
-
-        public string MarkdownContent { get; set; }
-
+        public Topic Topic { get; }
+        
         public string HtmlContent { get; set; }
+        
         public List<Reply> Replies { get; set; }
         
-        public int ReplyCount { get; set; }
-        public int ViewCount { get; set; }
 
 
-
-        public static TopicViewModel CreateFrom(Topic topic, List<Reply> reply)
+        public static TopicViewModel CreateFrom(Topic topic, List<Reply> replies)
         {
-            return new TopicViewModel
+            return new TopicViewModel(topic)
             {
-                Id = topic.Id,
-                Title = topic.Title,
-                MarkdownContent = topic.Content,
-                ReplyCount = topic.ReplyCount,
-                ViewCount = topic.ViewCount,
                 HtmlContent = MarkdownConverter.ToHtml(topic.Content),
-                Replies = reply
+                Replies = replies
             };
         }
     }

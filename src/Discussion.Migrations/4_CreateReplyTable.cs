@@ -6,9 +6,11 @@ namespace Discussion.Migrations
     [Migration(4)]
     public class CreateReplyTable: CreateEntityTableMigration
     {
+        public const string TABLE_NAME = "Reply";
+
         protected override string TableName()
         {
-            return "Reply";
+            return TABLE_NAME;
         }
 
         protected override void CreateEntityColumns(ICreateTableWithColumnSyntax entityTable)

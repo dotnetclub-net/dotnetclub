@@ -61,6 +61,15 @@
         color:$text-muted
       }
     }
+    
+    .topic-meta-secondary {
+     
+      .last-replied-at{
+        font-size: 13px;
+        padding-top: 5px;
+        color: #777777;
+      }
+    }
   }
 }
 

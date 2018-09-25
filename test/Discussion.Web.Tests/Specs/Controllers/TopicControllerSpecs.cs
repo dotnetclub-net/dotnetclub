@@ -4,6 +4,7 @@ using System.Linq;
 using Discussion.Web.Controllers;
 using Discussion.Web.Data;
 using Discussion.Web.Models;
+using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
@@ -118,11 +119,19 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
 
         [Fact]
-        public void should_show_topic()
+        public void should_show_topic_and_update_view_count()
         {
-            var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion };
+            _myApp.MockUser();
+            var topic = new Topic
+            {
+                Title = "dummy topic 1", 
+                ViewCount = 4,
+                Type = TopicType.Discussion,
+                CreatedBy = _myApp.User.ExtractUserId().Value
+            };
             var repo = _myApp.GetService<IRepository<Topic>>();
             repo.Save(topic);
+            _myApp.Reset();
 
 
             var topicController = _myApp.CreateController<TopicController>();
@@ -135,24 +144,26 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var topicShown = viewModel as TopicViewModel;
             topicShown.ShouldNotBeNull();
             topicShown.Id.ShouldEqual(topic.Id);
+            topicShown.Topic.ViewCount.ShouldEqual(5);
         }
 
         [Fact]
         public void should_show_topic_with_reply_list()
         {
+            _myApp.MockUser();
             // Arrange
             var topicRepo = _myApp.GetService<IRepository<Topic>>();
             var replyRepo = _myApp.GetService<IRepository<Reply>>();
             
-            var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion };
+            var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion, CreatedBy = _myApp.User.ExtractUserId().Value };
             topicRepo.Save(topic);
 
             var replyContent = "reply content ";
-            var replyNew = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = replyContent + "2", TopicId = topic.Id};
-            var replyOld = new Reply { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = replyContent + "1", TopicId = topic.Id};
+            var replyNew = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = replyContent + "2", TopicId = topic.Id, CreatedBy = _myApp.User.ExtractUserId().Value};
+            var replyOld = new Reply { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = replyContent + "1", TopicId = topic.Id, CreatedBy = _myApp.User.ExtractUserId().Value};
             replyRepo.Save(replyNew);
             replyRepo.Save(replyOld);
-
+            _myApp.Reset();
             
             // Act
             var topicController = _myApp.CreateController<TopicController>();
@@ -181,10 +192,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_show_render_topic_content_from_markdown()
         {
+            _myApp.MockUser();
             var topic = new Topic
             {
                 Title = "dummy topic 1",
                 Type = TopicType.Discussion,
+                CreatedBy = _myApp.User.ExtractUserId().Value,
                 Content = @"标题哈
 
 ### 哈呵呵
@@ -193,6 +206,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             };
             var repo = _myApp.GetService<IRepository<Topic>>();
             repo.Save(topic);
+            _myApp.Reset();
 
 
             var topicController = _myApp.CreateController<TopicController>();
@@ -204,8 +218,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var topicShown = viewModel as TopicViewModel;
             topicShown.ShouldNotBeNull();
             topicShown.Id.ShouldEqual(topic.Id);
-            topicShown.Title.ShouldEqual(topic.Title);
-            topicShown.MarkdownContent.ShouldEqual(topic.Content);
+            topicShown.Topic.Title.ShouldEqual(topic.Title);
+            topicShown.Topic.Content.ShouldEqual(topic.Content);
             topicShown.HtmlContent.ShouldEqual("<p>标题哈</p>\n<h3>哈呵呵</h3>\n<p><strong>功能</strong>是<em>很好</em>的</p>\n");
         }
     }

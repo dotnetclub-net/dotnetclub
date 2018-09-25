@@ -1,6 +1,7 @@
 ﻿using Discussion.Web.Data;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Discussion.Web.Models
 {
@@ -16,7 +17,9 @@ namespace Discussion.Web.Models
 
         public int ReplyCount { get; set; }
         public int ViewCount { get; set; }
-
+        
+        [ForeignKey("CreatedBy")]
+        public User Author { get; set; }
     }
 
 

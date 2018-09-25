@@ -6,9 +6,11 @@ namespace Discussion.Migrations
     [Migration(2)]
     public class CreateUserTable: CreateEntityTableMigration
     {
+        public const string TABLE_NAME = "User";
+        
         protected override string TableName()
         {
-            return "User";
+            return TABLE_NAME;
         }
 
         protected override void CreateEntityColumns(ICreateTableWithColumnSyntax entityTable)
@@ -18,5 +20,6 @@ namespace Discussion.Migrations
                .WithColumn("HashedPassword").AsString(2000).Nullable()
                .WithColumn("LastSeenAt").AsDateTime().Nullable();
         }
+
     }
 }

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Discussion.Web.Data;
 
 namespace Discussion.Web.Models
@@ -7,5 +8,9 @@ namespace Discussion.Web.Models
         public int TopicId { get; set; }
         public int CreatedBy { get; set; }
         public string Content { get; set; }
+        
+        [ForeignKey("CreatedBy")]
+        public User Author { get; set; }
+
     }
 }

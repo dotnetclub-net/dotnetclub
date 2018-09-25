@@ -1,6 +1,4 @@
-﻿@using System.ComponentModel.DataAnnotations
-@using System.Reflection
-@using Discussion.Web.Services.Identity
+﻿@using Discussion.Web.Services.Identity
 @model TopicListViewModel
 
 @{
@@ -8,14 +6,6 @@
 
     var prevDisabled = Model.HasPreviousPage ? "" : "disabled";
     var nextDisabled = Model.HasNextPage ? "" : "disabled";
-}
-
-@functions{
-    static string DescribeTopicType(TopicType topicType)
-    {
-        var memberInfo = typeof(TopicType).GetMember(topicType.ToString()).FirstOrDefault();
-        return memberInfo.GetCustomAttribute<DisplayAttribute>().Name;
-    }
 }
 
 @section Head{
@@ -45,7 +35,7 @@
             {
                 <div class="topic-item">
                     <div class="topic-meta-primary pull-left">
-                        <span class="topic-type">@DescribeTopicType(topicItem.Type)</span>
+                        <span class="topic-type">@Html.DescribeTopicType(topicItem.Type)</span>
                     </div>
                     <a class="topic-title" href="@Url.Action("Index", "Topic", new { id = topicItem.Id})">
                         @topicItem.Title
@@ -53,7 +43,8 @@
                     @if (topicItem.LastRepliedAt.HasValue)
                     {
                         <div class="topic-meta-secondary pull-right">
-                            @topicItem.LastRepliedAt
+                            <span class="user-gravatar"></span>
+                            <span class="last-replied-at" data-last-replied-at="@Html.Timestamp(topicItem.LastRepliedAt)"></span>
                         </div>
                     }
                 </div>
@@ -83,3 +74,13 @@
 
     </div>
 </div>
+
+
+@section Tail{
+    <script src="~/scripts/functions.js"></script>
+    <script>
+        $(document).ready(function() {
+            window.DiscussionApp.utils.transformTimestampOn('.last-replied-at', 'data-last-replied-at');
+        });
+    </script>
+}

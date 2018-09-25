@@ -72,26 +72,33 @@
             </div>
         </div>
     </nav>
+
     @RenderSection("PreContent", required: false)
+
     <div class="container body-content">
         @RenderBody()        
     </div>
+
     @RenderSection("PostContent", required: false)
 
-    <environment names="Development">
-        <script src="~/lib/dist/jquery/jquery.js"></script>
-        <script src="~/lib/dist/bootstrap-sass/javascripts/bootstrap.js"></script>
-    </environment>
-    <environment names="QA,Integration,Staging,Production">
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.4.min.js"
-                asp-fallback-src="~/lib/dist/jquery/jquery.min.js"
-                asp-fallback-test="window.jQuery">
-        </script>
-        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js"
-                asp-fallback-src="~/lib/dist/bootstrap-sass/javascripts/bootstrap.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
-        </script>
-    </environment>
+<footer class="page-footer container">
+    © @DateTime.Today.Year dotnetClub
+</footer>
+
+<environment names="Development">
+    <script src="~/lib/dist/jquery/jquery.js"></script>
+    <script src="~/lib/dist/bootstrap-sass/javascripts/bootstrap.js"></script>
+</environment>
+<environment names="QA,Integration,Staging,Production">
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.4.min.js"
+            asp-fallback-src="~/lib/dist/jquery/jquery.min.js"
+            asp-fallback-test="window.jQuery">
+    </script>
+    <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js"
+            asp-fallback-src="~/lib/dist/bootstrap-sass/javascripts/bootstrap.min.js"
+            asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
+    </script>
+</environment>
 
     @RenderSection("Tail", required: false)
 </body>

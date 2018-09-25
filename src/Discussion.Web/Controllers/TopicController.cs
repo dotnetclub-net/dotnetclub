@@ -7,6 +7,7 @@ using Discussion.Web.Services.Identity;
 using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace Discussion.Web.Controllers
 {
@@ -55,7 +56,11 @@ namespace Discussion.Web.Controllers
         [Route("/topics/{id}")]
         public ActionResult Index(int id)
         {
-            var topic = _topicRepo.Get(id);
+            var topic = _topicRepo.All()
+                .Where(t => t.Id == id)
+                .Include(t => t.Author)
+                .SingleOrDefault();
+                
             if(topic == null)
             {
                 return NotFound();
@@ -64,9 +69,12 @@ namespace Discussion.Web.Controllers
             var replies = _replyRepo.All()
                                         .Where(c => c.TopicId == id)
                                         .OrderBy(c => c.CreatedAtUtc)
+                                        .Include(r => r.Author)
                                         .ToList();
             var showModel = TopicViewModel.CreateFrom(topic, replies);
 
+            topic.ViewCount++;
+            _topicRepo.Update(topic);
             return View(showModel);
         }
 

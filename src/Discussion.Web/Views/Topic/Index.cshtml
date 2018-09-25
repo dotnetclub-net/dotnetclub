@@ -2,40 +2,66 @@
 @model TopicViewModel
 
 @{
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = Model.Topic.Title;
 }
 
 
 @section Head{
     <link rel="stylesheet" href="~/lib/source/prism/themes/prism.css" />
+    <environment names="Development">
+        <link rel="stylesheet" href="~/stylesheets/css/topic-show.css" />
+    </environment>
+    <environment names="QA,Integration,Staging,Production">
+        <link rel="stylesheet" href="~/stylesheets/css/topic-show.min.css" asp-append-version="true" />
+    </environment>
 }
 
 <div class="row">
-    <div class="panel no-padding panel-topic-detail col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <div class="panel-heading">
-            @Model.Title
-        </div>
-
-        <div class="panel-body">
+    <article class="panel panel-topic-detail col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <header class="topic-meta">
+            <h1> @Model.Topic.Title </h1>
+            <div>
+                <span class="meta-item created-at">
+                    发布于 <span class="created-at-time" data-created-at="@Html.Timestamp(Model.Topic.CreatedAtUtc)"></span>
+                </span>
+                <span class="meta-item author">
+                    作者 @Model.Topic.Author.DisplayName
+                </span>
+                <span class="meta-item view-count">
+                    @Model.Topic.ViewCount 次浏览
+                </span>
+                <span class="meta-item type">
+                    @Html.DescribeTopicType(Model.Topic.Type)
+                </span>
+            </div>
+        </header>
+        <article class="topic-content">
             @Html.Raw(Model.HtmlContent)
-        </div>
-    </div>
+        </article>
+    </article>
 </div>
 
-@if (Model.ReplyCount > 0)
+@if (Model.Topic.ReplyCount > 0)
 {
     <div class="row">
         <div class="panel no-padding panel-topic-replies col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div class="panel-heading">
-                @Model.ReplyCount 回复
+                共有 @Model.Topic.ReplyCount 条回复
             </div>
 
             <div class="panel-body">
                 @foreach (var reply in Model.Replies)
                 {
                     <div class="reply-item">
-                        @reply.CreatedBy
-                        @reply.Content
+                        <dl class="reply-author">
+                            <dd>@reply.Author.DisplayName</dd>
+                        </dl>
+                        <div class="reply-content">
+                            <div class="reply-content-body">@reply.Content</div>
+                            <div class="reply-content-related">
+                                回复于 <span class="replied-at" data-replied-at="@Html.Timestamp(reply.CreatedAtUtc)"></span>
+                            </div>
+                        </div>
                     </div>
                 }
             </div>
@@ -62,7 +88,13 @@
 
 @section Tail{
     <script src="~/lib/source/prism/prism.js"></script>
+    <script src="~/scripts/functions.js"></script>
     <script>
+        $(document).ready(function() {
+            window.DiscussionApp.utils.transformTimestampOn('.created-at-time', 'data-created-at');
+            window.DiscussionApp.utils.transformTimestampOn('.replied-at', 'data-replied-at');
+        });
+
         $("#submit-create").on("click",
             function() {
                 var editor = $("#content-editor");
@@ -85,7 +117,7 @@
                     },
                     error: function(xhr) {
                         var errors = JSON.parse(xhr.responseText);
-                        // Object.values(errors);  [], [], []
+                        // Object.values(errors);  // [], [], []
                     }
                 });
             });
