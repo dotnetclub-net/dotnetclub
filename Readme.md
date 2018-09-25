@@ -1,7 +1,7 @@
 dotnetClub.net
 ----------------------
 
-**欢迎关注 dotnetClub.net 项目。 [Click here to see English readme](https://github.com/jijiechen/openaspnetorg/blob/dev/readme-en.md).**
+**欢迎关注 dotnetClub.net 项目。 [Click here to see English readme](https://github.com/jijiechen/dotnetclub/blob/dev/readme-en.md).**
 
 本项目是一个论坛网站的源码，完整地展示了如何用 ASP.NET Core 技术开发一个用户参与的 Web 应用。您可以在 [dotnetclub.net](http://dotnetclub.net) 直接访问本项目的在线实例，并且在该网站上参与 .NET Core 相关技术的讨论。
 
@@ -10,10 +10,10 @@ dotnetClub.net
 
 | 集成服务      | 分支            | 平台       | 当前状态                                                                                                                                                                                             |
 |-------------|----------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Travis      | dev            | Linux          | [![Travis Status-dev](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=dev)](https://travis-ci.org/jijiechen/openaspnetorg/branches)                                                       |
-| AppVeyor    | dev            | Windows        | [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/dev)                     |
-| Travis      | master         | Linux          | [![Travis Status-master](https://travis-ci.org/jijiechen/openaspnetorg.svg?branch=master)](https://travis-ci.org/jijiechen/openaspnetorg/branches)                                                 |
-| AppVeyor    | master         | Windows        | [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/openaspnetorg/branch/master)            |
+| Travis      | dev            | Linux          | [![Travis Status-dev](https://travis-ci.org/jijiechen/dotnetclub.svg?branch=dev)](https://travis-ci.org/jijiechen/dotnetclub/branches)                                                       |
+| AppVeyor    | dev            | Windows        | [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/dotnetclub/branch/dev)                     |
+| Travis      | master         | Linux          | [![Travis Status-master](https://travis-ci.org/jijiechen/dotnetclub.svg?branch=master)](https://travis-ci.org/jijiechen/dotnetclub/branches)                                                 |
+| AppVeyor    | master         | Windows        | [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/dotnetclub/branch/master)            |
 
 
 &nbsp;
@@ -26,8 +26,8 @@ dotnetClub.net
 
 
 ``` 
-git clone https://github.com/jijiechen/openaspnetorg.git
-cd openaspnetorg
+git clone https://github.com/jijiechen/dotnetclub.git
+cd dotnetclub
 ```
 
 本项目使用了 [cakebuild](https://cakebuild.net) 作为构建工具。在执行下面描述的构建命令时，请将 `./build` 换成您自己所在平台对应的文件：
@@ -63,8 +63,8 @@ docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201809231041
 
 
 ```sh
-git clone https://github.com/jijiechen/openaspnetorg.git
-cd openaspnetorg
+git clone https://github.com/jijiechen/dotnetclub.git
+cd dotnetclub
 ./build --target=ci      # 可能需要修改入口文件的名字
 cd src/Discussion.Web/publish
 dotnet ./Discussion.Web.dll
