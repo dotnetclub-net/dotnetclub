@@ -1,8 +1,8 @@
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Discussion.Web.Tests.Specs.Controllers;
-using Discussion.Web.ViewModels;
 using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
@@ -45,14 +45,12 @@ namespace Discussion.Web.Tests.IntegrationTests
         
         private async Task<HttpResponseMessage> RequestToCreateComment(int topicId)
         {
-            var comment = new CommentCreationModel
-            {
-                Content = "comment content"
-            };
-
             var request = _theApp.Server
-                .CreateRequest($"/topic/{topicId}/comments/")
-                .WithJsonContent(comment);
+                .CreateRequest($"/topics/{topicId}/comments/")
+                .WithFormContent(new Dictionary<string, string>
+                {
+                    {"Content", "comment content" }
+                });
 
             return await request.PostAsync();
         }

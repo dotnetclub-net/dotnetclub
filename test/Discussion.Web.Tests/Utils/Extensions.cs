@@ -118,5 +118,13 @@ namespace Discussion.Web.Tests
                 req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json"); 
             });
         }
+        
+        public static RequestBuilder WithFormContent(this RequestBuilder request, Dictionary<string, string> obj)
+        {
+            return request.And(req =>
+            {
+                req.Content = new FormUrlEncodedContent(obj);
+            });
+        }
     }
 }

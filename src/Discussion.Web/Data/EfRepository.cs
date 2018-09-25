@@ -42,9 +42,12 @@ namespace Discussion.Web.Data
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            entity.CreatedAtUtc = entity.ModifiedAtUtc = DateTime.UtcNow;
+            if (entity.CreatedAtUtc == Entity.EntityInitialDate)
+            {
+                entity.CreatedAtUtc = DateTime.UtcNow;    
+            }
+
             _entities.Add(entity);
-            
             _context.SaveChanges();
         }
 
@@ -54,6 +57,11 @@ namespace Discussion.Web.Data
             {
                 throw new ArgumentNullException(nameof(entity));
             }
+            if (entity.ModifiedAtUtc == Entity.EntityInitialDate)
+            {
+                entity.ModifiedAtUtc = DateTime.UtcNow;    
+            }
+            
             _context.SaveChanges();
         }
 

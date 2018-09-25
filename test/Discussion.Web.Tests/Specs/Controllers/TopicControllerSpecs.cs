@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Discussion.Web.Controllers;
 using Discussion.Web.Data;
@@ -131,11 +132,51 @@ namespace Discussion.Web.Tests.Specs.Controllers
             result.ShouldNotBeNull();
 
             var viewModel = result.ViewData.Model;
-            var topicShown = viewModel as TopicShowModel;
+            var topicShown = viewModel as TopicViewModel;
             topicShown.ShouldNotBeNull();
             topicShown.Id.ShouldEqual(topic.Id);
         }
 
+        [Fact]
+        public void should_show_topic_with_comment_list()
+        {
+            // Arrange
+            var topicRepo = _myApp.GetService<IRepository<Topic>>();
+            var commentRepo = _myApp.GetService<IRepository<Comment>>();
+            
+            var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion };
+            topicRepo.Save(topic);
+
+            var commentContent = "comment content ";
+            var commentNew = new Comment { CreatedAtUtc = DateTime.Today.AddDays(1), Content = commentContent + "2", TopicId = topic.Id};
+            var commentOld = new Comment { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = commentContent + "1", TopicId = topic.Id};
+            commentRepo.Save(commentNew);
+            commentRepo.Save(commentOld);
+
+            
+            // Act
+            var topicController = _myApp.CreateController<TopicController>();
+            var result = topicController.Index(topic.Id) as ViewResult;
+
+            
+            
+            // Assert
+            result.ShouldNotBeNull();
+
+            var viewModel = result.ViewData.Model;
+            var topicShown = viewModel as TopicViewModel;
+            topicShown.ShouldNotBeNull();
+            topicShown.Id.ShouldEqual(topic.Id);
+            topicShown.Comments.ShouldNotBeNull();
+            
+            topicShown.Comments.Count.ShouldEqual(2);
+            topicShown.Comments[0].Content.ShouldEqual(commentContent + "1");
+            topicShown.Comments[0].TopicId.ShouldEqual(topic.Id);
+            
+            topicShown.Comments[1].Content.ShouldEqual(commentContent + "2");
+            topicShown.Comments[1].TopicId.ShouldEqual(topic.Id);
+        }
+    
 
         [Fact]
         public void should_show_render_topic_content_from_markdown()
@@ -160,7 +201,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             result.ShouldNotBeNull();
 
             var viewModel = result.ViewData.Model;
-            var topicShown = viewModel as TopicShowModel;
+            var topicShown = viewModel as TopicViewModel;
             topicShown.ShouldNotBeNull();
             topicShown.Id.ShouldEqual(topic.Id);
             topicShown.Title.ShouldEqual(topic.Title);

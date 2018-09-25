@@ -71,18 +71,14 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_accept_create_topic_request_with_valid_post_data()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topics");
             _theApp.MockUser();
-
-            request.And(req =>
-            {
-                req.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            var request = _theApp.Server.CreateRequest("/topics")
+                .WithFormContent(new Dictionary<string, string>
                 {
-                    {"title", "中文的 title" },
-                    {"content", "some content" },
+                    {"title", "中文的 title"},
+                    {"content", "some content"},
                     {"type", "1"}
                 });
-            });
 
             // act
             var response = await request.PostAsync();

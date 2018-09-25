@@ -1,4 +1,5 @@
-﻿@model TopicShowModel
+﻿@using Discussion.Web.Services.Identity
+@model TopicViewModel
 
 @{
     ViewData["Title"] = Model.Title;
@@ -8,8 +9,9 @@
 @section Head{
     <link rel="stylesheet" href="~/lib/source/prism/themes/prism.css" />
 }
+
 <div class="row">
-    <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
+    <div class="panel no-padding panel-topic-detail col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="panel-heading">
             @Model.Title
         </div>
@@ -20,7 +22,63 @@
     </div>
 </div>
 
+@if (Model.ReplyCount > 0)
+{
+    <div class="row">
+        <div class="panel no-padding panel-topic-replies col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="panel-heading">
+                @Model.ReplyCount 回复
+            </div>
+
+            <div class="panel-body">
+                @foreach (var comment in Model.Comments)
+                {
+                    <div class="reply-item">
+                        @comment.CreatedBy
+                        @comment.Content
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@if (Context.IsAuthenticated())
+{
+    <div class="row">
+        <div class="panel no-padding panel-topic-create-reply col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="panel-heading">
+                添加回复
+            </div>
+
+            <div class="panel-body">
+                <textarea id="content-editor" placeholder="回复话题"></textarea>
+                <button id="submit-create" class="btn btn-default submit-create-btn">回复</button>
+            </div>
+        </div>
+    </div>
+}
+
 
 @section Tail{
- <script src="~/lib/source/prism/prism.js"></script>
+    <script src="~/lib/source/prism/prism.js"></script>
+    <script>
+        $("#submit-create").on("click",
+            function() {
+                var editor = $("#content-editor");
+                var replyContent = editor.val();
+                if (!$.trim(replyContent)) {
+                    editor.focus();
+                    return false;
+                }
+
+                var comment = { content: replyContent };
+                var topicId = parseInt('@Model.Id');
+                $.post('/topics/' + topicId + '/comments', comment, function(data) {
+                    debugger;
+                    console.log(data);
+                    location.reload();
+                }, 'json');
+            });
+    </script>
 }

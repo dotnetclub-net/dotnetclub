@@ -1,3 +1,4 @@
+using System;
 using Discussion.Web.Data;
 using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
@@ -19,21 +20,25 @@ namespace Discussion.Web.Controllers
         }
 
 
-        [Route("/topic/{topicId}/comments")]
+        [Route("/topics/{topicId}/comments")]
         [HttpPost]
         [Authorize]
-        public IActionResult Comment(int topicId, [FromBody] CommentCreationModel commentCreationModel)
+        public IActionResult Comment(int topicId, CommentCreationModel commentCreationModel)
         {
-            var topicExists = _topicRepo.Get(topicId) != null;
-            if (!topicExists)
+            var topic = _topicRepo.Get(topicId);
+            if (topic == null)
             {
                 ModelState.AddModelError("TopicId", "话题不存在");
             }
             
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
+
+            topic.LastRepliedAt = DateTime.UtcNow;
+            topic.ReplyCount += 1;
+            _topicRepo.Update(topic);
             
             var comment = new Comment
             {
@@ -41,22 +46,8 @@ namespace Discussion.Web.Controllers
                 CreatedBy = User.ExtractUserId().Value,
                 Content = commentCreationModel.Content
             };
-
             _commentRepo.Save(comment);
             return NoContent();
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
     }
 }
