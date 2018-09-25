@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Claims;
 using Discussion.Web.Data;
@@ -11,8 +12,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Discussion.Web.Tests
 {
@@ -99,6 +102,16 @@ namespace Discussion.Web.Tests
         public static string Content(this HttpResponseMessage response)
         {
             return response.Content.ReadAsStringAsync().Result;
+        }
+        
+        public static RequestBuilder WithJsonContent(this RequestBuilder request, object obj)
+        {
+            return request.And(req =>
+            {
+                var json = JsonConvert.SerializeObject(obj);
+                req.Content = new StringContent(json);
+                req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json"); 
+            });
         }
     }
 }

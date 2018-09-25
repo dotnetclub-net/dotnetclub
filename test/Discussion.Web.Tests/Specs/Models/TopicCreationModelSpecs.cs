@@ -10,10 +10,10 @@ using Xunit;
 namespace Discussion.Web.Tests.Specs.Models
 {
     [Collection("AppSpecs")]
-    public class CreateTopicModelValidationSpecs
+    public class CreateTopicModelSpecs
     {
         private readonly TestApplication _myApp;
-        public CreateTopicModelValidationSpecs(TestApplication app)
+        public CreateTopicModelSpecs(TestApplication app)
         {
             _myApp = app;
         }

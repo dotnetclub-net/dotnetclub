@@ -6,10 +6,10 @@ using Xunit;
 namespace Discussion.Web.Tests.Specs.Models
 {
     [Collection("AppSpecs")]
-    public class SigninUserModelValidationSpecs
+    public class SigninUserModelSpecs
     {
         private readonly TestApplication _myApp;
-        public SigninUserModelValidationSpecs(TestApplication app)
+        public SigninUserModelSpecs(TestApplication app)
         {
             _myApp = app;
         }
