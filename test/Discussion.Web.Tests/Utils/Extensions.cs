@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,12 +86,15 @@ namespace Discussion.Web.Tests
             var userRepo = app.GetService<IRepository<User>>();
             return app.User.ToDiscussionUser(userRepo);
         }
-        
-        public static TController CreateControllerAndValidate<TController>(this TestApplication app, object model) where TController: Controller
+
+        public static ModelStateDictionary ValidateModel(this TestApplication app, object model)
         {
-            var controller = app.CreateController<TController>();
-            controller.TryValidateModel(model, null);
-            return controller;
+            var validator = app.GetService<IObjectModelValidator>();
+            var actionContext = new ActionContext();
+            
+            validator.Validate(actionContext, null, string.Empty, model);
+            
+            return actionContext.ModelState;
         }
         
         

@@ -1,13 +1,13 @@
-﻿using Discussion.Web.Controllers;
+﻿using System;
+using System.Linq;
+using Discussion.Web.Controllers;
+using Discussion.Web.Data;
 using Discussion.Web.Models;
+using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
-using Discussion.Web.ViewModels;
-using System;
-using System.Linq;
-using Discussion.Web.Data;
 
-namespace Discussion.Web.Tests.Specs
+namespace Discussion.Web.Tests.Specs.Controllers
 {
 
     [Collection("AppSpecs")]

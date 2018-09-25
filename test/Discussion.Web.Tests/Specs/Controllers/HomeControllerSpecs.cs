@@ -1,9 +1,9 @@
-﻿using Xunit;
+﻿using System.Net;
 using Discussion.Web.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
+using Xunit;
 
-namespace Discussion.Web.Tests.Specs.Web
+namespace Discussion.Web.Tests.Specs.Controllers
 {
     [Collection("AppSpecs")]
     public class HomeControllerSpecs

@@ -1,10 +1,10 @@
-﻿using Discussion.Web.Models;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using Discussion.Web.Data;
+using Discussion.Web.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Discussion.Web.Tests.Specs.Repository
+namespace Discussion.Web.Tests.Specs.Repositories
 {
 
     [Collection("AppSpecs")]

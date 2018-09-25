@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Discussion.Web.Tests.Specs.Web;
+using Discussion.Web.Tests.Specs.Controllers;
 using Discussion.Web.ViewModels;
 using Xunit;
 

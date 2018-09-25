@@ -7,7 +7,7 @@ using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
-namespace Discussion.Web.Tests.Specs.Web
+namespace Discussion.Web.Tests.Specs.Controllers
 {
     [Collection("AppSpecs")]
     public class CommentControllerSpecs

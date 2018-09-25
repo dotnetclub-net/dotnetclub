@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Discussion.Web.Tests.Specs.Web
+namespace Discussion.Web.Tests.Specs.Controllers
 {
     [Collection("AppSpecs")]
     public class AccountControllerSpecs

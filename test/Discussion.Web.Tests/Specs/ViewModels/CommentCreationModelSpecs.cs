@@ -1,9 +1,7 @@
-using Discussion.Web.Controllers;
-using Discussion.Web.Models;
 using Discussion.Web.ViewModels;
 using Xunit;
 
-namespace Discussion.Web.Tests.Specs.Models
+namespace Discussion.Web.Tests.Specs.ViewModels
 {
     [Collection("AppSpecs")]
     public class CommentCreationModelSpecs
@@ -22,9 +20,9 @@ namespace Discussion.Web.Tests.Specs.Models
         {
             var comment = new CommentCreationModel();
             
-            var controller = _myApp.CreateControllerAndValidate<CommentController>(comment);
+            var modelState = _myApp.ValidateModel(comment);
             
-            Assert.False(controller.ModelState.IsValid);
+            Assert.False(modelState.IsValid);
         }
     }
 }

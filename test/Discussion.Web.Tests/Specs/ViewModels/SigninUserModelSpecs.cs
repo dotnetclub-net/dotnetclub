@@ -1,9 +1,7 @@
-﻿using Discussion.Web.Controllers;
-using Discussion.Web.ViewModels;
-using Microsoft.AspNetCore.Mvc;
+﻿using Discussion.Web.ViewModels;
 using Xunit;
 
-namespace Discussion.Web.Tests.Specs.Models
+namespace Discussion.Web.Tests.Specs.ViewModels
 {
     [Collection("AppSpecs")]
     public class SigninUserModelSpecs
@@ -17,16 +15,16 @@ namespace Discussion.Web.Tests.Specs.Models
         [Fact]
         public void should_validate_normal_username_and_password_values_as_valid()
         {
-            var ctrl = _myApp.CreateControllerAndValidate<AccountController>(
+            var modelState = _myApp.ValidateModel(
                 new SigninUserViewModel
                 {
                     UserName = "validusername",
                     Password = "Mypassword"
                 });
 
-            Assert.True(ctrl.ModelState.IsValid);
-            ctrl.ModelState.Keys.ShouldNotContain("UserName");
-            ctrl.ModelState.Keys.ShouldNotContain("Password");
+            Assert.True(modelState.IsValid);
+            modelState.Keys.ShouldNotContain("UserName");
+            modelState.Keys.ShouldNotContain("Password");
         }
       
              
@@ -39,16 +37,16 @@ namespace Discussion.Web.Tests.Specs.Models
         [InlineData("007")]
         public void should_validate_valid_username_values_as_valid(string username)
         {
-            var ctrl = _myApp.CreateControllerAndValidate<AccountController>(
+            var modelState = _myApp.ValidateModel(
                 new SigninUserViewModel
                 {
                     UserName = username,
                     Password = "password1"
                 });
 
-            Assert.True(ctrl.ModelState.IsValid);
-            ctrl.ModelState.Keys.ShouldNotContain("UserName");
-            ctrl.ModelState.Keys.ShouldNotContain("Password");
+            Assert.True(modelState.IsValid);
+            modelState.Keys.ShouldNotContain("UserName");
+            modelState.Keys.ShouldNotContain("Password");
         }
 
         [Theory]
@@ -60,16 +58,16 @@ namespace Discussion.Web.Tests.Specs.Models
         [InlineData("in")]
         public void should_validate_invalid_username_values_as_invalid(string username)
         {
-            var ctrl = _myApp.CreateControllerAndValidate<AccountController>(
+            var modelState = _myApp.ValidateModel(
                 new SigninUserViewModel
                 {
                     UserName = username,
                     Password = "password1"
                 });
 
-            Assert.False(ctrl.ModelState.IsValid);
-            ctrl.ModelState.Keys.ShouldContain("UserName");
-            ctrl.ModelState.Keys.ShouldNotContain("Password");
+            Assert.False(modelState.IsValid);
+            modelState.Keys.ShouldContain("UserName");
+            modelState.Keys.ShouldNotContain("Password");
         }
    
         [Theory]
@@ -89,16 +87,16 @@ namespace Discussion.Web.Tests.Specs.Models
         [InlineData("11113?")]
         public void should_validate_valid_password_values_as_valid(string password)
         {
-            var ctrl = _myApp.CreateControllerAndValidate<AccountController>(
+            var modelState = _myApp.ValidateModel(
                 new SigninUserViewModel
                 {
                     UserName = "validuser",
                     Password = password
                 });
 
-            Assert.True(ctrl.ModelState.IsValid);
-            ctrl.ModelState.Keys.ShouldNotContain("UserName");
-            ctrl.ModelState.Keys.ShouldNotContain("Password");
+            Assert.True(modelState.IsValid);
+            modelState.Keys.ShouldNotContain("UserName");
+            modelState.Keys.ShouldNotContain("Password");
         }
         
         
@@ -113,16 +111,16 @@ namespace Discussion.Web.Tests.Specs.Models
         [InlineData("*&@%~%!")]
         public void should_validate_invalid_password_values_as_invalid(string password)
         {
-            var ctrl = _myApp.CreateControllerAndValidate<AccountController>(
+            var modelState = _myApp.ValidateModel(
                 new SigninUserViewModel
                 {
                     UserName = "validuser",
                     Password = password
                 });
 
-            Assert.False(ctrl.ModelState.IsValid);
-            ctrl.ModelState.Keys.ShouldNotContain("UserName");
-            ctrl.ModelState.Keys.ShouldContain("Password");
+            Assert.False(modelState.IsValid);
+            modelState.Keys.ShouldNotContain("UserName");
+            modelState.Keys.ShouldContain("Password");
         }
 
     }
