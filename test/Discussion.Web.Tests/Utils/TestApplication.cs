@@ -77,6 +77,7 @@ namespace Discussion.Web.Tests
             });
 
             Environment.SetEnvironmentVariable("DOTNETCLUB_sqliteConnectionString", " ");
+            Environment.SetEnvironmentVariable("DOTNETCLUB_Logging:Console:LogLevel:Default", "Warning");
             Configurer.ConfigureHost(hostBuilder);
 
             hostBuilder.ConfigureLogging(loggingBuilder =>

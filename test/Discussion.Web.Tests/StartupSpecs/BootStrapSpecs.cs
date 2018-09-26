@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using Xunit;
 using System;
+using System.Linq;
+using System.Net.NetworkInformation;
 using static Discussion.Web.Tests.TestEnv;
 using System.Text.RegularExpressions;
 
@@ -12,26 +14,21 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_bootstrap_success()
         {
-            const int httpListenPort = 5010;
             var testCompleted = false;
             HttpWebResponse response = null;
 
-            StartWebApp(httpListenPort, (runningProcess) =>
+            var httpPort = GetAvailablePort();
+            StartWebApp(httpPort, (runningProcess) =>
             {
                 try
                 {
                     Console.WriteLine("Server started successfully, trying to request...");
-                    var httpWebRequest = WebRequest.CreateHttp("http://localhost:" + httpListenPort.ToString());
+                    var httpWebRequest = WebRequest.CreateHttp("http://localhost:" + httpPort.ToString());
                     response = httpWebRequest.GetResponseAsync().Result as HttpWebResponse;
                 }
                 catch (WebException ex)
                 {
                     response = ex.Response as HttpWebResponse;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Exception thrown: {ex.Message}\n {ex.StackTrace}");
-                    throw;
                 }
                 finally
                 {
@@ -44,9 +41,8 @@ namespace Discussion.Web.Tests.StartupSpecs
             
             if (response == null)
             {
-                Console.WriteLine("Error: Response object is not assigned.");
+                throw new Exception("Can not launch the web server process!");
             }
-
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
         }
 
@@ -62,7 +58,6 @@ namespace Discussion.Web.Tests.StartupSpecs
                 WorkingDirectory = webProject,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                // LoadUserProfile = true,   // will throw System.PlatformNotSupportedException : Operation is not supported on this platform.  see https://travis-ci.org/jijiechen/openaspnetorg/builds/140064540
                 UseShellExecute = false
             };
             dotnetProcess.Environment["DOTNET_CLI_CONTEXT_VERBOSE"] = "true";
@@ -70,10 +65,11 @@ namespace Discussion.Web.Tests.StartupSpecs
 
             string outputData = string.Empty, errorOutput = string.Empty;
             var startedSuccessfully = false;
-            var dnxWebServer = new Process { StartInfo = dotnetProcess };
+            int workerProcessId = 0;
+            var serverHostProcess = new Process { StartInfo = dotnetProcess };
 
 
-            dnxWebServer.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+            serverHostProcess.OutputDataReceived += (sender, e) =>
             {
                 if (startedSuccessfully)
                 {
@@ -81,33 +77,59 @@ namespace Discussion.Web.Tests.StartupSpecs
                 }
 
                 outputData += e.Data;
+                if (workerProcessId == 0 && outputData.Contains("Process ID:"))
+                {
+                    workerProcessId = int.Parse(Regex.Match(outputData, @"Process ID: (\d+)").Groups[1].Value);
+                }
                 if (outputData.Contains("Now listening on") && outputData.Contains("Application started."))
                 {
                     startedSuccessfully = true;
-                    var workerProcessId = int.Parse(Regex.Match(outputData, @"Process ID: (\d+)").Groups[1].Value);
-                    onServerReady.Invoke(new RunningDotnetProcess { HostProcessId = dnxWebServer.Id, WorkerProcessId = workerProcessId });
-                };
+                    onServerReady.Invoke(new RunningDotnetProcess { HostProcessId = serverHostProcess.Id, WorkerProcessId = workerProcessId });
+                }
             };
-            dnxWebServer.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+            serverHostProcess.ErrorDataReceived += (sender, e) =>
             {
                 errorOutput += e.Data;
             };
 
 
-            dnxWebServer.EnableRaisingEvents = true;
-            dnxWebServer.Exited += (object sender, EventArgs e) =>
+            serverHostProcess.EnableRaisingEvents = true;
+            serverHostProcess.Exited += (sender, e) =>
             {
                 if (!testSuccessed())
                 {
-                    Console.WriteLine($"Cannot launch a server for the website. \nError output:{errorOutput}\nStandard output:{outputData}");
-                    throw new Exception("Server is down unexpectedly.");
+                    var msg = $"Cannot launch a server for the website. \nError output:{errorOutput}\nStandard output:{outputData}";
+                    throw new Exception(msg);
                 }
             };
 
-            dnxWebServer.Start();
-            dnxWebServer.BeginErrorReadLine();
-            dnxWebServer.BeginOutputReadLine();
-            dnxWebServer.WaitForExit(20 * 1000);
+            serverHostProcess.Start();
+            serverHostProcess.BeginErrorReadLine();
+            serverHostProcess.BeginOutputReadLine();
+            var exited = serverHostProcess.WaitForExit(20 * 1000);
+            if (!exited)
+            {
+                RunningDotnetProcess.TryKillProcess(serverHostProcess.Id);
+                RunningDotnetProcess.TryKillProcess(workerProcessId);
+            }
+        }
+
+        private int GetAvailablePort()
+        {
+            bool IsPortTaken(int port)
+            {
+                return IPGlobalProperties.GetIPGlobalProperties()
+                    .GetActiveTcpConnections()
+                    .Any(conn => conn.LocalEndPoint.Port == port);
+            }
+
+            var httpPort = 5010;
+            while (IsPortTaken(httpPort))
+            {
+                httpPort++;
+            }
+
+            return httpPort;
         }
     }
 
@@ -134,11 +156,17 @@ namespace Discussion.Web.Tests.StartupSpecs
 
         public static void TryKillProcess(int id)
         {
+            if (id < 1)
+            {
+                return;
+            }
+            
             var process = GetProcess(id);
             if (process != null)
             {
                 try
                 {
+                    
                     process.Kill();
                 }
                 catch { }
