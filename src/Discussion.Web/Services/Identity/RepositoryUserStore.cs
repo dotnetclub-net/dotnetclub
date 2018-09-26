@@ -71,7 +71,7 @@ namespace Discussion.Web.Services.Identity
 
         public Task<User> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
-            var user = _useRepository.All().FirstOrDefault(u => string.Equals(u.UserName, normalizedUserName, StringComparison.InvariantCultureIgnoreCase));
+            var user = _useRepository.All().FirstOrDefault(u => u.UserName.ToUpper() == normalizedUserName.ToUpper());
             return Task.FromResult(user);
         }
 

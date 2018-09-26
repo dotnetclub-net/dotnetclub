@@ -26,7 +26,7 @@ namespace Discussion.Web.Tests
         {
             if (initlizeApp)
             {
-                BuildApplication(this, "Development");
+                BuildApplication(this, "UnitTest");
                 // BuildApplication(this);
             }
 
