@@ -29,6 +29,9 @@ if [ "$oldVer" == "0" ]; then
     hyper exec volumes chmod -R 777 /club-data/$newVer
     hyper exec -i volumes tee /club-data/$newVer/appsettings.Production.json < ./src/Discussion.Web/appsettings.Production.json
 else
+    
+    hyper exec volumes mkdir /club-data/$newVer
+    hyper exec volumes chmod -R 777 /club-data/$newVer
     # 从旧版本升级到新版本
     hyper run --rm --name upgrade --volumes-from volumes --entrypoint "/club-app/upgrade-from-existing.sh" $new_image $oldVer $newVer
 fi
@@ -49,3 +52,8 @@ echo ""
 echo "${GREEN}A new version ($new_image) is deployed at IP:$fip${NC}"
 
 # todo: your dns???
+
+
+# hyper stop $oldVer 
+# hyper fip detach $oldVer
+# hyper fip release xxxx 
