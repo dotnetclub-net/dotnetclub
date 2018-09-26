@@ -2,19 +2,20 @@
 // define variables and mixins for my site here:
 
 
+
 $brand-primary:                  #aa6cb7;
+$brand-lighter:                  lighten(#aa6cb7, 10%);
+$brand-lightest:                  lighten(#aa6cb7, 25%);
 // purple: #682079
 
- 
+
 $gray-body-background:          #e1e1e1;
 $gray-inner-border: 			#f0f0f0;
 $gray-content-hover:            #f5f5f5;
 $text-color:                    #333;
 
 
-
-
-
 // Core variables and mixins
 @import "../../lib/source/bootstrap-sass/assets/stylesheets/bootstrap/mixins";
 @import "../../lib/source/bootstrap-sass/assets/stylesheets/bootstrap/variables";
+
