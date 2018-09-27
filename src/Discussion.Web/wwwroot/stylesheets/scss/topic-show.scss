@@ -39,6 +39,10 @@
     padding: 5px;
     max-width: 100%;
     min-height: 120px;
+    
+    & *{
+      max-width: 100%;  
+    }
   }
 
 }
@@ -64,15 +68,18 @@
     
     .reply-author{
       float: left;
-      width: 60px;
+      width: 80px;
       vertical-align: middle;
+      word-break: break-all;
+      padding: 0 5px;
+      
       font-weight: bold;
       color: $gray-light;
     }
     
     .reply-content{
       float: left;
-      width: calc(100% - 60px);
+      width: calc(100% - 80px);
       overflow: hidden;
       
       .reply-content-related{

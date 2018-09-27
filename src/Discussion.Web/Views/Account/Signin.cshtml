@@ -27,13 +27,13 @@
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.UserName)</span>
-                        @Html.TextBoxFor(m => m.UserName, new {autofocus = true})
+                        @Html.TextBoxFor(m => m.UserName, new {autofocus = true, maxlength=20})
                     </label>
                 </fieldset>
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.Password)</span>
-                        @Html.PasswordFor(m => m.Password)
+                        @Html.PasswordFor(m => m.Password, new {maxlength=20})
                     </label>
                 </fieldset>
                 <br/>

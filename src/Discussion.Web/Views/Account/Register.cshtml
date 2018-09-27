@@ -27,19 +27,19 @@
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.UserName)</span>
-                        @Html.TextBoxFor(m => m.UserName, new {autofocus = "true", autocomplete = "off"})
+                        @Html.TextBoxFor(m => m.UserName, new {autofocus = "true", autocomplete = "off", maxlength=20})
                     </label>
                 </fieldset>
                 <fieldset>
                     <label>
                         <span>@Html.DisplayNameFor(m => m.Password)</span>
-                        @Html.PasswordFor(m => m.Password, new {autocomplete = "off"})
+                        @Html.PasswordFor(m => m.Password, new {autocomplete = "off", maxlength=20})
                     </label>
                 </fieldset>
                 <fieldset>
                     <label>
                         <span>确认密码</span>
-                        <input id="Password-Confirmation" type="password" class="password-confirmation" autocomplete="false"/>
+                        <input id="Password-Confirmation" type="password" class="password-confirmation" autocomplete="false" maxlength="20"/>
                     </label>
                 </fieldset>
                 <br/>
