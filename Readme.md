@@ -32,7 +32,7 @@ cd dotnetclub
 
 本项目使用了 [cakebuild](https://cakebuild.net) 作为构建工具。在执行下面描述的构建命令时，请将 `./build` 换成您自己所在平台对应的文件：
 
-* Windows: `build.sh`
+* Windows: `build.ps1`
 * Linux: `build-linux.sh`
 * macOS: `build.sh`
 
