@@ -122,6 +122,12 @@ namespace Discussion.Web.Controllers
                 ModelState.AddModelError("UserName", errorMessage);
                 return View("Register");
             }
+            
+            await _signInManager.PasswordSignInAsync(
+                userViewModel.UserName,
+                userViewModel.Password,
+                isPersistent: false,
+                lockoutOnFailure: true);
             return RedirectTo("/");
         }
         

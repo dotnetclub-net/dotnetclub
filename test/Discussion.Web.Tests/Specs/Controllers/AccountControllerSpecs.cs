@@ -60,17 +60,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 });
             
             var accountCtrl = _myApp.CreateController<AccountController>();
-            var userManager = _myApp.GetService<UserManager<User>>();
             var userRepo = _myApp.GetService<IRepository<User>>();
 
             const string password = "111111";
-            await userManager.CreateAsync(new User
-            {
-                UserName = "jim",
-                DisplayName = "Jim Green",
-                CreatedAtUtc = DateTime.UtcNow
-            }, password);
-            
+            _myApp.CreateUser("jim", password, "Jim Green");
             
             // Act
             var userModel = new SigninUserViewModel
