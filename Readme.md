@@ -18,6 +18,9 @@ dotnetClub.net
 
 &nbsp;
 
+[![codecov](https://codecov.io/gh/jijiechen/dotnetclub/branch/dev/graph/badge.svg)](https://codecov.io/gh/jijiechen/dotnetclub) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+&nbsp;
 
 ### 使用源代码
 

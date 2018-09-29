@@ -29,8 +29,8 @@ branches:
     
 script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ./build.sh --target=ci ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then tag=`date -u +%Y%m%d%H%M` ; export imagetag="jijiechen/dotnetclub:$tag" ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./build-linux.sh --target=ci --imagetag="$imagetag" ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then set -e ; tag=`date -u +%Y%m%d%H%M` ; export imagetag="jijiechen/dotnetclub:$tag" ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./build-linux.sh --target=ci --imagetag="$imagetag" ; ./codecov -f "test/Discussion.Web.Tests/coverage.opencover.xml" -t $CODECOV_TOKEN ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$TRAVIS_BRANCH" == "master" ] && [ "$DOCKER_USERNAME" != "" ]; then docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push $imagetag ; fi
 
 cache:

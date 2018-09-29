@@ -53,7 +53,7 @@ dotnetclub.db
 project.lock.json
 package-lock.json
 appsettings.Development.json
-
+coverage.opencover.xml
 
 
 tools/*

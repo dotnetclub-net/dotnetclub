@@ -52,12 +52,18 @@ Task("build-web")
     });
 
 Task("cs-test")
-  .Does(() =>
-
+  .Does((context) =>
     {
+        var isLinux = context.Environment.Platform.Family == Cake.Core.PlatformFamily.Linux;
+        var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TRAVIS"));
+
         DoInDirectory("./test/Discussion.Web.Tests/", () =>
         {
-            DotNetCoreTest();
+            if(isLinux && isCI){
+                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover");
+            }else{
+                DotNetCoreTest();
+            }
         });
     });
 

@@ -15,6 +15,13 @@ This project is a web application based on the [.NET Core 2.1](https://www.micro
 | AppVeyor    | master         | Windows        | [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/dotnetclub/branch/master)            |
 
 
+&nbsp;
+
+[![codecov](https://codecov.io/gh/jijiechen/dotnetclub/branch/dev/graph/badge.svg)](https://codecov.io/gh/jijiechen/dotnetclub) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+&nbsp;
+
+
 ### Using the source
 
 First, clone this repository and compile it to get everything ready:
