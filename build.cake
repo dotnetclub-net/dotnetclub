@@ -41,6 +41,9 @@ Task("build-web")
         
         DoInDirectory("./src/Discussion.Web/wwwroot", () =>
         {
+// yarn
+// yarn global add webpack-cli
+
             Execute("npm install gulp-cli -g");
             Execute("npm install bower -g");
 

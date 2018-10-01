@@ -8,14 +8,6 @@
     var nextDisabled = Model.HasNextPage ? "" : "disabled";
 }
 
-@section Head{
-<environment names="Development">
-    <link rel="stylesheet" href="~/stylesheets/css/topic-list.css" />
-</environment>
-<environment names="QA,Integration,Staging,Production">
-    <link rel="stylesheet" href="~/stylesheets/css/topic-list.min.css" asp-append-version="true" />
-</environment>
-}
 
 
 <div class="row">

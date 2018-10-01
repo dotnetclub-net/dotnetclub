@@ -1,24 +1,29 @@
 {
-  "name": "openaspnet.org",
+  "name": "dotnetclub.net",
   "version": "1.0.0",
-  "description": "Public web portal of open asp.net web site",
+  "description": "Public web portal of open ASP.NET Core site.",
+  "author": "Jijie Chen",
+  "license": "ISC",
+  "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "grunt"
+    "dev": "webpack --mode development --display-error-details && rimraf ./packed-*.js",
+    "prod": "webpack --mode production --display-error-details && rimraf ./packed-*.js"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-awaitable-tasks": "^1.0.0",
-    "gulp-babel": "^6.1.2",
-    "gulp-cssmin": "^0.1.7",
-    "gulp-eslint": "^2.0.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-rimraf": "^0.2.0",
-    "gulp-sass": "^2.2.0",
-    "gulp-uglify": "^1.5.3",
-    "merge-stream": "^1.0.0",
-    "run-sequence": "^1.1.5"
-  }
+    "css-loader": "^1.0.0",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.4.3",
+    "node-sass": "^4.9.3",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "postcss-loader": "^3.0.0",
+    "rimraf": "^2.6.2",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.0",
+    "uglifyjs-webpack-plugin": "^2.0.1",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2"
+  },
+  "dependencies": {}
 }
