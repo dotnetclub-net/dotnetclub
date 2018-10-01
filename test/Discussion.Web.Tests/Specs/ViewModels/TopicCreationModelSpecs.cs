@@ -62,17 +62,17 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         [InlineData("</br>")]
         [InlineData("<a")]
         [InlineData("&#30;")]
-        public void should_refuse_any_html_tag_in_title_or_content(string illigalFragment)
+        public void should_refuse_any_html_tag_in_only_title_not_in_content(string illigalFragment)
         {
             var illigalContent = $"html tag like characters {illigalFragment} should not be valid";
 
             var modelState = ValidateTopic(illigalContent, illigalContent);
 
             modelState.IsValid.ShouldEqual(false);
-            modelState.ErrorCount.ShouldEqual(2);
+            modelState.ErrorCount.ShouldEqual(1);
 
             modelState.Keys.ShouldContain("Title");
-            modelState.Keys.ShouldContain("Content");
+            modelState.Keys.ShouldNotContain("Content");
         }
 
 

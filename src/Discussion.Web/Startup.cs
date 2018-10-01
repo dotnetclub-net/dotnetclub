@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Text.Encodings.Web;
+using System.Text.Unicode;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,12 +40,13 @@ namespace Discussion.Web
                     .AddRoleStore<NullRoleStore>()
                     .AddClaimsPrincipalFactory<DiscussionUserClaimsPrincipalFactory>()
                     .AddDefaultTokenProviders();
+
+            services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
             services.AddMvc();
 
             services.AddDataServices(ApplicationConfiguration, _loggerFactory);
 
             services.AddAuthorization();
-
             services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
             services.Configure<IdentityOptions>(options =>
             {
@@ -57,7 +60,6 @@ namespace Discussion.Web
                 
 //                options.User.RequireUniqueEmail = true;
             });
-
         }
 
         public void Configure(IApplicationBuilder app)

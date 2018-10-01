@@ -29,7 +29,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.Content().ShouldContain("用户登录");            
+            response.ReadAllContent().ShouldContain("用户登录");            
         }
         
           
@@ -79,7 +79,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.Content().ShouldContain("退出登录");
+            response.ReadAllContent().ShouldContain("退出登录");
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.Content().ShouldContain("用户注册");            
+            response.ReadAllContent().ShouldContain("用户注册");            
         }
   
         [Fact]
@@ -138,7 +138,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.Content().ShouldContain("退出登录");
+            response.ReadAllContent().ShouldContain("退出登录");
         }
 
 

@@ -82,6 +82,13 @@
       width: calc(100% - 80px);
       overflow: hidden;
       
+      h3{
+        font-size:18px;
+      }
+      h4{
+        font-size:16px;
+      }
+      
       .reply-content-related{
         color: $brand-lightest;
         font-size: 12px;

@@ -15,7 +15,6 @@ namespace Discussion.Web.ViewModels
 
         [Required]
         [MaxLength(200000)]
-        [DisAllowHtmlTags]
         public string Content { get; set; }
         
         [Required]

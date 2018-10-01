@@ -25,7 +25,7 @@ namespace Discussion.Web.Tests
         }
 
         
-        public static string Content(this HttpResponseMessage response)
+        public static string ReadAllContent(this HttpResponseMessage response)
         {
             return response.Content.ReadAsStringAsync().Result;
         }

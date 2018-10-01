@@ -5,14 +5,14 @@ namespace Discussion.Web.Services.Markdown
 {
     public static class MarkdownConverter
     {
-        public static string ToHtml(string markdown)
+        public static string ToHtml(string markdown, int maxHeadingLevel = 2)
         {
             var markdownPipelineBuilder = new MarkdownPipelineBuilder()
                 .DisableHtml()
                 .UseAutoLinks();
             markdownPipelineBuilder
                 .Extensions
-                .AddIfNotAlready<UnescapedFencedCodeBlockExtension>();
+                .AddIfNotAlready(new CustomizableHeadingLevelExtension(maxHeadingLevel));
             
             var pipeline = markdownPipelineBuilder.Build();
             return MarkdownHelper.ToHtml(markdown ?? string.Empty, pipeline);

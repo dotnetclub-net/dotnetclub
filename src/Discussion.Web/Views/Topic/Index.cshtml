@@ -57,7 +57,7 @@
                             <dd>@reply.Author.DisplayName</dd>
                         </dl>
                         <div class="reply-content">
-                            <div class="reply-content-body">@reply.Content</div>
+                            <div class="reply-content-body">@Html.Raw(reply.GetContentAsHtml())</div>
                             <div class="reply-content-related">
                                 回复于 <span class="replied-at" data-replied-at="@Html.Timestamp(reply.CreatedAtUtc)"></span>
                             </div>

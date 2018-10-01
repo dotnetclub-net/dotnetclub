@@ -32,10 +32,8 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.Content().ShouldContain("全部话题");
+            response.ReadAllContent().ShouldContain("全部话题");
         }
-
-
 
         [Fact]
         public async Task should_serve_create_topic_page()
@@ -48,9 +46,8 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.Content().ShouldContain("创建新话题");
+            response.ReadAllContent().ShouldContain("创建新话题");
         }
-
 
         [Fact]
         public async Task should_redirect_to_signin_when_access_create_topic_page_without_user_principal()
@@ -102,5 +99,36 @@ namespace Discussion.Web.Tests.IntegrationTests
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.BadRequest);
         }
+        
+        [Fact]
+        public async Task should_show_topic_detail_page()
+        {
+            // arrange
+            _theApp.MockUser();
+            var request = _theApp.Server.CreateRequest("/topics")
+                .WithFormContent(new Dictionary<string, string>
+                {
+                    {"title", "中文字 &quot;title"},
+                    {"content", "**some** <script>content</script>"},
+                    {"type", "1"}
+                });
+            var createResponse = await request.PostAsync();
+            var redirectToUrl = createResponse.Headers.Location.ToString();
+            
+            // act
+            var requestDetail = _theApp.Server.CreateRequest(redirectToUrl);
+            var response = await requestDetail.GetAsync();
+
+            // assert
+            response.StatusCode.ShouldEqual(HttpStatusCode.OK);
+            
+            var content = response.ReadAllContent();
+            content.ShouldContain("中文字 &amp;quot;title");
+            content.ShouldNotContain("<br />title");
+            
+            content.ShouldContain("<strong>some</strong> &lt;script&gt;content&lt;/script&gt;");
+            content.ShouldNotContain("<script>content</script>");
+        }
+
     }
 }

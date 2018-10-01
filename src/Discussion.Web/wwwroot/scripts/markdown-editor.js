@@ -33,14 +33,12 @@ $(document).ready(function() {
         processTag(element[0], null, htmlOptions);
 
         var mdContent = convertToMarkdown(element.html());
-        var encodedContent = htmlEncode(mdContent);
-
 
         var title = $('#new-topic-title').val();
         var topicType = $('#topic-type-dropdown .topic-type-item[selected]>a').attr('attr-value');
         var newTopic = {
-            title: htmlEncode(title),
-            content: encodedContent,
+            title: title,
+            content: mdContent,
             type: topicType
         };
         
