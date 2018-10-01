@@ -36,7 +36,7 @@
             </div>
         </header>
         <article class="topic-content">
-            @Html.Raw(Model.HtmlContent)
+            @Html.Raw(Model.Topic.GetContentAsHtml())
         </article>
     </article>
 </div>

@@ -219,7 +219,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topicShown.Id.ShouldEqual(topic.Id);
             topicShown.Topic.Title.ShouldEqual(topic.Title);
             topicShown.Topic.Content.ShouldEqual(topic.Content);
-            topicShown.HtmlContent.ShouldEqual("<p>标题哈</p>\n<h3>哈呵呵</h3>\n\n<p><strong>功能</strong>是<em>很好</em>的</p>\n");
+            topicShown.Topic.GetContentAsHtml().ShouldEqual("<p>标题哈</p>\n<h3>哈呵呵</h3>\n\n<p><strong>功能</strong>是<em>很好</em>的</p>\n");
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Discussion.Web.Services.Markdown;
 
 namespace Discussion.Web.Models
 {
@@ -20,6 +21,13 @@ namespace Discussion.Web.Models
         
         [ForeignKey("CreatedBy")]
         public User Author { get; set; }
+
+        public string GetContentAsHtml()
+        {
+            return string.IsNullOrWhiteSpace(Content) 
+                ? Content
+                : MarkdownConverter.ToHtml(Content);
+        }
     }
 
 

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Discussion.Web.Models;
-using Discussion.Web.Services.Markdown;
 
 namespace Discussion.Web.ViewModels
 {
@@ -16,8 +14,6 @@ namespace Discussion.Web.ViewModels
 
         public Topic Topic { get; }
         
-        public string HtmlContent { get; set; }
-        
         public List<Reply> Replies { get; set; }
         
 
@@ -26,7 +22,6 @@ namespace Discussion.Web.ViewModels
         {
             return new TopicViewModel(topic)
             {
-                HtmlContent = MarkdownConverter.ToHtml(topic.Content),
                 Replies = replies
             };
         }
