@@ -1,4 +1,6 @@
+using Discussion.Core.Models;
 using Discussion.Web.Models;
+using Discussion.Web.Services.Markdown;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Models
@@ -14,7 +16,7 @@ namespace Discussion.Web.Tests.Specs.Models
 ## Heading 2"
             };
 
-            var htmlContent = reply.GetContentAsHtml();
+            var htmlContent = reply.Content.GetContentAsHtml();
 
             var expectedRenderedHtml = "<p>Some <strong>bold</strong> content</p>\n<h3>Heading 2</h3>\n";
             Assert.Equal(expectedRenderedHtml, htmlContent);

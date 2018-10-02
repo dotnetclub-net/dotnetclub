@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Discussion.Core.Models;
 using Discussion.Web.Models;
 
 namespace Discussion.Web.ViewModels
@@ -9,14 +10,12 @@ namespace Discussion.Web.ViewModels
         {
             this.Topic = topic;
         }
-        
+
         public int Id => this.Topic.Id;
 
         public Topic Topic { get; }
-        
-        public List<Reply> Replies { get; set; }
-        
 
+        public List<Reply> Replies { get; set; }
 
         public static TopicViewModel CreateFrom(Topic topic, List<Reply> replies)
         {
@@ -26,5 +25,4 @@ namespace Discussion.Web.ViewModels
             };
         }
     }
-
 }

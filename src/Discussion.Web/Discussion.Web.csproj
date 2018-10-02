@@ -17,7 +17,6 @@
     <PackageReference Include="Markdig" Version="0.15.2" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.1.0" />
@@ -39,6 +38,7 @@
     <PackageReference Include="System.Security.Claims" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Discussion.Core\Discussion.Core.csproj" />
     <ProjectReference Include="..\Discussion.Migrations\Discussion.Migrations.csproj" />
   </ItemGroup>
 </Project>

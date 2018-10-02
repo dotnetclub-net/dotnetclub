@@ -1,21 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using Discussion.Core.Models;
 using Discussion.Web.Controllers;
 using Discussion.Web.Data;
-using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
+using Discussion.Web.Services.Markdown;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
 {
-
     [Collection("AppSpecs")]
     public class TopicControllerSpecs
     {
         public TestApplication _myApp;
+
         public TopicControllerSpecs(TestApplication app)
         {
             _myApp = app.Reset();
@@ -31,24 +31,23 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 new Topic {Title = "dummy topic 3", Type = TopicType.Discussion },
             };
             var repo = _myApp.GetService<IRepository<Topic>>();
-            foreach(var item in topicItems)
+            foreach (var item in topicItems)
             {
                 repo.Save(item);
             }
-
 
             var topicController = _myApp.CreateController<TopicController>();
 
             var topicListResult = topicController.List() as ViewResult;
             var listViewModel = topicListResult.ViewData.Model as TopicListViewModel;
-            
+
             listViewModel.ShouldNotBeNull();
             var topicList = listViewModel.Topics;
             topicList.ShouldContain(t => t.Title == "dummy topic 1");
             topicList.ShouldContain(t => t.Title == "dummy topic 2");
             topicList.ShouldContain(t => t.Title == "dummy topic 3");
         }
-        
+
         [Fact]
         public void should_calc_topic_list_with_paging()
         {
@@ -59,22 +58,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
             {
                 repo.Save(new Topic
                 {
-                    Title = "dummy topic " + all, 
-                    Type = TopicType.Discussion, 
+                    Title = "dummy topic " + all,
+                    Type = TopicType.Discussion,
                     CreatedAtUtc = DateTime.Today.AddSeconds(-all)
                 });
             } while (--all > 0);
-            
+
             var topicController = _myApp.CreateController<TopicController>();
 
             var topicListResult = topicController.List(2) as ViewResult;
             var listViewModel = topicListResult.ViewData.Model as TopicListViewModel;
-            
+
             listViewModel.ShouldNotBeNull();
             listViewModel.CurrentPage.ShouldEqual(2);
             listViewModel.HasPreviousPage.ShouldEqual(true);
             listViewModel.HasNextPage.ShouldEqual(false);
-            
+
             var topicList = listViewModel.Topics;
             topicList.Count.ShouldEqual(10);
             topicList[0].Title.ShouldEqual("dummy topic 21");
@@ -87,15 +86,13 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _myApp.MockUser();
             var topicController = _myApp.CreateController<TopicController>();
 
-
             var model = new TopicCreationModel()
             {
-                Title = "first topic you created", 
+                Title = "first topic you created",
                 Content = "**This is the content of this markdown**\r\n* markdown content is greate*",
                 Type = TopicType.Job
             };
             topicController.CreateTopic(model);
-
 
             var repo = _myApp.GetService<IRepository<Topic>>();
             var allTopics = repo.All().ToList();
@@ -123,7 +120,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _myApp.MockUser();
             var topic = new Topic
             {
-                Title = "dummy topic 1", 
+                Title = "dummy topic 1",
                 ViewCount = 4,
                 Type = TopicType.Discussion,
                 CreatedBy = _myApp.User.ExtractUserId().Value
@@ -132,10 +129,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             repo.Save(topic);
             _myApp.Reset();
 
-
             var topicController = _myApp.CreateController<TopicController>();
             var result = topicController.Index(topic.Id) as ViewResult;
-
 
             result.ShouldNotBeNull();
 
@@ -153,23 +148,21 @@ namespace Discussion.Web.Tests.Specs.Controllers
             // Arrange
             var topicRepo = _myApp.GetService<IRepository<Topic>>();
             var replyRepo = _myApp.GetService<IRepository<Reply>>();
-            
+
             var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion, CreatedBy = _myApp.User.ExtractUserId().Value };
             topicRepo.Save(topic);
 
             var replyContent = "reply content ";
-            var replyNew = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = replyContent + "2", TopicId = topic.Id, CreatedBy = _myApp.User.ExtractUserId().Value};
-            var replyOld = new Reply { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = replyContent + "1", TopicId = topic.Id, CreatedBy = _myApp.User.ExtractUserId().Value};
+            var replyNew = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = replyContent + "2", TopicId = topic.Id, CreatedBy = _myApp.User.ExtractUserId().Value };
+            var replyOld = new Reply { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = replyContent + "1", TopicId = topic.Id, CreatedBy = _myApp.User.ExtractUserId().Value };
             replyRepo.Save(replyNew);
             replyRepo.Save(replyOld);
             _myApp.Reset();
-            
+
             // Act
             var topicController = _myApp.CreateController<TopicController>();
             var result = topicController.Index(topic.Id) as ViewResult;
 
-            
-            
             // Assert
             result.ShouldNotBeNull();
 
@@ -178,15 +171,14 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topicShown.ShouldNotBeNull();
             topicShown.Id.ShouldEqual(topic.Id);
             topicShown.Replies.ShouldNotBeNull();
-            
+
             topicShown.Replies.Count.ShouldEqual(2);
             topicShown.Replies[0].Content.ShouldEqual(replyContent + "1");
             topicShown.Replies[0].TopicId.ShouldEqual(topic.Id);
-            
+
             topicShown.Replies[1].Content.ShouldEqual(replyContent + "2");
             topicShown.Replies[1].TopicId.ShouldEqual(topic.Id);
         }
-    
 
         [Fact]
         public void should_show_render_topic_content_from_markdown()
@@ -207,7 +199,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             repo.Save(topic);
             _myApp.Reset();
 
-
             var topicController = _myApp.CreateController<TopicController>();
             var result = topicController.Index(topic.Id) as ViewResult;
 
@@ -219,7 +210,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topicShown.Id.ShouldEqual(topic.Id);
             topicShown.Topic.Title.ShouldEqual(topic.Title);
             topicShown.Topic.Content.ShouldEqual(topic.Content);
-            topicShown.Topic.GetContentAsHtml().ShouldEqual("<p>标题哈</p>\n<h3>哈呵呵</h3>\n\n<p><strong>功能</strong>是<em>很好</em>的</p>\n");
+            topicShown.Topic.Content.GetContentAsHtml().ShouldEqual("<p>标题哈</p>\n<h3>哈呵呵</h3>\n\n<p><strong>功能</strong>是<em>很好</em>的</p>\n");
         }
     }
 }

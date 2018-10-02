@@ -1,4 +1,5 @@
 using System;
+using Discussion.Core.Models;
 using Discussion.Web.Data;
 using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Web.Controllers
 {
-    public class ReplyController: Controller
+    public class ReplyController : Controller
     {
         private IRepository<Reply> _replyRepo;
         private IRepository<Topic> _topicRepo;
@@ -18,7 +19,6 @@ namespace Discussion.Web.Controllers
             _replyRepo = replyRepo;
             _topicRepo = topicRepo;
         }
-
 
         [Route("/topics/{topicId}/replies")]
         [HttpPost]
@@ -30,7 +30,7 @@ namespace Discussion.Web.Controllers
             {
                 ModelState.AddModelError("TopicId", "话题不存在");
             }
-            
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -39,7 +39,7 @@ namespace Discussion.Web.Controllers
             topic.LastRepliedAt = DateTime.UtcNow;
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
-            
+
             var reply = new Reply
             {
                 TopicId = topicId,
