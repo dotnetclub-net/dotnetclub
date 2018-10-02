@@ -19,8 +19,8 @@ services:
   - docker
 
 install:
-  - nvm install 8.6.0
-  - nvm use 8.6.0
+  - nvm install 8.12.0
+  - nvm use 8.12.0
 
 branches:
   only:

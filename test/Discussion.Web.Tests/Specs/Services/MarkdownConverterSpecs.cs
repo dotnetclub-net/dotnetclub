@@ -35,7 +35,7 @@ namespace Discussion.Web.Tests.Specs.Services
 <p>&lt;script&gt;alert('abcdefg')&lt;/script&gt;
 &lt;a href=&quot;about:blank&quot;&gt;link&lt;/a&gt;</p>
 ";
-            html.ShouldEqual(expectedHtml);
+            html.ShouldEqual(expectedHtml.Replace("\r", string.Empty));
         }
         
         [Fact]
