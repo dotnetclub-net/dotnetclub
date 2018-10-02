@@ -1,4 +1,5 @@
 ﻿using System;
+using Discussion.Core.Models;
 using Discussion.Web.Models;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -10,6 +11,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
     public class CreateTopicModelSpecs
     {
         private readonly TestApplication _myApp;
+
         public CreateTopicModelSpecs(TestApplication app)
         {
             _myApp = app;
@@ -23,7 +25,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
             modelState.Keys.ShouldNotContain("Title");
             modelState.Keys.ShouldNotContain("Content");
         }
-        
+
         [Fact]
         public void should_validate_type_values_as_valid()
         {
@@ -57,7 +59,6 @@ namespace Discussion.Web.Tests.Specs.ViewModels
             modelState.Keys.ShouldContain("Content");
         }
 
-
         [Theory]
         [InlineData("</br>")]
         [InlineData("<a")]
@@ -75,16 +76,15 @@ namespace Discussion.Web.Tests.Specs.ViewModels
             modelState.Keys.ShouldNotContain("Content");
         }
 
-
         private ModelStateDictionary ValidateTopic(string title, string content, TopicType? type = TopicType.Discussion)
         {
-            var createModel = new TopicCreationModel { Title = title, Content = content, Type = type};
+            var createModel = new TopicCreationModel { Title = title, Content = content, Type = type };
             return _myApp.ValidateModel(createModel);
         }
 
         private static string CreateString(int length)
         {
-            if(length <= 0)
+            if (length <= 0)
             {
                 return string.Empty;
             }

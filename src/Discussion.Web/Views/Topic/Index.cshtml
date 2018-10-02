@@ -1,11 +1,10 @@
 ﻿@using Discussion.Web.Services.Identity
+@using Discussion.Web.Services.Markdown
 @model TopicViewModel
 
 @{
     ViewData["Title"] = Model.Topic.Title;
 }
-
-
 
 <div class="row">
     <article class="panel panel-topic-detail col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -27,7 +26,7 @@
             </div>
         </header>
         <article class="topic-content">
-            @Html.Raw(Model.Topic.GetContentAsHtml())
+            @Html.Raw(Model.Topic.Content.GetContentAsHtml())
         </article>
     </article>
 </div>
@@ -48,7 +47,7 @@
                             <dd>@reply.Author.DisplayName</dd>
                         </dl>
                         <div class="reply-content">
-                            <div class="reply-content-body">@Html.Raw(reply.GetContentAsHtml())</div>
+                            <div class="reply-content-body">@Html.Raw(reply.Content.GetContentAsHtml())</div>
                             <div class="reply-content-related">
                                 回复于 <span class="replied-at" data-replied-at="@Html.Timestamp(reply.CreatedAtUtc)"></span>
                             </div>
@@ -75,7 +74,6 @@
         </div>
     </div>
 }
-
 
 @section Tail{
     <script>

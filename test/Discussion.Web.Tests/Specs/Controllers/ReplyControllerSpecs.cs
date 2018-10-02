@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Discussion.Core.Models;
 using Discussion.Web.Controllers;
 using Discussion.Web.Data;
 using Discussion.Web.Models;
@@ -14,11 +15,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
     public class ReplyControllerSpecs
     {
         private TestApplication _app;
+
         public ReplyControllerSpecs(TestApplication app)
         {
             _app = app.Reset();
         }
-
 
         [Fact]
         public void should_add_reply()
@@ -27,15 +28,13 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _app.MockUser();
             var (topic, userId) = CreateTopic(_app);
 
-            
             // Act
             var replyController = _app.CreateController<ReplyController>();
             replyController.Reply(topic.Id, new ReplyCreationModel
             {
                 Content = "my reply"
             });
-            
-            
+
             // Assert
             var replies = _app.GetService<IRepository<Reply>>()
                         .All()
@@ -45,8 +44,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             replies[0].TopicId.ShouldEqual(topic.Id);
             replies[0].CreatedBy.ShouldEqual(userId);
             replies[0].Content.ShouldEqual("my reply");
-            
-            
+
             var dbContext = _app.GetService<ApplicationDbContext>();
             dbContext.Entry(topic).Reload();
             topic.ReplyCount.ShouldEqual(1);
@@ -55,7 +53,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.True(span.TotalSeconds > 0);
             Assert.True(span.TotalSeconds < 10);
         }
-        
+
         [Fact]
         public void should_not_add_reply_when_model_state_invalid()
         {
@@ -65,33 +63,30 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var replyController = _app.CreateController<ReplyController>();
             replyController.ModelState.AddModelError("Content", "必须填写回复内容");
-            
-            
-            
+
             // Act
             var replyResult = replyController.Reply(topic.Id, new ReplyCreationModel
             {
                 Content = "my reply"
             });
 
-            
             // Assert
             var statusCodeResult = replyResult as BadRequestObjectResult;
             Assert.NotNull(statusCodeResult);
             Assert.Equal(400, statusCodeResult.StatusCode);
-            
+
             var errors = statusCodeResult.Value as SerializableError;
             Assert.NotNull(errors);
             Assert.Contains("必须填写回复内容", errors.Values.Cast<string[]>().SelectMany(err => err).ToList());
         }
-        
+
         [Fact]
         public void should_not_add_reply_when_topic_id_does_not_exist()
         {
             _app.MockUser();
 
             var replyController = _app.CreateController<ReplyController>();
-            
+
             var replyResult = replyController.Reply(99999, new ReplyCreationModel
             {
                 Content = "my reply"
@@ -102,7 +97,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.Equal(400, statusCodeResult.StatusCode);
         }
 
-       
         internal static (Topic, int) CreateTopic(TestApplication testApplication)
         {
             var userId = testApplication.User.ExtractUserId().Value;
@@ -117,6 +111,4 @@ namespace Discussion.Web.Tests.Specs.Controllers
             return (topic, userId);
         }
     }
-
-
 }

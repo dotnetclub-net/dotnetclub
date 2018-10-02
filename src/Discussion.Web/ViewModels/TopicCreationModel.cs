@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Discussion.Core.Models;
 using Discussion.Web.Models;
 
 namespace Discussion.Web.ViewModels
@@ -16,25 +17,24 @@ namespace Discussion.Web.ViewModels
         [Required]
         [MaxLength(200000)]
         public string Content { get; set; }
-        
+
         [Required]
         [MustBeDiscribed]
         public TopicType? Type { get; set; }
     }
 
-
-    class DisAllowHtmlTagsAttribute: ValidationAttribute
+    internal class DisAllowHtmlTagsAttribute : ValidationAttribute
     {
         public override bool IsValid(object value)
         {
-            var invalidPatterns = new []
+            var invalidPatterns = new[]
             {
                 new Regex(@"\</", RegexOptions.Compiled),
                 new Regex(@"\<[a-z]+", RegexOptions.Compiled | RegexOptions.IgnoreCase),
                 new Regex(@"&#(x[\da-f]+|\d+);", RegexOptions.Compiled | RegexOptions.IgnoreCase)
             };
 
-            if(value == null)
+            if (value == null)
             {
                 return true;
             }
@@ -43,8 +43,8 @@ namespace Discussion.Web.ViewModels
             return invalidPatterns.AsParallel().All(pattern => !pattern.IsMatch(stringValue));
         }
     }
-    
-    class MustBeDiscribedAttribute : ValidationAttribute
+
+    internal class MustBeDiscribedAttribute : ValidationAttribute
     {
         public override bool IsValid(object value)
         {
@@ -53,41 +53,38 @@ namespace Discussion.Web.ViewModels
                 // 此处不检查空值，空值留给 Required 检查
                 return true;
             }
-            
+
             TopicType topicType = 0;
             var isInt = (value is int);
             if (isInt)
             {
-                var intVal = (int) value;
-                topicType = (TopicType) intVal;
+                var intVal = (int)value;
+                topicType = (TopicType)intVal;
             }
 
             var isString = (value is string);
             if (isString)
             {
-                var strValue = (string) value;
-                if(!Enum.TryParse(strValue, out topicType))
+                var strValue = (string)value;
+                if (!Enum.TryParse(strValue, out topicType))
                 {
                     return false;
                 }
             }
 
             var isTopicType = (value is TopicType);
-            if(isTopicType)
+            if (isTopicType)
             {
                 topicType = (TopicType)value;
             }
-            
+
             return IsDescribed(topicType);
         }
-        
-        
-        static bool IsDescribed(TopicType topicType)
+
+        private static bool IsDescribed(TopicType topicType)
         {
             var memberInfo = typeof(TopicType).GetMember(topicType.ToString()).FirstOrDefault();
             return memberInfo != null;
         }
-        
     }
-
 }

@@ -7,13 +7,13 @@ using Discussion.Web.Services.Identity;
 using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
+using Discussion.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Discussion.Web.Controllers
 {
     public class TopicController : Controller
     {
-
         private readonly IRepository<Topic> _topicRepo;
         private readonly IRepository<Reply> _replyRepo;
 
@@ -22,8 +22,6 @@ namespace Discussion.Web.Controllers
             _topicRepo = topicRepo;
             _replyRepo = replyRepo;
         }
-
-
 
         private const int PageSize = 20;
 
@@ -40,7 +38,7 @@ namespace Discussion.Web.Controllers
                                       .Skip((actualPage - 1) * PageSize)
                                       .Take(PageSize)
                                       .ToList();
-            
+
             var listModel = new TopicListViewModel
             {
                 Topics = topicList,
@@ -51,8 +49,6 @@ namespace Discussion.Web.Controllers
             return View(listModel);
         }
 
-        
-
         [Route("/topics/{id}")]
         public ActionResult Index(int id)
         {
@@ -60,8 +56,8 @@ namespace Discussion.Web.Controllers
                 .Where(t => t.Id == id)
                 .Include(t => t.Author)
                 .SingleOrDefault();
-                
-            if(topic == null)
+
+            if (topic == null)
             {
                 return NotFound();
             }
@@ -107,10 +103,8 @@ namespace Discussion.Web.Controllers
             _topicRepo.Save(topic);
             return RedirectToAction("Index", new { topic.Id });
         }
-        
-        
-        
-        static int NormalizePaging(int? page, int topicCount, out int allPage)
+
+        private static int NormalizePaging(int? page, int topicCount, out int allPage)
         {
             var actualPage = 0;
 
@@ -123,7 +117,6 @@ namespace Discussion.Web.Controllers
                 actualPage = page.Value;
             }
 
-
             var basePage = topicCount / PageSize;
             allPage = topicCount % PageSize == 0 ? basePage : basePage + 1;
             if (actualPage > allPage)
@@ -134,5 +127,4 @@ namespace Discussion.Web.Controllers
             return actualPage;
         }
     }
-
 }
