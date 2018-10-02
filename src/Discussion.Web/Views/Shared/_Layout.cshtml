@@ -30,8 +30,8 @@
         <link rel="stylesheet" href="~/dist/packed-css.css" />
     </environment>
     <environment names="QA,Integration,Staging,Production">
-        <link rel="stylesheet" href="~/dist/packed-css-vendor.min.css" />
-        <link rel="stylesheet" href="~/dist/css/packed-css.min.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/dist/packed-css-vendor.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/dist/packed-css.min.css" asp-append-version="true"/>
     </environment>
     @RenderSection("Head", required: false)
 </head>
@@ -90,8 +90,8 @@
     <script src="~/dist/packed-js.js"></script>
 </environment>
 <environment names="QA,Integration,Staging,Production">
-    <script src="~/dist/packed-js-vendor.min.js"></script>
-    <script src="~/dist/packed-js.min.js"></script>
+    <script src="~/dist/packed-js-vendor.min.js" asp-append-version="true"></script>
+    <script src="~/dist/packed-js.min.js" asp-append-version="true"></script>
 </environment>
 
     @RenderSection("Tail", required: false)

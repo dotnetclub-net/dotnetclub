@@ -38,19 +38,19 @@ Task("build-test")
 
 Task("build-web")
   .Does(() => {
-        
         DoInDirectory("./src/Discussion.Web/wwwroot", () =>
         {
-// yarn
-// yarn global add webpack-cli
-
-            Execute("npm install gulp-cli -g");
-            Execute("npm install bower -g");
-
-            NpmInstall();
-
-            Execute("bower install");
-            Execute("gulp publish");
+            Execute("yarn install");
+        });
+        DoInDirectory("./src/Discussion.Web/wwwroot/lib", () =>
+        {
+            Execute("yarn install");
+        });
+        DoInDirectory("./src/Discussion.Web/wwwroot", () =>
+        {
+            Execute("npm run clean");
+            Execute("npm run dev");
+            Execute("npm run prod");
         });
     });
 

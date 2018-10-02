@@ -78,7 +78,7 @@ module.exports = (env, argv) =>  ({
         }),
         new MiniCssExtractPlugin({
             filename: 'packed-' + (argv.mode === 'development'  ? '[name].css' : '[name].min.css'),
-            chunkFilename: 'packed-' + (argv.mode === 'development' ? '[id].css' : '[id].min.css')
+            chunkFilename: 'packed-' + (argv.mode === 'development' ? '[name].css' : '[name].min.css')
         }),
         new webpack.IgnorePlugin(/^codemirror$/)
     ]

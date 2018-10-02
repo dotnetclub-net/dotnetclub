@@ -14,13 +14,6 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="wwwroot\**\*;node_modules;tmp_wwwroot" />
-    <EmbeddedResource Remove="wwwroot\**\*;node_modules;tmp_wwwroot" />
-    <None Update="Views\**\*;wwwroot\**\*">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Markdig" Version="0.15.2" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.1.0" />
@@ -47,115 +40,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Discussion.Migrations\Discussion.Migrations.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\fonts\bootstrap\glyphicons-halflings-regular.eot" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\fonts\bootstrap\glyphicons-halflings-regular.svg" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\fonts\bootstrap\glyphicons-halflings-regular.ttf" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\fonts\bootstrap\glyphicons-halflings-regular.woff" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\fonts\bootstrap\glyphicons-halflings-regular.woff2" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\javascripts\bootstrap-sprockets.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\javascripts\bootstrap.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\javascripts\bootstrap.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\stylesheets\bootstrap.css" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\bootstrap-sass\stylesheets\bootstrap.min.css" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\font\summernote.eot" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\font\summernote.ttf" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\font\summernote.woff" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ar-AR.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ar-AR.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-bg-BG.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-bg-BG.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ca-ES.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ca-ES.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-cs-CZ.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-cs-CZ.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-da-DK.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-da-DK.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-de-DE.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-de-DE.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-el-GR.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-el-GR.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-es-ES.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-es-ES.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-es-EU.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-es-EU.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-fa-IR.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-fa-IR.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-fi-FI.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-fi-FI.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-fr-FR.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-fr-FR.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-gl-ES.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-gl-ES.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-he-IL.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-he-IL.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-hr-HR.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-hr-HR.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-hu-HU.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-hu-HU.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-id-ID.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-id-ID.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-it-IT.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-it-IT.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ja-JP.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ja-JP.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ko-KR.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ko-KR.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-lt-LT.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-lt-LT.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-lt-LV.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-lt-LV.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-mn-MN.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-mn-MN.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-nb-NO.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-nb-NO.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-nl-NL.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-nl-NL.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-pl-PL.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-pl-PL.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-pt-BR.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-pt-BR.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-pt-PT.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-pt-PT.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ro-RO.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ro-RO.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ru-RU.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ru-RU.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sk-SK.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sk-SK.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sl-SI.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sl-SI.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sr-RS-Latin.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sr-RS-Latin.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sr-RS.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sr-RS.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sv-SE.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-sv-SE.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ta-IN.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-ta-IN.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-th-TH.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-th-TH.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-tr-TR.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-tr-TR.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-uk-UA.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-uk-UA.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-vi-VN.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-vi-VN.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-zh-CN.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-zh-CN.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-zh-TW.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\lang\summernote-zh-TW.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote-bs4.css" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote-bs4.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote-bs4.js.map" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote-bs4.min.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote-lite.css" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote-lite.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote-lite.js.map" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote.css" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote.js.map" />
-    <_ContentIncludedByDefault Remove="wwwroot\lib\dist\summernote\summernote.min.js" />
   </ItemGroup>
 </Project>
