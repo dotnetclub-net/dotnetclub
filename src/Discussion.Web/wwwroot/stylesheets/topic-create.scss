@@ -21,21 +21,22 @@
 }
 
 
-.note-editor.panel{
-  border:none;
-  border-radius: 0;
-  
-  .panel-heading.note-toolbar{
-    background: transparent;
+.topic-content-container {
+  .note-editor.panel {
     border: none;
-  }
-  
-  .btn.note-btn{
-    border:none;
-    color:$gray;
+    border-radius: 0;
+
+    .panel-heading.note-toolbar {
+      background: transparent;
+      border: none;
+    }
+
+    .btn.note-btn {
+      border: none;
+      color: $gray;
+    }
   }
 }
-
 
 .topic-submit-section{
   padding-right: 10px;

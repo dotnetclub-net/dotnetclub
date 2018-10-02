@@ -26,16 +26,12 @@
     <link rel="icon" type="image/png" sizes="32x32" href="~/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="~/favicon/favicon-96x96.png">
     <environment names="Development">
-        <link rel="stylesheet" href="~/lib/dist/bootstrap-sass/stylesheets/bootstrap.css" />
-        <link rel="stylesheet" href="~/stylesheets/css/style.css" />
+        <link rel="stylesheet" href="~/dist/packed-css-vendor.css" />
+        <link rel="stylesheet" href="~/dist/packed-css.css" />
     </environment>
     <environment names="QA,Integration,Staging,Production">
-        <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.6/css/bootstrap.min.css"
-              asp-fallback-href="~/lib/dist/bootstrap-sass/stylesheets/bootstrap.min.css"
-              asp-fallback-test-class="invisible"
-              asp-fallback-test-property="visibility"
-              asp-fallback-test-value="hidden" />
-        <link rel="stylesheet" href="~/stylesheets/css/style.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/dist/packed-css-vendor.min.css" />
+        <link rel="stylesheet" href="~/dist/css/packed-css.min.css" asp-append-version="true"/>
     </environment>
     @RenderSection("Head", required: false)
 </head>
@@ -90,18 +86,12 @@
 </footer>
 
 <environment names="Development">
-    <script src="~/lib/dist/jquery/jquery.js"></script>
-    <script src="~/lib/dist/bootstrap-sass/javascripts/bootstrap.js"></script>
+    <script src="~/dist/packed-js-vendor.js"></script>
+    <script src="~/dist/packed-js.js"></script>
 </environment>
 <environment names="QA,Integration,Staging,Production">
-    <script src="https://cdn.staticfile.org/jquery/2.1.4/jquery.min.js"
-            asp-fallback-src="~/lib/dist/jquery/jquery.min.js"
-            asp-fallback-test="window.jQuery">
-    </script>
-    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.6/js/bootstrap.min.js"
-            asp-fallback-src="~/lib/dist/bootstrap-sass/javascripts/bootstrap.min.js"
-            asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
-    </script>
+    <script src="~/dist/packed-js-vendor.min.js"></script>
+    <script src="~/dist/packed-js.min.js"></script>
 </environment>
 
     @RenderSection("Tail", required: false)

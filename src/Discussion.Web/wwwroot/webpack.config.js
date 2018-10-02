@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require("webpack");
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
@@ -73,15 +72,6 @@ module.exports = (env, argv) =>  ({
         }
     },
     plugins: [
-        // 将这些文件复制到 dist/lib 中，以便 Development 模式中使用
-        new CopyWebpackPlugin([
-            { from: 'lib/node_modules/bootstrap/dist', to: 'dist/lib/bootstrap' },
-            { from: 'lib/node_modules/jquery/dist', to: 'dist/lib/jquery' },
-            { from: 'lib/node_modules/turndown/dist', to: 'dist/lib/turndown' },   // 也在 vender.js 中
-            { from: 'lib/node_modules/prismjs/prism.js', to: 'dist/lib/prismjs/' },  // 也在 vender.js 中
-            { from: 'lib/node_modules/prismjs/themes/prism.css', to: 'dist/lib/prismjs/themes/prism.css' },
-            { from: 'lib/node_modules/summernote/dist', to: 'dist/lib/summernote' }
-        ]),
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery'

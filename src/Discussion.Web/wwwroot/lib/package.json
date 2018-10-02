@@ -1,0 +1,16 @@
+{
+  "name": "dotnetclub.net",
+  "version": "1.0.0",
+  "description": "Public web portal of open ASP.NET Core site.",
+  "author": "Jijie Chen",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "3.3.6",
+    "bootstrap-sass": "3.3.6",
+    "jquery": "1.12.4",
+    "prismjs": "1.4.1",
+    "summernote": "0.8.1",
+    "turndown": "4.0.1"
+  }
+}

@@ -3,10 +3,6 @@
 }
 
 
-@section Head{
-    <link rel="stylesheet" href="~/lib/dist/summernote/summernote.css" />
-}
-
 
     <div class="row clearfix">
         <h3>创建新话题</h3>
@@ -34,18 +30,9 @@
     </div>
 
 
-@section Tail{
-<environment names="Development">
-    <script src="~/lib/dist/summernote/summernote.js"></script>
-    <script src="~/lib/dist/turndown/turndown.js"></script>
-</environment>
-<environment names="QA,Integration,Staging,Production">
-    <script src="~/lib/dist/summernote/summernote.min.js"></script>
-    <script src="~/lib/dist/turndown/turndown.min.js"></script>
-</environment>
-
-<script>
-    window.createTopicUrl = "@Url.Action("CreateTopic")";
-</script>
-<script src="~/scripts/markdown-editor.js"></script>
+@section Tail{    
+    <script>
+        window.createTopicUrl = "@Url.Action("CreateTopic")";
+        window.DiscussionApp.mdeditor.setupEditor();
+    </script>
 }

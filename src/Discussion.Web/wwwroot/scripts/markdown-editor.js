@@ -9,9 +9,10 @@
 // popover toolbar may be overflow editor height!
 // make this translatable: 选择语言
 
-(function(){
 
-$(document).ready(function() {
+import TurndownService from "../lib/node_modules/turndown"
+
+export function setupEditor() {
     var editorOptions = defaultEditorOptions();
 
     $('#content-editor').summernote(editorOptions);
@@ -55,7 +56,7 @@ $(document).ready(function() {
                 button.removeAttr('disabled');
             });
     });
-});
+}
 
 function defaultEditorOptions(){
     var defaultOptions = $.extend({}, $.summernote.options);
@@ -616,12 +617,3 @@ function processSingleTag(node, options){
         return first.toUpperCase() === second.toUpperCase();
     }
 }
-
-function htmlEncode(content){
-    // todo: encode & to &amp;    .replace(/&(?!(amp|nbsp|copy);)/g, '&amp;')
-    return content.replace(/</g, '&lt;')
-                  .replace(/>/g, '&gt;')
-                  .replace(/&#[\d]+;/g, '');
-}
-
-})();

@@ -44,10 +44,10 @@ src/Discussion.Web/logs/*
 src/Discussion.Web/publish/*
 dotnetclub.db
 
-*/*.Web/wwwroot/lib
-*/*.Web/wwwroot/stylesheets/css
-*/*.Web/wwwroot/scripts/js
-*/*.Web/wwwroot/scripts/**/*.min.js
+src/Discussion.Web/wwwroot/lib/node_modules
+src/Discussion.Web/wwwroot/dist/*
+
+
 *.ng.ts
 *.sln.ide
 project.lock.json
