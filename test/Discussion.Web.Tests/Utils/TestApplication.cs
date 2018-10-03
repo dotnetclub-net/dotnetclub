@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
 using Xunit;
 using static Discussion.Web.Tests.TestEnv;
 using Microsoft.AspNetCore.Http.Features;
@@ -18,6 +17,7 @@ namespace Discussion.Web.Tests
     public sealed class TestApplication : IDisposable
     {
         readonly ClaimsPrincipal _originalUser;
+        AntiForgeryRequestTokens _antiForgeryRequestTokens;
 
 
         public TestApplication() : this(true){ }
@@ -36,7 +36,7 @@ namespace Discussion.Web.Tests
 
         public TestApplication Reset()
         {
-            // reset all monifications in test cases
+            _antiForgeryRequestTokens = null;
             User = _originalUser;
             ReplacableServiceProvider.Reset();
             return this;
@@ -52,7 +52,16 @@ namespace Discussion.Web.Tests
         public TestServer Server {get; private set;  }
         public ClaimsPrincipal User{ get; set;}
 
-
+        public AntiForgeryRequestTokens GetAntiForgeryTokens()
+        {
+            if (_antiForgeryRequestTokens == null)
+            {
+                _antiForgeryRequestTokens = AntiForgeryRequestTokens.GetFromApplication(this);
+            }
+            
+            return _antiForgeryRequestTokens;
+        }
+        
         public static TestApplication BuildApplication(TestApplication testApp, string environmentName = "Production", Action<IWebHostBuilder> configureHost = null)
         {
             testApp.LoggerProvider = new StubLoggerProvider();
@@ -131,8 +140,6 @@ namespace Discussion.Web.Tests
         }
 
         #endregion
-
-        
     }
 
     // Use shared context to maintain database fixture

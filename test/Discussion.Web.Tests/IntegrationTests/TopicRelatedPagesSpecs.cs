@@ -64,8 +64,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             // arrange
             _theApp.MockUser();
-            var request = _theApp.Server.CreateRequest("/topics")
-                .WithFormContent(new Dictionary<string, string>
+            var request = _theApp.RequestAntiForgeryForm("/topics",
+                new Dictionary<string, string>
                 {
                     {"title", "中文的 title"},
                     {"content", "some content"},
@@ -85,8 +85,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_not_accept_create_topic_request_with_invalid_post_data()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topics");
             _theApp.MockUser();
+            var request = _theApp.RequestAntiForgeryForm("/topics");
 
             // act
             var response = await request.PostAsync();
@@ -100,8 +100,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             // arrange
             _theApp.MockUser();
-            var request = _theApp.Server.CreateRequest("/topics")
-                .WithFormContent(new Dictionary<string, string>
+            var request = _theApp.RequestAntiForgeryForm("/topics",
+                new Dictionary<string, string>
                 {
                     {"title", "中文字 &quot;title"},
                     {"content", "# This is a heading\n**some** <script>content</script>"},

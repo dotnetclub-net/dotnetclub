@@ -2,9 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discussion.Web.Data;
 using Discussion.Web.Models;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
@@ -13,8 +19,11 @@ namespace Discussion.Web.Tests.IntegrationTests
     public class AccountRelatedPageSpecs
     {
         private readonly TestApplication _theApp;
+        private readonly AntiForgeryRequestTokens _antiForgeryTokens;
+
         public AccountRelatedPageSpecs(TestApplication theApp) {
             _theApp = theApp.Reset();
+            _antiForgeryTokens = _theApp.GetAntiForgeryTokens();
         }
 
 
@@ -46,8 +55,10 @@ namespace Discussion.Web.Tests.IntegrationTests
                 .WithFormContent(new Dictionary<string, string>()
                 {
                     {"UserName", username}, 
-                    {"Password", password} 
-                });
+                    {"Password", password},
+                    {"__RequestVerificationToken", _antiForgeryTokens.VerificationToken}
+                })
+                .WithCookie(_antiForgeryTokens.Cookie);
             var response = await request.PostAsync();
 
             // assert
@@ -63,14 +74,13 @@ namespace Discussion.Web.Tests.IntegrationTests
             var username = Guid.NewGuid().ToString("N").Substring(4, 8);
             var password = "11111a";
             _theApp.CreateUser(username, password);
-            var signinResponse = await _theApp.Server.CreateRequest("/signin")
-                .WithFormContent(new Dictionary<string, string>()
-                {
-                    {"UserName", username}, 
-                    {"Password", password} 
-                })
-                .PostAsync();
-
+            var signinResponse = await _theApp.RequestAntiForgeryForm("/signin",
+                                                new Dictionary<string, string>
+                                                {
+                                                    {"UserName", username},
+                                                    {"Password", password}
+                                                })
+                                                .PostAsync();
             // Act
             var request = _theApp.Server.CreateRequest("/topics/create")
                                         .WithCookiesFrom(signinResponse);
@@ -102,14 +112,16 @@ namespace Discussion.Web.Tests.IntegrationTests
             // arrange
             var username = Guid.NewGuid().ToString("N").Substring(4, 8);
             var password = "11111a";
-
+            
             // Act
             var request = _theApp.Server.CreateRequest("/register")
-                                        .WithFormContent(new Dictionary<string, string>()
-                                            {
-                                                {"UserName", username}, 
-                                                {"Password", password} 
-                                            });
+                .WithFormContent(new Dictionary<string, string>()
+                {
+                    {"UserName", username},
+                    {"Password", password},
+                    {"__RequestVerificationToken", _antiForgeryTokens.VerificationToken}
+                })
+                .WithCookie(_antiForgeryTokens.Cookie);
             var response = await request.PostAsync();
 
             // assert
@@ -117,7 +129,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             var isRegistered = _theApp.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
             isRegistered.ShouldEqual(true);
         }
-        
+     
         [Fact]
         public async Task should_signin_newly_registered_user()
         {
@@ -127,8 +139,10 @@ namespace Discussion.Web.Tests.IntegrationTests
                                 .WithFormContent(new Dictionary<string, string>()
                                     {
                                         {"UserName", username}, 
-                                        {"Password", "11111a"} 
+                                        {"Password", "11111a"},
+                                        {"__RequestVerificationToken", _antiForgeryTokens.VerificationToken}
                                     })
+                                .WithCookie(_antiForgeryTokens.Cookie)
                                 .PostAsync();
 
             // Act

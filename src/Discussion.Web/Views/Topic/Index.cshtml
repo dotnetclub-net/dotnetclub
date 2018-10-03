@@ -96,7 +96,7 @@
                 $.ajax({
                     url: postUrl,
                     method: 'POST',
-                    data: { content: replyContent },
+                    data: { content: replyContent, __RequestVerificationToken: window.__RequestVerificationToken },
                     // contentType: 'json',
                     dataType: 'json',
                     success: function() {

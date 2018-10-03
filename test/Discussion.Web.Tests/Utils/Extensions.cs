@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
@@ -28,6 +31,11 @@ namespace Discussion.Web.Tests
         public static string ReadAllContent(this HttpResponseMessage response)
         {
             return response.Content.ReadAsStringAsync().Result;
+        }
+
+        public static RequestBuilder WithCookie(this RequestBuilder request, Cookie cookie)
+        {
+            return WithCookie(request, cookie.Name, cookie.Value);
         }
         
         public static RequestBuilder WithCookie(this RequestBuilder request, string name, string value)
@@ -82,5 +90,25 @@ namespace Discussion.Web.Tests
                 req.Content = new FormUrlEncodedContent(obj);
             });
         }
+
+        public static RequestBuilder RequestAntiForgeryForm(this TestApplication app, string path, Dictionary<string, string> obj = null)
+        {
+            var tokens = app.GetAntiForgeryTokens();
+            var request = app.Server.CreateRequest(path);
+            return request.And(req =>
+                {
+                    if (obj == null)
+                    {
+                        obj = new Dictionary<string, string>();
+                    }
+                    
+                    obj["__RequestVerificationToken"] = tokens.VerificationToken;
+                    req.Content = new FormUrlEncodedContent(obj);
+                })
+                .WithCookie(tokens.Cookie);
+        }
+
+
+
     }
 }

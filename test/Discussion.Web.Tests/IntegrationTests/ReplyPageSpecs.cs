@@ -45,11 +45,11 @@ namespace Discussion.Web.Tests.IntegrationTests
         
         internal static async Task<HttpResponseMessage> RequestToCreateReply( TestApplication testApplication, int topicId, string content = null)
         {
-            var request = testApplication.Server
-                .CreateRequest($"/topics/{topicId}/replies")
-                .WithFormContent(new Dictionary<string, string>
+            var request = testApplication.RequestAntiForgeryForm(
+                $"/topics/{topicId}/replies",
+                new Dictionary<string, string>
                 {
-                    {"Content", content ?? "reply content" }
+                    {"Content", content ?? "reply content"}
                 });
 
             return await request.PostAsync();

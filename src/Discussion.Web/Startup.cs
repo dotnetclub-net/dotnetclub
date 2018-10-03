@@ -8,6 +8,7 @@ using Discussion.Web.ApplicationSupport;
 using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Discussion.Web
@@ -42,7 +43,10 @@ namespace Discussion.Web
                     .AddDefaultTokenProviders();
 
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
-            services.AddMvc();
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            });
 
             services.AddDataServices(ApplicationConfiguration, _loggerFactory);
 

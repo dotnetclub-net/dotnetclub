@@ -56,7 +56,7 @@
                     @if (Context.IsAuthenticated())
                     {
                         <span class="username">欢迎你，@Context.User.Identity.Name</span>
-                        <form class="signout-form" action="@Url.Action("DoSignOut", "Account")" method="post">
+                        <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
                             <button>退出登录</button>
                         </form>
                     }
@@ -93,7 +93,10 @@
     <script src="~/dist/packed-js-vendor.min.js" asp-append-version="true"></script>
     <script src="~/dist/packed-js.min.js" asp-append-version="true"></script>
 </environment>
-
+<script>
+    @* 相关文档： https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-2.1  *@
+    window.__RequestVerificationToken = '@Html.AntiForgeryTokenValue()';
+</script>
     @RenderSection("Tail", required: false)
 </body>
 </html>

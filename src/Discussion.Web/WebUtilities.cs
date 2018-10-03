@@ -1,7 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using Discussion.Core.Models;
 using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Html;
@@ -37,6 +39,25 @@ namespace Discussion.Web
                 : markdown.MdToHtml(maxHeadingLevel);
 
             return html.Raw(htmlString);
+        }
+
+        public static IHtmlContent AntiForgeryTokenValue(this IHtmlHelper html)
+        {
+            string antiForgeryInputTag;
+            using (var writer = new StringWriter())
+            {
+                html.AntiForgeryToken().WriteTo(writer, HtmlEncoder.Default);
+                antiForgeryInputTag = writer.ToString();
+            }
+            
+            if (string.IsNullOrEmpty(antiForgeryInputTag))
+            {
+                return new HtmlString(string.Empty);
+            }
+
+            const string valueStart = "value=\"";
+            var token = antiForgeryInputTag.Substring(antiForgeryInputTag.IndexOf(valueStart) + valueStart.Length);
+            return new HtmlString(token.Substring(0, token.LastIndexOf("\"")));
         }
     }
 }

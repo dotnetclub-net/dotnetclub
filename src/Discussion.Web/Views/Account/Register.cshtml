@@ -13,7 +13,7 @@
         <div class="panel-body">
             <div asp-validation-summary="All" class="text-danger"></div>
             <form class="register-form login-form"
-                  action="@Url.Action("DoRegister", "Account")"
+                  asp-controller="Account" asp-action="DoRegister" 
                   method="post">
                 <fieldset>
                     <label>

@@ -40,7 +40,8 @@ export function setupEditor() {
         var newTopic = {
             title: title,
             content: mdContent,
-            type: topicType
+            type: topicType,
+            __RequestVerificationToken: window.__RequestVerificationToken
         };
         
         if (!newTopic.title || !newTopic.content || !newTopic.type){

@@ -12,7 +12,8 @@
         <div class="panel-body">
             <div asp-validation-summary="All" class="text-danger"></div>
             <form class="login-form"
-                  action="@Url.Action("DoSignin", "Account", new {ReturnUrl = Context.Request.Query["ReturnUrl"]})"
+                  asp-controller="Account" asp-action="DoSignin" 
+                  asp-route-returnUrl="@Context.Request.Query["ReturnUrl"]"
                   method="post">
                 <fieldset>
                     <label>
