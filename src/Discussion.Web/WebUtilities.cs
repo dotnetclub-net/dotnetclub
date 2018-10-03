@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using Discussion.Core.Models;
+using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -27,6 +28,15 @@ namespace Discussion.Web
         {
             var memberInfo = typeof(TopicType).GetMember(topicType.ToString()).FirstOrDefault();
             return new HtmlString(memberInfo.GetCustomAttribute<DisplayAttribute>().Name);
+        }
+        
+        public static IHtmlContent RenderMarkdown(this IHtmlHelper html, string markdown, int maxHeadingLevel = 2)
+        {
+            var htmlString = string.IsNullOrWhiteSpace(markdown)
+                ? markdown
+                : markdown.MdToHtml(maxHeadingLevel);
+
+            return html.Raw(htmlString);
         }
     }
 }

@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
@@ -101,7 +96,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         }
         
         [Fact]
-        public async Task should_show_topic_detail_page()
+        public async Task should_show_topic_detail_page_with_markdown_content()
         {
             // arrange
             _theApp.MockUser();
@@ -109,11 +104,14 @@ namespace Discussion.Web.Tests.IntegrationTests
                 .WithFormContent(new Dictionary<string, string>
                 {
                     {"title", "中文字 &quot;title"},
-                    {"content", "**some** <script>content</script>"},
+                    {"content", "# This is a heading\n**some** <script>content</script>"},
                     {"type", "1"}
                 });
             var createResponse = await request.PostAsync();
             var redirectToUrl = createResponse.Headers.Location.ToString();
+            var postId = int.Parse(redirectToUrl.Substring(redirectToUrl.LastIndexOf('/') + 1));
+            await ReplyPageSpecs.RequestToCreateReply(_theApp, postId, "# heading in reply\n*italic*");
+                
             
             // act
             var requestDetail = _theApp.Server.CreateRequest(redirectToUrl);
@@ -126,8 +124,10 @@ namespace Discussion.Web.Tests.IntegrationTests
             content.ShouldContain("中文字 &amp;quot;title");
             content.ShouldNotContain("<br />title");
             
-            content.ShouldContain("<strong>some</strong> &lt;script&gt;content&lt;/script&gt;");
+            content.ShouldContain("<h2>This is a heading</h2>\n\n<p><strong>some</strong> &lt;script&gt;content&lt;/script&gt;</p>");
             content.ShouldNotContain("<script>content</script>");
+            
+            content.ShouldContain("<h3>heading in reply</h3>\n\n<p><em>italic</em></p>");
         }
 
     }

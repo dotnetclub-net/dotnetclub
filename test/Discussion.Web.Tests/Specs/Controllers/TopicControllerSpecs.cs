@@ -138,6 +138,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var topicShown = viewModel as TopicViewModel;
             topicShown.ShouldNotBeNull();
             topicShown.Id.ShouldEqual(topic.Id);
+            topicShown.Topic.Title.ShouldEqual(topic.Title);
+            topicShown.Topic.Content.ShouldEqual(topic.Content);
             topicShown.Topic.ViewCount.ShouldEqual(5);
         }
 
@@ -178,39 +180,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             topicShown.Replies[1].Content.ShouldEqual(replyContent + "2");
             topicShown.Replies[1].TopicId.ShouldEqual(topic.Id);
-        }
-
-        [Fact]
-        public void should_show_render_topic_content_from_markdown()
-        {
-            _myApp.MockUser();
-            var topic = new Topic
-            {
-                Title = "dummy topic 1",
-                Type = TopicType.Discussion,
-                CreatedBy = _myApp.User.ExtractUserId().Value,
-                Content = @"标题哈
-
-### 哈呵呵
-
-**功能**是*很好*的"
-            };
-            var repo = _myApp.GetService<IRepository<Topic>>();
-            repo.Save(topic);
-            _myApp.Reset();
-
-            var topicController = _myApp.CreateController<TopicController>();
-            var result = topicController.Index(topic.Id) as ViewResult;
-
-            result.ShouldNotBeNull();
-
-            var viewModel = result.ViewData.Model;
-            var topicShown = viewModel as TopicViewModel;
-            topicShown.ShouldNotBeNull();
-            topicShown.Id.ShouldEqual(topic.Id);
-            topicShown.Topic.Title.ShouldEqual(topic.Title);
-            topicShown.Topic.Content.ShouldEqual(topic.Content);
-            topicShown.Topic.Content.GetContentAsHtml().ShouldEqual("<p>标题哈</p>\n<h3>哈呵呵</h3>\n\n<p><strong>功能</strong>是<em>很好</em>的</p>\n");
         }
     }
 }

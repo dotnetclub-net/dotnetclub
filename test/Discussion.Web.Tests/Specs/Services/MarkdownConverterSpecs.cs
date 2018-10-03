@@ -10,7 +10,7 @@ namespace Discussion.Web.Tests.Specs.Services
         {
             var md = @"**Hello World**";
 
-            var html = MarkdownConverter.ToHtml(md);
+            var html = md.MdToHtml();
             
             Assert.Equal("<p><strong>Hello World</strong></p>\n", html);
         }
@@ -27,7 +27,7 @@ namespace Discussion.Web.Tests.Specs.Services
 <script>alert('abcdefg')</script>
 <a href=""about:blank"">link</a>";
 
-            var html = MarkdownConverter.ToHtml(md);
+            var html = md.MdToHtml();
             var expectedHtml = @"<h2><strong>Hello World</strong></h2>
 
 <pre><code>&lt;div&gt;abcd&lt;/div&gt;
@@ -43,7 +43,7 @@ namespace Discussion.Web.Tests.Specs.Services
         {
             var md = @"My blog is at http://abcd.com";
 
-            var html = MarkdownConverter.ToHtml(md);
+            var html = md.MdToHtml();
             var expectedHtml = "<p>My blog is at <a href=\"http://abcd.com\">http://abcd.com</a></p>\n";
             html.ShouldEqual(expectedHtml);
         }
@@ -54,7 +54,7 @@ namespace Discussion.Web.Tests.Specs.Services
             var md = @"# Heading 1
 extra text";
 
-            var html = MarkdownConverter.ToHtml(md);
+            var html = md.MdToHtml();
             var expectedHtml = "<h2>Heading 1</h2>\n\n<p>extra text</p>\n";
             html.ShouldEqual(expectedHtml);
         }
@@ -70,7 +70,7 @@ console.log('hello js');
 
 text after code block";
 
-            var html = MarkdownConverter.ToHtml(md);
+            var html = md.MdToHtml();
             
             Assert.Equal("<p><strong>Hello World</strong></p>\n<pre><code class=\"language-js\">console.log('hello js');\n</code></pre>\n<p>text after code block</p>\n", html);
         }
@@ -88,7 +88,7 @@ text after code block";
 
 text after code block";
 
-            var html = MarkdownConverter.ToHtml(md);
+            var html = md.MdToHtml();
             
             Assert.Equal("<p><strong>Hello World</strong></p>\n<pre><code class=\"language-html\">&amp;lt;html&amp;gt;\n&amp;lt;title&amp;gt;title text&amp;lt;/title&amp;gt;\n&amp;lt;/html&amp;gt;\n</code></pre>\n<p>text after code block</p>\n", html);
         }

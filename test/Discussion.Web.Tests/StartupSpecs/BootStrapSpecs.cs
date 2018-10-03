@@ -106,7 +106,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             serverHostProcess.Start();
             serverHostProcess.BeginErrorReadLine();
             serverHostProcess.BeginOutputReadLine();
-            var exited = serverHostProcess.WaitForExit(20 * 1000);
+            var exited = serverHostProcess.WaitForExit(30 * 1000);
             if (!exited)
             {
                 RunningDotnetProcess.TryKillProcess(serverHostProcess.Id);

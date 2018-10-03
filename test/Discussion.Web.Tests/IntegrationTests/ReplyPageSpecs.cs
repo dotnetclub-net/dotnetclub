@@ -23,7 +23,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             _theApp.MockUser();
             var (topic, userId) = ReplyControllerSpecs.CreateTopic(_theApp);
 
-            var response = await RequestToCreateReply(topic.Id);
+            var response = await RequestToCreateReply(_theApp, topic.Id);
 
             response.StatusCode.ShouldEqual(HttpStatusCode.NoContent);
         }
@@ -36,20 +36,20 @@ namespace Discussion.Web.Tests.IntegrationTests
             var (topic, userId) = ReplyControllerSpecs.CreateTopic(_theApp);
             
             _theApp.Reset();
-            var response = await RequestToCreateReply(topic.Id);
+            var response = await RequestToCreateReply(_theApp, topic.Id);
 
             response.StatusCode.ShouldEqual(HttpStatusCode.Redirect);
             response.Headers.Location.ToString().Contains("signin").ShouldEqual(true);
         }
         
         
-        private async Task<HttpResponseMessage> RequestToCreateReply(int topicId)
+        internal static async Task<HttpResponseMessage> RequestToCreateReply( TestApplication testApplication, int topicId, string content = null)
         {
-            var request = _theApp.Server
+            var request = testApplication.Server
                 .CreateRequest($"/topics/{topicId}/replies")
                 .WithFormContent(new Dictionary<string, string>
                 {
-                    {"Content", "reply content" }
+                    {"Content", content ?? "reply content" }
                 });
 
             return await request.PostAsync();

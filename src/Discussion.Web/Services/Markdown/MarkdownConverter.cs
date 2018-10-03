@@ -7,8 +7,7 @@ namespace Discussion.Web.Services.Markdown
     {
         private static readonly ConcurrentDictionary<int, MarkdownPipeline> Pipelines = new ConcurrentDictionary<int, MarkdownPipeline>();
         
-        
-        public static string ToHtml(string markdown, int maxHeadingLevel = 2)
+        public static string MdToHtml(this string markdown, int maxHeadingLevel = 2)
         {
             var pipeline = GetMarkdownPipeline(maxHeadingLevel);
             return Markdig.Markdown.ToHtml(markdown ?? string.Empty, pipeline);
