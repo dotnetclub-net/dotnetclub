@@ -79,7 +79,7 @@ dotnet ./Discussion.Web.dll
 
 ### 贡献代码
 
-当前项目还处于活跃的开发之中，非常欢迎您参与贡献。如果您打算提交代码，请提前在 [Projects](https://github.com/jijiechen/dotnetclub/projects) 页面上了解最新开发计划，并按照 [Git Flow](http://nvie.com/posts/a-successful-git-branching-model/) 的流程，使用 [Pull Request](https://help.github.com/articles/about-pull-requests/) 的方式向我提交代码。简单来说，就是在编写功能或者修复问题时，先创建一个对应的分支，然后再提交 Pull Request。本项目采用 [MIT 开源协议](https://opensource.org/licenses/MIT) 开源。
+当前项目还处于活跃的开发之中，非常欢迎您参与贡献。如果您打算提交代码，请提前在 [Projects](https://github.com/jijiechen/dotnetclub/projects) 页面上了解最新开发计划，并按照 [Github Flow](https://help.github.com/articles/github-flow/) 的流程，使用 [Pull Request](https://help.github.com/articles/about-pull-requests/) 的方式向我提交代码。简单来说，就是在编写功能或者修复问题时，先创建一个对应的分支，然后再提交 Pull Request。本项目采用 [MIT 开源协议](https://opensource.org/licenses/MIT) 开源。
 
 &nbsp;
 

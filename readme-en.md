@@ -76,7 +76,7 @@ By default, the application will generate a temporary Sqlite database, which wil
 ### Contributing
 
 Since this project is still under development, so It will be great to have your contribution. 
-If you are planning to push back some code, please use the [Git Flow](http://nvie.com/posts/a-successful-git-branching-model/), when you are going to fix an issue or submit a feature, please create a branch for your work and then issue a pull request through that branch.
+If you are planning to push back some code, please use the [Github Flow](https://help.github.com/articles/github-flow/), when you are going to fix an issue or submit a feature, please create a branch for your work and then issue a pull request through that branch.
 This project is open source under [the MIT license](https://opensource.org/licenses/MIT).
 
 &nbsp;
