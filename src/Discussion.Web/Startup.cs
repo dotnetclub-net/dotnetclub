@@ -1,10 +1,12 @@
 ﻿using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using Discussion.Core;
+using Discussion.Core.Data;
+using Discussion.Migrations.Supporting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Discussion.Web.ApplicationSupport;
 using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -15,20 +17,24 @@ namespace Discussion.Web
 {
     public class Startup
     {
-        public IConfiguration ApplicationConfiguration { get;  }
+        private readonly IConfiguration _appConfiguration;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly ILoggerFactory _loggerFactory;
 
         public Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory loggerFactory)
         {
             _hostingEnvironment = env;
+            _appConfiguration = config;
             _loggerFactory = loggerFactory;
-            ApplicationConfiguration = config;
         }
 
         public static void Main(string[] args)
         {
-            var host = Configurer.ConfigureHost(new WebHostBuilder(), addCommandLineArguments: true).Build();
+            var host = Configuration
+                .ConfigureHost(new WebHostBuilder(), addCommandLineArguments: true)
+                .UseStartup<Startup>()
+                .Build();
+            
             host.Run();
         }
 
@@ -48,7 +54,7 @@ namespace Discussion.Web
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             });
 
-            services.AddDataServices(ApplicationConfiguration, _loggerFactory);
+            services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
 
             services.AddAuthorization();
             services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
@@ -80,7 +86,18 @@ namespace Discussion.Web
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseMvc();
-            app.RegisterDatabaseInitializing();
+
+            var logger = _loggerFactory.CreateLogger<Startup>();
+            app.EnsureDatabase(connStr =>
+            {
+                logger.LogCritical("正在创建新的数据库结构...");
+
+                var loggingConfig = _appConfiguration.GetSection(Configuration.ConfigKeyLogging);
+                SqliteMigrator.Migrate(connStr, migrationLogging => Configuration.ConfigureFileLogging(migrationLogging, loggingConfig, true /* enable full logging for migrations */));
+
+                logger.LogCritical("数据库结构创建完成");
+            }, logger);
         }
+        
     }
 }

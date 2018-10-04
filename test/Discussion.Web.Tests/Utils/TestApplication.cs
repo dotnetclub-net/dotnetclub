@@ -9,7 +9,7 @@ using static Discussion.Web.Tests.TestEnv;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
-using Discussion.Web.ApplicationSupport;
+using Discussion.Core;
 using Microsoft.AspNetCore.Hosting.Internal;
 
 namespace Discussion.Web.Tests
@@ -87,14 +87,17 @@ namespace Discussion.Web.Tests
 
             Environment.SetEnvironmentVariable("DOTNETCLUB_sqliteConnectionString", " ");
             Environment.SetEnvironmentVariable("DOTNETCLUB_Logging:Console:LogLevel:Default", "Warning");
-            Configurer.ConfigureHost(hostBuilder);
+            Configuration.ConfigureHost(hostBuilder);
 
             hostBuilder.ConfigureLogging(loggingBuilder =>
             {
                 loggingBuilder.SetMinimumLevel(LogLevel.Trace);
                 loggingBuilder.AddProvider(testApp.LoggerProvider);
             });
-            hostBuilder.UseContentRoot(WebProjectPath()).UseEnvironment(environmentName);
+            hostBuilder
+                .UseContentRoot(WebProjectPath())
+                .UseEnvironment(environmentName)
+                .UseStartup<Startup>();
             
             testApp.Server = new TestServer(hostBuilder);
             testApp.ApplicationServices = testApp.Server.Host.Services;

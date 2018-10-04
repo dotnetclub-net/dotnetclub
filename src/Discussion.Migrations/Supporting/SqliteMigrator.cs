@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using FluentMigrator.Runner;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -43,9 +42,9 @@ namespace Discussion.Migrations.Supporting
         }
 
 
-        public static void Migrate(string connectionString, Action<ILoggingBuilder> configureLogging)
+        public static void Migrate(string connectionString, Action<ILoggingBuilder> migrationLogging)
         {
-            var services = CreateServices(connectionString, configureLogging);
+            var services = CreateServices(connectionString, migrationLogging);
 
             using (var scope = services.CreateScope())
             {
