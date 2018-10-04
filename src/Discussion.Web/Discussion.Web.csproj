@@ -13,6 +13,7 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <StartupObject>Discussion.Web.Startup</StartupObject>
+    <DnClubExcludes>publish\**;logs\**;wwwroot\dist\**;dotnetclub.db</DnClubExcludes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.15.2" />
@@ -43,15 +44,10 @@
     <ProjectReference Include="..\Discussion.Migrations\Discussion.Migrations.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <_ContentIncludedByDefault Remove="publish\web.config" />
-    <_ContentIncludedByDefault Remove="publish\appsettings.Development.json" />
-    <_ContentIncludedByDefault Remove="publish\appsettings.Integration.json" />
-    <_ContentIncludedByDefault Remove="publish\appsettings.Production.json" />
-    <_ContentIncludedByDefault Remove="publish\appsettings.QA.json" />
-    <_ContentIncludedByDefault Remove="publish\Discussion.Web.deps.json" />
-    <_ContentIncludedByDefault Remove="publish\Discussion.Web.runtimeconfig.json" />
-    <_ContentIncludedByDefault Remove="publish\wwwroot\lib\package.json" />
-    <_ContentIncludedByDefault Remove="publish\wwwroot\package.json" />
+    <None Remove="$(DnClubExcludes)" />
+    <Compile Remove="$(DnClubExcludes)" />
+    <EmbeddedResource Remove="$(DnClubExcludes)" />
+    <Content Remove="$(DnClubExcludes)" />
   </ItemGroup>
   <!-- https://github.com/aspnet/Razor/issues/2398#issuecomment-397758749 -->
   <Target Name="FixStartupObjectIssue" BeforeTargets="RazorCoreCompile">
