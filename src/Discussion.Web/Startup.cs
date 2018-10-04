@@ -28,7 +28,7 @@ namespace Discussion.Web
             _loggerFactory = loggerFactory;
         }
 
-        public static void Main(string[] args)
+        private static void Main()
         {
             var host = Configuration
                 .ConfigureHost(new WebHostBuilder(), addCommandLineArguments: true)
