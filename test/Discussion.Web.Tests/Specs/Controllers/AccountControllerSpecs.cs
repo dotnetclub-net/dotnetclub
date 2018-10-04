@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Discussion.Web.Controllers;
-using Discussion.Web.Data;
-using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;

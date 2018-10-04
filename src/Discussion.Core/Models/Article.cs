@@ -1,7 +1,5 @@
 ﻿
-using Discussion.Web.Data;
-
-namespace Discussion.Web.Models
+namespace Discussion.Core.Models
 {
     /// <summary>
     /// Article 在系统中是一个基本数据类型，暂时仅用于演示和测试

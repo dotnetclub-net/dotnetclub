@@ -1,11 +1,11 @@
-﻿using Discussion.Web.Models;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
+using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Xunit;
 using Microsoft.Extensions.Configuration;
-using Discussion.Web.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Abstractions.Internal;

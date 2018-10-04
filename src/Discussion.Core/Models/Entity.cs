@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Discussion.Web.Data
+namespace Discussion.Core.Models
 {
     public abstract class Entity
     {

@@ -1,12 +1,11 @@
-﻿using Discussion.Web.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Discussion.Web.ViewModels;
 using System;
-using Discussion.Web.Data;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
+using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Microsoft.EntityFrameworkCore;
 

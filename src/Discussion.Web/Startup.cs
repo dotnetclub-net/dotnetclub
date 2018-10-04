@@ -2,12 +2,12 @@
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Discussion.Migrations.Supporting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

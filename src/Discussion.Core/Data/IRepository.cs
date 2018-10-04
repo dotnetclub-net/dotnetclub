@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace Discussion.Web.Data
+namespace Discussion.Core.Data
 {
     public interface IRepository<T>
     {

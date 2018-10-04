@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Security.Claims;
-using Discussion.Web.Data;
-using Discussion.Web.Models;
+using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Discussion.Web.Data;
-using Discussion.Web.Models;
+using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace Discussion.Web.Services.Identity

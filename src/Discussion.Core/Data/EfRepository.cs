@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
+using Discussion.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Discussion.Web.Data
+namespace Discussion.Core.Data
 {
    
     /// <summary>

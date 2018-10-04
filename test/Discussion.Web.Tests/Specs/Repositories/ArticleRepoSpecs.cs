@@ -1,6 +1,6 @@
 ﻿using System;
-using Discussion.Web.Data;
-using Discussion.Web.Models;
+using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

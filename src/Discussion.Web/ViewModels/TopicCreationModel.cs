@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Discussion.Core.Models;
-using Discussion.Web.Models;
 
 namespace Discussion.Web.ViewModels
 {

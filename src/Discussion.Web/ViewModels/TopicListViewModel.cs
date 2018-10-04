@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Discussion.Core.Models;
-using Discussion.Web.Models;
 
 namespace Discussion.Web.ViewModels
 {

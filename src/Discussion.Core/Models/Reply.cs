@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using Discussion.Web.Data;
-using Discussion.Web.Models;
 
 namespace Discussion.Core.Models
 {

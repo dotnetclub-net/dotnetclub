@@ -1,8 +1,6 @@
-﻿using Discussion.Web.Data;
-using System;
-using System.Security.Claims;
+﻿using System;
 
-namespace Discussion.Web.Models
+namespace Discussion.Core.Models
 {
     public class User : Entity, IUser
     {
