@@ -12,6 +12,7 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+    <StartupObject>Discussion.Web.Startup</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.15.2" />
@@ -52,4 +53,10 @@
     <_ContentIncludedByDefault Remove="publish\wwwroot\lib\package.json" />
     <_ContentIncludedByDefault Remove="publish\wwwroot\package.json" />
   </ItemGroup>
+  <!-- https://github.com/aspnet/Razor/issues/2398#issuecomment-397758749 -->
+  <Target Name="FixStartupObjectIssue" BeforeTargets="RazorCoreCompile">
+    <PropertyGroup>
+      <StartupObject />
+    </PropertyGroup>
+  </Target>
 </Project>

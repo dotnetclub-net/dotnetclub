@@ -25,6 +25,10 @@ Task("build-prod")
         {
             Execute("dotnet build");
         });
+        DoInDirectory("./src/Discussion.Admin/", () =>
+        {
+            Execute("dotnet build");
+        });
     });
 
 Task("build-test")

@@ -54,7 +54,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             var dotnetProcess = new ProcessStartInfo
             {
                 FileName = dotnetPath,
-                Arguments = "run --environment Integration --server.urls http://localhost:" + port,
+                Arguments = "run --environment Integration --urls http://localhost:" + port,
                 WorkingDirectory = webProject,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
