@@ -6,8 +6,6 @@
 *.xap
 *.user
 /TestResults
-*.vspscc
-*.vssscc
 *.suo
 *.cache
 *.docstates
@@ -24,6 +22,7 @@ PublishProfiles/
 *.pidb
 *.userprefs
 *DS_Store
+Thumbs.db
 *.ncrunchsolution
 *.log
 *.vspx
@@ -58,3 +57,28 @@ coverage.opencover.xml
 
 tools/*
 !tools/packages.config
+
+
+
+
+# compiled output
+src/Discussion.Admin/ClientApp/dist
+src/Discussion.Admin/ClientApp/tmp
+src/Discussion.Admin/ClientApp/out-tsc
+src/Discussion.Admin/ClientApp/typings
+
+
+# misc
+src/Discussion.Admin/ClientApp/.sass-cache
+src/Discussion.Admin/ClientApp/connect.lock
+src/Discussion.Admin/ClientApp/coverage
+src/Discussion.Admin/ClientApp/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+
+# e2e
+src/Discussion.Admin/ClientApp/e2e/*.js
+src/Discussion.Admin/ClientApp/e2e/*.map
+
+
