@@ -1,4 +1,6 @@
-import { MockRequest } from '@delon/mock';
+import { MockRequest, MockStatusError } from '@delon/mock';
+// TIPS: mockjs 一些优化细节见：https://ng-alain.com/docs/mock
+// import * as Mock from 'mockjs';
 
 const list = [];
 const total = 50;
@@ -39,7 +41,9 @@ function genData(params: any) {
 
 function saveData(id: number, value: any) {
   const item = list.find(w => w.id === id);
-  if (!item) return { msg: '无效用户信息' };
+  if (!item) {
+    return { msg: '无效用户信息' };
+  }
   Object.assign(item, value);
   return { msg: 'ok' };
 }
@@ -48,55 +52,18 @@ export const USERS = {
   '/user': (req: MockRequest) => genData(req.queryString),
   '/user/:id': (req: MockRequest) => list.find(w => w.id === +req.params.id),
   'POST /user/:id': (req: MockRequest) => saveData(+req.params.id, req.body),
-  '/user/current': {
-    name: 'Cipchk',
-    avatar:
-      'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png',
-    userid: '00000001',
-    email: 'cipchk@qq.com',
-    signature: '海纳百川，有容乃大',
-    title: '交互专家',
-    group: '蚂蚁金服－某某某事业群－某某平台部－某某技术部－UED',
-    tags: [
-      {
-        key: '0',
-        label: '很有想法的',
-      },
-      {
-        key: '1',
-        label: '专注撩妹',
-      },
-      {
-        key: '2',
-        label: '帅~',
-      },
-      {
-        key: '3',
-        label: '通吃',
-      },
-      {
-        key: '4',
-        label: '专职后端',
-      },
-      {
-        key: '5',
-        label: '海纳百川',
-      },
-    ],
-    notifyCount: 12,
-    country: 'China',
-    geographic: {
-      province: {
-        label: '上海',
-        key: '330000',
-      },
-      city: {
-        label: '市辖区',
-        key: '330100',
-      },
-    },
-    address: 'XX区XXX路 XX 号',
-    phone: '你猜-你猜你猜猜猜',
+  // 支持值为 Object 和 Array
+  'GET /users': { users: [1, 2], total: 2 },
+  // GET 可省略
+  // '/users/1': Mock.mock({ id: 1, 'rank|3': '★★★' }),
+  // POST 请求
+  'POST /users/1': { uid: 1 },
+  // 获取请求参数 queryString、headers、body
+  '/qs': (req: MockRequest) => req.queryString.pi,
+  // 路由参数
+  '/users/:id': (req: MockRequest) => req.params, // /users/100, output: { id: 100 }
+  // 发送 Status 错误
+  '/404': () => {
+    throw new MockStatusError(404);
   },
-  'POST /user/avatar': 'ok',
 };

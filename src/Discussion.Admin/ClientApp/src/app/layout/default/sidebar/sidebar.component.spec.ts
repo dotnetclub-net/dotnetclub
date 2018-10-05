@@ -5,7 +5,7 @@ import { SidebarComponent } from './sidebar.component';
 
 describe('Layout: Sidebar', () => {
   setUpTestBed(<TestModuleMetadata>{
-    declarations: [SidebarComponent],
+    declarations: [ SidebarComponent ]
   });
 
   it('should create an instance', () => {

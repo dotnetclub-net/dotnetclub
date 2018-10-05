@@ -5,7 +5,7 @@ import { HeaderComponent } from './header.component';
 
 describe('Layout: Header', () => {
   setUpTestBed(<TestModuleMetadata>{
-    declarations: [HeaderComponent],
+    declarations: [ HeaderComponent ]
   });
 
   it('should create an instance', () => {

@@ -15,9 +15,6 @@ import { DelonAuthModule } from '@delon/auth';
 import { CoreModule } from '@core/core.module';
 import { SharedModule } from '@shared/shared.module';
 
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { I18NService } from '@core/i18n/i18n.service';
-import { I18nHttpLoaderFactory } from '../app/app.module';
 
 import { DelonModule } from '../app/delon.module';
 
@@ -50,28 +47,12 @@ export const setUpTestBed = (moduleDef: TestModuleMetadata) => {
       moduleDef.imports.push(SharedModule);
       // auth
       moduleDef.imports.push(DelonAuthModule.forRoot());
-      // i18n
-      moduleDef.imports.push(
-        TranslateModule.forRoot({
-          loader: {
-            provide: TranslateLoader,
-            useFactory: I18nHttpLoaderFactory,
-            deps: [HttpClient],
-          },
-        }),
-      );
       // endregion
 
       // region: providers
       if (!moduleDef.providers) {
         moduleDef.providers = [];
       }
-      // i18n
-      moduleDef.providers.push({
-        provide: ALAIN_I18N_TOKEN,
-        useClass: I18NService,
-        multi: false,
-      });
       // load full services
       [SettingsService, MenuService, ScrollService, _HttpClient].forEach(
         (item: any) => {
