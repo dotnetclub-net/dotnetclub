@@ -24,6 +24,8 @@ export class UserLoginComponent implements OnDestroy {
   error = '';
   type = 0;
   loading = false;
+  count = 0;
+  interval$: any;
 
   constructor(
     fb: FormBuilder,
@@ -68,11 +70,6 @@ export class UserLoginComponent implements OnDestroy {
   switch(ret: any) {
     this.type = ret.index;
   }
-
-  // region: get captcha
-
-  count = 0;
-  interval$: any;
 
   getCaptcha() {
     this.count = 59;
