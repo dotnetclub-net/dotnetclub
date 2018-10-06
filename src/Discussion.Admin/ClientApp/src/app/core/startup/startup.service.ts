@@ -43,12 +43,28 @@ export class StartupService {
           {
             text: '仪表盘',
             link: '/dashboard',
-            icon: 'anticon anticon-appstore-o'
+            icon: 'anticon anticon-line-chart'
           },
           {
-            text: '快捷菜单',
-            icon: 'anticon anticon-rocket',
-            shortcutRoot: true
+            text: '话题管理',
+            link: '/topics',
+            icon: 'anticon anticon-solution'
+          }
+        ]
+      },
+      {
+        text: '网站管理',
+        group: true,
+        children: [
+          {
+            text: '仪表盘',
+            link: '/dashboard',
+            icon: 'anticon anticon-line-chart'
+          },
+          {
+            text: '话题管理',
+            link: '/topics',
+            icon: 'anticon anticon-solution'
           }
         ]
       }

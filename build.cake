@@ -37,6 +37,7 @@ Task("build")
         DoInDirectory("./src/Discussion.Web/wwwroot", () =>
         {
             Execute("npm run clean");
+            Execute("npm run dev");
             Execute("npm run prod");
         });
 
