@@ -40,7 +40,7 @@ node_modules
 *.sln.ide
 
 src/Discussion.Web/logs/*
-src/Discussion.Web/publish/*
+src/Discussion.*/publish/*
 dotnetclub.db
 
 src/Discussion.Web/wwwroot/lib/node_modules

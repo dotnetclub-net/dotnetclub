@@ -4,6 +4,7 @@ matrix:
     - os: linux
       dist: trusty
 addons:
+  chrome: stable
   apt:
     packages:
     - gettext
@@ -21,6 +22,7 @@ services:
 install:
   - nvm install 8.12.0
   - nvm use 8.12.0
+  - yarn
 
 branches:
   only:
@@ -34,5 +36,6 @@ script:
   - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$TRAVIS_BRANCH" == "master" ] && [ "$DOCKER_USERNAME" != "" ]; then docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push $imagetag ; fi
 
 cache:
+  yarn: true
   directories:
   - /home/travis/.nuget/packages

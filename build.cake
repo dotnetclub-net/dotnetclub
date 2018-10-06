@@ -18,30 +18,14 @@ Task("Default")
           }
         });
 
-Task("build-prod")
+Task("build")
   .Does(() =>
     {
         DoInDirectory("./src/Discussion.Web/", () =>
         {
             Execute("dotnet build");
         });
-        DoInDirectory("./src/Discussion.Admin/", () =>
-        {
-            Execute("dotnet build");
-        });
-    });
 
-Task("build-test")
-  .Does(() =>
-    {
-        DoInDirectory("./test/Discussion.Web.Tests/", () =>
-        {
-            Execute("dotnet build");
-        });
-    });
-
-Task("build-web")
-  .Does(() => {
         DoInDirectory("./src/Discussion.Web/wwwroot", () =>
         {
             Execute("yarn install");
@@ -53,12 +37,22 @@ Task("build-web")
         DoInDirectory("./src/Discussion.Web/wwwroot", () =>
         {
             Execute("npm run clean");
-            Execute("npm run dev");
             Execute("npm run prod");
+        });
+
+
+        DoInDirectory("./src/Discussion.Admin/", () =>
+        {
+            Execute("dotnet build");
+        });
+        DoInDirectory("./src/Discussion.Admin/ClientApp", () =>
+        {
+            Execute("yarn install");
+            Execute("npm run build");
         });
     });
 
-Task("cs-test")
+Task("test")
   .Does((context) =>
     {
         var isLinux = context.Environment.Platform.Family == Cake.Core.PlatformFamily.Linux;
@@ -72,6 +66,11 @@ Task("cs-test")
                 DotNetCoreTest();
             }
         });
+
+        DoInDirectory("./src/Discussion.Admin/ClientApp", () =>
+        {
+            Execute("npm run test-coverage");
+        });
     });
 
 
@@ -80,6 +79,10 @@ Task("package")
   .Does((context) =>
     {
         DoInDirectory("./src/Discussion.Web/", () =>
+        {
+            Execute("dotnet publish -c Release -o publish");
+        });
+        DoInDirectory("./src/Discussion.Admin/", () =>
         {
             Execute("dotnet publish -c Release -o publish");
         });
@@ -106,14 +109,9 @@ Task("package")
 
 
 
-Task("build-all")
-   .IsDependentOn("build-prod")
-   .IsDependentOn("build-test")
-   .IsDependentOn("build-web");
-
 Task("ci")
-   .IsDependentOn("build-all")
-   .IsDependentOn("cs-test")
+   .IsDependentOn("build")
+   .IsDependentOn("test")
    .IsDependentOn("package");
 
 

@@ -8,12 +8,13 @@ dotnetClub.net
 本项目是一个 Web 应用程序，基于开源和跨平台的 [.NET Core 2.1](https://www.microsoft.com/net/download/dotnet-core/2.1) 运行时。如果你打算研究或者参与贡献，您仍需要完整的 .NET Framework 或者 Mono 运行时来运行相关的开发任务。 
 
 
-| 集成服务      | 分支            | 平台       | 当前状态                                                                                                                                                                                             |
-|-------------|----------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Travis      | dev            | Linux          | [![Travis Status-dev](https://travis-ci.org/jijiechen/dotnetclub.svg?branch=dev)](https://travis-ci.org/jijiechen/dotnetclub/branches)                                                       |
-| AppVeyor    | dev            | Windows        | [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/dotnetclub/branch/dev)                     |
-| Travis      | master         | Linux          | [![Travis Status-master](https://travis-ci.org/jijiechen/dotnetclub.svg?branch=master)](https://travis-ci.org/jijiechen/dotnetclub/branches)                                                 |
-| AppVeyor    | master         | Windows        | [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/dotnetclub/branch/master)            |
+| 分支            | 平台            | 当前状态      |                                                                                                                                                                                              |
+|----------------|----------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| dev            | Linux          | Travis       | [![Travis Status-dev](https://travis-ci.org/jijiechen/dotnetclub.svg?branch=dev)](https://travis-ci.org/jijiechen/dotnetclub/branches)                                                       |
+| dev            | Windows        | AppVeyor     | [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/dotnetclub/branch/dev)                  |
+| master         | Linux          | Travis       | [![Travis Status-master](https://travis-ci.org/jijiechen/dotnetclub.svg?branch=master)](https://travis-ci.org/jijiechen/dotnetclub/branches)                                                 |
+| master         | Windows        | AppVeyor     | [![AppVeyor Status-master](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/master?svg=true)](https://ci.appveyor.com/project/jijiechen/dotnetclub/branch/master)         |
+
 
 
 &nbsp;
@@ -42,13 +43,13 @@ cd dotnetclub
 可以使用下面的命令，来还源、安装所有依赖的包，并编译项目：
 
 ```sh
-./build --target=build-all   # 可能需要修改入口文件的名字
+./build --target=build   # 可能需要修改入口文件的名字
 ```
 
 可以使用下面的命令，来运行单元测试：
 
 ```sh
-./build --target=cs-test     # 可能需要修改入口文件的名字
+./build --target=test     # 可能需要修改入口文件的名字
 ```
 
 &nbsp;
@@ -79,7 +80,9 @@ dotnet ./Discussion.Web.dll
 
 ### 贡献代码
 
-当前项目还处于活跃的开发之中，非常欢迎您参与贡献。如果您打算提交代码，请提前在 [Projects](https://github.com/jijiechen/dotnetclub/projects) 页面上了解最新开发计划，并按照 [Github Flow](https://help.github.com/articles/github-flow/) 的流程，使用 [Pull Request](https://help.github.com/articles/about-pull-requests/) 的方式向我提交代码。简单来说，就是在编写功能或者修复问题时，先创建一个对应的分支，然后再提交 Pull Request。本项目采用 [MIT 开源协议](https://opensource.org/licenses/MIT) 开源。
+当前项目还处于活跃的开发之中，非常欢迎您参与贡献。如果您打算提交代码，请提前在 [Projects](https://github.com/jijiechen/dotnetclub/projects) 页面上了解最新开发计划，并按照 [GitHub Flow](https://help.github.com/articles/github-flow/) 的流程，使用 [Pull Request](https://help.github.com/articles/about-pull-requests/) 的方式提交代码。简单来说，就是在编写功能或者修复问题时，先创建一个对应的分支，然后再从那个分支提交 Pull Request。
+
+本项目采用 [MIT 开源协议](LICENSES) 开源。
 
 &nbsp;
 

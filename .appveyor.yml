@@ -2,6 +2,8 @@ init:
   - git config --global core.autocrlf true
 install:
   - ps: Install-Product node 8.12.0
+  - npm install yarn -g
+  - yarn
 
 branches:
   only:
@@ -21,4 +23,5 @@ os: Visual Studio 2017
 
 
 cache:
+  - node_modules -> yarn.lock
   - '%USERPROFILE%\.nuget\packages'
