@@ -21,6 +21,8 @@ export class StartupService {
   ) { }
 
   private setupBasicInformation(resolve: any, reject: any) {
+    this.httpClient.get('api/Account/UserInfo').subscribe(res => { console.log(res) });
+
     const app: any = {
       name: `dotnetClub`,
       description: `.NET Core club 管理中心`
