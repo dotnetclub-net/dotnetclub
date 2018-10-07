@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import {Topic} from './Topic';
+import {Topic} from "./topic";
+
 
 
 @Component({

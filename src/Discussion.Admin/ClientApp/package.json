@@ -4,17 +4,20 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve -o",
+    "hmr": "ng serve -c=hmr",
     "build": "ng build --prod --build-optimizer",
     "test": "ng test",
-    "lint": "npm run lint:ts && npm run lint:style",
     "e2e": "ng e2e",
     "analyze": "ng build --prod --build-optimizer --stats-json",
     "test-coverage": "ng test --code-coverage --watch=false",
+    "lint": "npm run lint:ts && npm run lint:style",
+    "lint:fix": "npm run lint:ts:fix && npm run lint:style:fix",
     "lint:ts": "tslint -p src/tsconfig.app.json -c tslint.json 'src/**/*.ts'",
     "lint:style": "stylelint \"{src}/**/*.less\" --syntax less",
+    "lint:ts:fix": "tslint --fix -p src/tsconfig.app.json -c tslint.json 'src/**/*.ts'",
+    "lint:style:fix": "stylelint --fix \"{src}/**/*.less\" --syntax less",
     "lint-staged": "lint-staged",
-    "tslint-check": "tslint-config-prettier-check ./tslint.json",
-    "hmr": "ng serve -c=hmr"
+    "tslint-check": "tslint-config-prettier-check ./tslint.json"
   },
   "private": true,
   "dependencies": {
