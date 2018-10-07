@@ -21,18 +21,21 @@ export class StartupService {
   ) { }
 
   private setupBasicInformation(resolve: any, reject: any) {
+    this.httpClient.get('api/account/user')
+      .subscribe(res => {
+        const user: any = {
+          name: res['userName'],
+          avatar: './assets/tmp/img/avatar.jpg',
+          email: 'jijie.chen@someplace.com'
+        };
+        this.settingService.setUser(user);
+      });
+
     const app: any = {
       name: `dotnetClub`,
       description: `.NET Core club 管理中心`
     };
-    const user: any = {
-      name: 'Admin',
-      avatar: './assets/tmp/img/avatar.jpg',
-      email: 'jijie.chen@someplace.com',
-      token: '123456789'
-    };
     this.settingService.setApp(app);
-    this.settingService.setUser(user);
     this.aclService.setFull(true);
 
     this.menuService.add([

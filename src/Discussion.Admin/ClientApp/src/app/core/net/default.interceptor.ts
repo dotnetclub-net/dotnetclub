@@ -22,7 +22,7 @@ import { environment } from '@env/environment';
  */
 @Injectable()
 export class DefaultInterceptor implements HttpInterceptor {
-  constructor(private injector: Injector) {}
+  constructor(private injector: Injector) { }
 
   get msg(): NzMessageService {
     return this.injector.get(NzMessageService);
@@ -59,6 +59,16 @@ export class DefaultInterceptor implements HttpInterceptor {
         //         return of(event);
         //     }
         // }
+        if (event instanceof HttpResponse) {
+          const body: any = event.body;
+          if (body && body.status)
+            if (body.status !== 1) {
+              this.msg.error(body.message);
+              return throwError({ body: body.message });
+            } else {
+              return of(new HttpResponse(Object.assign(event, { body: body.result })));
+            }
+        }
         break;
       case 401: // 未登录状态码
         this.goTo('/passport/login');
@@ -85,11 +95,11 @@ export class DefaultInterceptor implements HttpInterceptor {
     req: HttpRequest<any>,
     next: HttpHandler,
   ): Observable<
-    | HttpSentEvent
-    | HttpHeaderResponse
-    | HttpProgressEvent
-    | HttpResponse<any>
-    | HttpUserEvent<any>
+  | HttpSentEvent
+  | HttpHeaderResponse
+  | HttpProgressEvent
+  | HttpResponse<any>
+  | HttpUserEvent<any>
   > {
     // 统一加上服务端前缀
     let url = req.url;

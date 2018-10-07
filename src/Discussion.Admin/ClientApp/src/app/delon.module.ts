@@ -61,6 +61,7 @@ import { DelonAuthConfig } from '@delon/auth';
 export function fnDelonAuthConfig(): DelonAuthConfig {
   return Object.assign(new DelonAuthConfig(), <DelonAuthConfig>{
     login_url: '/passport/login',
+    ignores: [/assets\//, /api\/account\/signin/g, /api\/account\/register/g],
   });
 }
 
