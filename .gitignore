@@ -81,4 +81,8 @@ testem.log
 src/Discussion.Admin/ClientApp/e2e/*.js
 src/Discussion.Admin/ClientApp/e2e/*.map
 
+# IDE
+src/Discussion.Admin/Properties/launchSettings.json
+src/Discussion.Web/Properties/launchSettings.json
+
 
