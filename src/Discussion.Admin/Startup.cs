@@ -38,11 +38,11 @@ namespace Discussion.Admin
             services.AddJwtAuthentication(_appConfiguration);
 
             services.AddMvc()
-                .AddJsonOptions(options =>
-                {
-                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                    options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
-                }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                    .AddJsonOptions(options =>
+                    {
+                        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                        options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+                    }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddSpaStaticFiles(configuration =>
             {
@@ -52,20 +52,13 @@ namespace Discussion.Admin
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseGlobalExceptionHandler();
+            app.UseJsonExceptionHandler();
 
             app.UseAuthentication();
 
             app.UseMvc();
-
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
-
             app.UseSpa(spa =>
             {
                 // To learn more about options for serving an Angular SPA from ASP.NET Core, see https://go.microsoft.com/fwlink/?linkid=864501

@@ -22,8 +22,8 @@ namespace Discussion.Admin.Controllers
             this.jwtOptions = jwtOptions.Value;
         }
 
-        [HttpPost("Login")]
-        public IActionResult Login(LoginModel model)
+        [HttpPost("signin")]
+        public IActionResult Signin(SigninModel model)
         {
             var identity = new ClaimsIdentity(new GenericIdentity(model.UserName, "Token"), new[]
             {
@@ -62,7 +62,7 @@ namespace Discussion.Admin.Controllers
             });
         }
 
-        [HttpGet("UserInfo")]
+        [HttpGet("user")]
         [Authorize]
         public IActionResult UserInfo()
         {

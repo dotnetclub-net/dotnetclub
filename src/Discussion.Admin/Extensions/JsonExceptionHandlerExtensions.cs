@@ -8,18 +8,20 @@ namespace Discussion.Admin.Extensions
 {
     public static class ResponseExtensions
     {
-        public static void UseGlobalExceptionHandler(this IApplicationBuilder app)
+        public static void UseJsonExceptionHandler(this IApplicationBuilder app)
         {
             app.UseExceptionHandler(builder =>
             {
                 builder.Run(async context =>
                 {
+                    // 在异常出现时，仍使用 200 的响应以防止前端 SPA 出现强制的 500 重定向 
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
+                    
                     context.Response.ContentType = "application/json";
-                    IExceptionHandlerFeature error = context.Features.Get<IExceptionHandlerFeature>();
-                    if (error != null)
+                    var exceptionHandler = context.Features.Get<IExceptionHandlerFeature>();
+                    if (exceptionHandler != null)
                     {
-                        var result = new { status = -1, message = error.Error.Message };
+                        var result = new { status = -1, message = exceptionHandler.Error?.Message };
                         await context.Response.WriteAsync(JsonConvert.SerializeObject(result)).ConfigureAwait(false);
                     }
                 });

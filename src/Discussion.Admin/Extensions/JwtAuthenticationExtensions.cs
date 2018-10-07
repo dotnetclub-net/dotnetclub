@@ -14,29 +14,17 @@ namespace Discussion.Admin.Extensions
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             // jwt wire up Get options from app settings
-            var jwtAppSettingOptions = configuration.GetSection(nameof(JwtIssuerOptions));
+            var jwtOptions = configuration.GetSection(nameof(JwtIssuerOptions));
 
-            var secret = jwtAppSettingOptions["Secret"];
+            var secret = jwtOptions["Secret"];
+            var issuer = jwtOptions[nameof(JwtIssuerOptions.Issuer)];
+            var audience = jwtOptions[nameof(JwtIssuerOptions.Audience)];
+            var (signingKey, credentials) = GenerateSecurityKeys(secret);
 
-            SigningCredentials credentials = null;
-            SecurityKey signingKey = null;
-
-            if (!string.IsNullOrEmpty(secret))
-            {
-                signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
-                credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature);
-            }
-            else
-            {
-                signingKey = new RsaSecurityKey(EncryptProvider.GenerateParameters());
-                credentials = new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256);
-            }
-
-            // Configure JwtIssuerOptions
             services.Configure<JwtIssuerOptions>(options =>
             {
-                options.Issuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
-                options.Audience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)];
+                options.Issuer = issuer;
+                options.Audience = audience;
                 options.SigningCredentials = credentials;
             });
 
@@ -46,16 +34,16 @@ namespace Discussion.Admin.Extensions
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(configureOptions =>
             {
-                configureOptions.ClaimsIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
+                configureOptions.ClaimsIssuer = issuer;
                 configureOptions.SaveToken = true;
 
                 configureOptions.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
+                    ValidIssuer = issuer,
 
                     ValidateAudience = true,
-                    ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
+                    ValidAudience = audience,
 
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = signingKey,
@@ -65,6 +53,20 @@ namespace Discussion.Admin.Extensions
                     ClockSkew = TimeSpan.Zero
                 };
             });
+        }
+
+        private static (SecurityKey, SigningCredentials) GenerateSecurityKeys(string secret)
+        {
+            var hasSetSecret = !string.IsNullOrEmpty(secret);
+            SecurityKey signingKey;
+            if (hasSetSecret)
+            {
+                signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
+                return (signingKey, new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature));
+            }
+
+            signingKey = new RsaSecurityKey(EncryptProvider.GenerateParameters());
+            return (signingKey, new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256));
         }
     }
 }
