@@ -8,7 +8,7 @@ dotnetClub.net
 本项目是一个 Web 应用程序，基于开源和跨平台的 [.NET Core 2.1](https://www.microsoft.com/net/download/dotnet-core/2.1) 运行时。如果你打算研究或者参与贡献，您仍需要完整的 .NET Framework 或者 Mono 运行时来运行相关的开发任务。 
 
 
-| 分支            | 平台            | 当前状态      |                                                                                                                                                                                              |
+| 分支            | 平台            | 集成服务      |  当前状态                                                                                                                                                                                      |
 |----------------|----------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | dev            | Linux          | Travis       | [![Travis Status-dev](https://travis-ci.org/jijiechen/dotnetclub.svg?branch=dev)](https://travis-ci.org/jijiechen/dotnetclub/branches)                                                       |
 | dev            | Windows        | AppVeyor     | [![AppVeyor Status-dev](https://ci.appveyor.com/api/projects/status/pecgpkageltpj13x/branch/dev?svg=true)](https://ci.appveyor.com/project/jijiechen/dotnetclub/branch/dev)                  |
