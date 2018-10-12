@@ -30,7 +30,7 @@ export class MarkdownCodeViewModule {
     }
 }
 
-export function viewMarkDownButton(context) {
+export function viewMarkdownButton(context) {
     return $.summernote.ui.button({
         className: 'btn-codeview',
         contents: '<i class="btn-view-markdown fab fa-markdown"></i>',

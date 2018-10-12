@@ -140,7 +140,7 @@ function defaultEditorOptions(){
         },
         buttons:{
             insertCode: InsertCode.CodeButton,
-            markdown: MD.viewMarkDownButton
+            markdown: MD.viewMarkdownButton
         }
     });
     options.modules.markdownCodeView = MD.MarkdownCodeViewModule;
