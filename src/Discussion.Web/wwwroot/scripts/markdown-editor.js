@@ -11,6 +11,7 @@
 
 
 import TurndownService from "../lib/node_modules/turndown"
+import Markd from "../lib/node_modules/marked"
 
 export function setupEditor() {
     var editorOptions = defaultEditorOptions();
@@ -66,18 +67,29 @@ function defaultEditorOptions(){
             ['style', ['style']],
             ['format', ['bold', 'italic', 'strikethrough', 'clear']],
             ['para', ['ul', 'ol']],
-            ['insert', ['link', 'picture', 'insertCode']]
+            ['insert', ['link', 'picture', 'insertCode', 'markdown', 'codeview']]
         ],
         styleTags: [
-            {value: 'p', title: 'Paragraph', tag: 'span'},
-            {value: 'h3', title: 'Header', tag: 'span' },
-            {value: 'blockquote', title: 'Quote', tag: 'span' }],
+            {value: 'p', title: '常规', tag: 'span'},
+            {value: 'h3', title: '标题', tag: 'span' },
+            {value: 'blockquote', title: '引用', tag: 'span' }],
         codeLanguages: [
             {title: 'C#', value: 'csharp'},
-            {title: 'Razor(C#)', value: 'cshtml'},
+            {title: 'Visual Basic', value: 'vb'},
+            {title: 'TypeScript', value: 'ts'},
             {title: 'JavaScript', value: 'javascript'},
+            {title: 'Json', value: 'json'},
             {title: 'HTML', value: 'html'},
-            {title: 'CSS', value: 'css'}
+            {title: 'XML', value: 'xml'},
+            {title: 'YAML', value: 'yml'},
+            {title: 'CSS', value: 'css'},
+            {title: 'SASS', value: 'sass'},
+            {title: 'LESS', value: 'less'},
+            {title: 'PowerShell', value: 'ps1'},
+            {title: 'Shell', value: 'sh'},
+            {title: 'Java', value: 'java'},
+            {title: 'Python', value: 'py'},
+            {title: 'Ruby', value: 'rb'}
         ],
         placeholder: '正文',
         height: 300,
@@ -128,7 +140,8 @@ function defaultEditorOptions(){
             }
         },
         buttons:{
-            insertCode: CodeButton
+            insertCode: CodeButton,
+            markdown: MarkdownButton
         }
     });
     options.modules.codePopover = CodePopover;
@@ -140,13 +153,41 @@ function defaultEditorOptions(){
     return options;
 }
 
+function MarkdownButton(context) {
+    context.layoutInfo.note.on('summernote.codeview.toggled', function () {
+        const isActivated = context.invoke('codeview.isActivated');
+        const codable = context.layoutInfo.codable;
+        if(isActivated){
+            const html = codable.val();
+            const md = convertToMarkdown(html);
+            codable.val(md);
+        }else{
+            const md = codable.val();
+            const html = Markd(md);
+            context.layoutInfo.editable.html(html);
+            context.triggerEvent('change');
+        }
+    });
+
+    const button = $.summernote.ui.button({
+        contents: '<i class="note-icon-question"/>',
+        tooltip: '切换到 Markdown 模式',
+        click: function () {
+            context.invoke('codeview.toggle');
+        }
+    });
+
+    return button.render();   // return button as jquery object
+}
+
+
 function CodeButton(context) {
     var ui = $.summernote.ui;
 
     // create button
     var button = ui.button({
         contents: '<i class="note-icon-code"/>',
-        tooltip: 'Insert Code',
+        tooltip: '插入代码',
         click: function () {
             // invoke formatBlock method with 'PRE' on editor module.
             context.invoke('editor.formatBlock', 'PRE');
@@ -226,7 +267,7 @@ function CodePopover(context) {
 
     function posFromPlaceholder($placeholder) {
         var pos = $placeholder.offset();
-        var height = $placeholder.outerHeight(true); // include margin
+        var height = $placeholder.outerHeight(true); 
 
         return {
             left: pos.left,
@@ -254,7 +295,6 @@ function CodePopover(context) {
                 ui.button({
                     className: 'dropdown-toggle',
                     contents: '<span class="lang">选择语言</span> ' + ui.icon(options.icons.caret, 'span'),
-                    // tooltip: '选择语言', // lang.style.style,
                     data: {
                         toggle: 'dropdown'
                     }
@@ -276,7 +316,7 @@ function CodePopover(context) {
                         event.preventDefault();
 
                         var langItem, langTitle;
-                        var valueClicked = $(event.target).closest('[data-value]').data('value')
+                        var valueClicked = $(event.target).closest('[data-value]').data('value');
                         langItem = findLangItem(valueClicked);
 
                         if(langItem) {

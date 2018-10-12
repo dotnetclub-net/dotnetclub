@@ -9,6 +9,7 @@
     "bootstrap": "3.3.6",
     "bootstrap-sass": "3.3.6",
     "jquery": "1.12.4",
+    "marked": "^0.5.1",
     "prismjs": "1.4.1",
     "summernote": "0.8.1",
     "turndown": "4.0.1"
