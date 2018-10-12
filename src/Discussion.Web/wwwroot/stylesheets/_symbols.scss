@@ -15,7 +15,13 @@ $gray-content-hover:            #f5f5f5;
 $text-color:                    #333;
 
 
-// Core variables and mixins
+  // Core variables and mixins
 @import "../lib/node_modules/bootstrap-sass/assets/stylesheets/bootstrap/mixins";
 @import "../lib/node_modules/bootstrap-sass/assets/stylesheets/bootstrap/variables";
+
+
+// fontawesome variables
+
+$fa-font-path:                "../lib/node_modules/@fortawesome/fontawesome-free/webfonts";
+@import "../lib/node_modules/@fortawesome/fontawesome-free/scss/variables";
 
