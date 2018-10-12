@@ -67,7 +67,7 @@ function defaultEditorOptions(){
             ['style', ['style']],
             ['format', ['bold', 'italic', 'strikethrough', 'clear']],
             ['para', ['ul', 'ol']],
-            ['insert', ['link', 'picture', 'insertCode', 'markdown', 'codeview']]
+            ['insert', ['link', 'picture', 'insertCode', 'markdown']]
         ],
         styleTags: [
             {value: 'p', title: '常规', tag: 'span'},
@@ -140,10 +140,11 @@ function defaultEditorOptions(){
         },
         buttons:{
             insertCode: InsertCode.CodeButton,
-            markdown: MD.MarkdownButton
+            markdown: MD.viewMarkDownButton
         }
     });
-    options.modules.codePopover = InsertCode.CodePopover;
+    options.modules.markdownCodeView = MD.MarkdownCodeViewModule;
+    options.modules.codePopover = InsertCode.CodePopoverModule;
     options.modules.preventToolsInCodeBlocks = InsertCode.PreventToolsInCodeBlocks;
     options.popover.codeLang = [
         ['codeLang', ['chooseCodeLanguage']]

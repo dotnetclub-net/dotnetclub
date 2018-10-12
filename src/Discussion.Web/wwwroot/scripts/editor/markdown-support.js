@@ -1,37 +1,48 @@
-
 import TurndownService from "../../lib/node_modules/turndown"
 import Markd from "../../lib/node_modules/marked"
 
 
-export function MarkdownButton(context) {
-    context.layoutInfo.note.on('summernote.codeview.toggled', function () {
-        const isActivated = context.invoke('codeview.isActivated');
-        const codable = context.layoutInfo.codable;
-        if(isActivated){
-            const html = codable.val();
-            const md = convertToMarkdown(html);
-            codable.val(md);
-        }else{
-            const md = codable.val();
-            const html = Markd(md);
-            context.layoutInfo.editable.html(html);
-            context.triggerEvent('change');
-        }
-    });
+export class MarkdownCodeViewModule {
+    constructor(context){
+        this._context = context;
+    }
 
-    const button = $.summernote.ui.button({
-        contents: '<i class="note-icon-question"/>',
-        tooltip: '切换到 Markdown 模式',
+    shouldInitialize() {
+        return true;
+    }
+
+    initialize(){
+        const context = this._context;        
+        context.layoutInfo.note.on('summernote.codeview.toggled', function () {
+            const isActivated = context.invoke('codeview.isActivated');
+            const codable = context.layoutInfo.codable;
+            if(isActivated){
+                const html = codable.val();
+                const md = convertToMarkdown(html);
+                codable.val(md);
+            }else{
+                const md = codable.val();
+                const html = Markd(md);
+                context.layoutInfo.editable.html(html);
+                context.triggerEvent('change');
+            }
+        });   
+    }
+}
+
+export function viewMarkDownButton(context) {
+    return $.summernote.ui.button({
+        className: 'btn-codeview',
+        contents: '<i class="btn-view-markdown fab fa-markdown"></i>',
+        tooltip: '查看 Markdown 源码',
         click: function () {
             context.invoke('codeview.toggle');
         }
-    });
-
-    return button.render();   // return button as jquery object
+    }).render();
 }
 
 export function convertToMarkdown(htmlContent) {
-    var converters = [
+    const converters = [
         {
             filter: ['strike', 'del', 's'],
             replacement: function (content) {
@@ -66,7 +77,7 @@ export function convertToMarkdown(htmlContent) {
             }
         }
     ];
-    var turndownService = new TurndownService({codeBlockStyle: 'fenced'});
+    const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
     $.each(converters, function (i, rule) {
         turndownService.addRule(rule.filter.join(''), rule);
     });

@@ -5,7 +5,6 @@
   background: white;
   margin-top: 30px;
   padding-top: 15px;
-  padding-bottom: 10px;
   border-radius: 3px;
   
   
@@ -29,6 +28,11 @@
     .panel-heading.note-toolbar {
       background: transparent;
       border: none;
+      padding: 5px 10px;
+      
+      .btn-view-markdown{
+        font-size: 14px;
+      }
     }
 
     .btn.note-btn {
@@ -61,4 +65,26 @@
     width:100px;
   }
   
+}
+
+
+
+
+i.fab{
+  font-style:normal;
+
+  &:before{
+    display: inline-block;
+    font-size: inherit;
+    -webkit-font-smoothing: antialiased;
+    text-decoration: inherit;
+    text-rendering: auto;
+    text-transform: none;
+    vertical-align: middle;
+    speak: none;
+  }
+}
+
+i.fab.fa-markdown:before{
+  content:'\f60f'
 }

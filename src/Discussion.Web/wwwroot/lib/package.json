@@ -6,6 +6,7 @@
   "license": "ISC",
   "private": true,
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.4.1",
     "bootstrap": "3.3.6",
     "bootstrap-sass": "3.3.6",
     "jquery": "1.12.4",

@@ -1,21 +1,16 @@
 
 export function CodeButton(context) {
-    var ui = $.summernote.ui;
-
-    // create button
-    var button = ui.button({
+    return $.summernote.ui.button({
         contents: '<i class="note-icon-code"/>',
         tooltip: '插入代码',
         click: function () {
             // invoke formatBlock method with 'PRE' on editor module.
             context.invoke('editor.formatBlock', 'PRE');
         }
-    });
-
-    return button.render();   // return button as jquery object
+    }).render();
 }
 
-export function CodePopover(context) {
+export function CodePopoverModule(context) {
     var self = this;
     var ui = $.summernote.ui;
     var options = context.options;
