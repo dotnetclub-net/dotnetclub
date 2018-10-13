@@ -61,8 +61,8 @@ export function setupEditor() {
 }
 
 function defaultEditorOptions(){
-    var defaultOptions = $.extend({}, $.summernote.options);
-    var options = $.extend({}, defaultOptions, {
+    var options = $.extend({}, $.summernote.options, {
+        lang: 'zh-CN',
         toolbar: [
             ['style', ['style']],
             ['format', ['bold', 'italic', 'strikethrough', 'clear']],
@@ -96,13 +96,11 @@ function defaultEditorOptions(){
         callbacks: {
             onChange: function () { },
             onEnter: function(ev){
-                ev.preventDefault();
-                ev.stopPropagation();
-
                 var editor = $(this).data('summernote');
                 var patchedPre = InsertCode.patchPreTag.apply(this, [editor, ev]);
-                if(!patchedPre){
-                    editor.invoke('editor.insertParagraph');
+                if(patchedPre){
+                    ev.preventDefault();
+                    ev.stopPropagation();
                 }
             },
             onPaste : function (ev) {
@@ -139,7 +137,7 @@ function defaultEditorOptions(){
             }
         },
         buttons:{
-            insertCode: InsertCode.CodeButton,
+            insertCode: InsertCode.insertCodeButton,
             markdown: MD.viewMarkdownButton
         }
     });

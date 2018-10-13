@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Markdig;
+using Markdig.Extensions.EmphasisExtras;
 
 namespace Discussion.Web.Services.Markdown
 {
@@ -19,6 +20,8 @@ namespace Discussion.Web.Services.Markdown
             {
                 var markdownPipelineBuilder = new MarkdownPipelineBuilder()
                     .DisableHtml()
+                    .UsePipeTables()
+                    .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                     .UseAutoLinks();
                 markdownPipelineBuilder
                     .Extensions

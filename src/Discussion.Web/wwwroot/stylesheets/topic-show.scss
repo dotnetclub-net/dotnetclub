@@ -43,6 +43,8 @@
     & *{
       max-width: 100%;  
     }
+
+    @include content_table
   }
 
 }
@@ -94,6 +96,8 @@
         font-size: 12px;
         margin-top: 15px;
       }
+
+      @include content_table
     }
   }
 }

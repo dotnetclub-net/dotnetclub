@@ -1,5 +1,5 @@
 
-export function CodeButton(context) {
+export function insertCodeButton(context) {
     return $.summernote.ui.button({
         contents: '<i class="note-icon-code"/>',
         tooltip: '插入代码',

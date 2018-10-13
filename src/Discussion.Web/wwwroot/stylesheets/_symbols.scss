@@ -25,3 +25,16 @@ $text-color:                    #333;
 $fa-font-path:                "../lib/node_modules/@fortawesome/fontawesome-free/webfonts";
 @import "../lib/node_modules/@fortawesome/fontawesome-free/scss/variables";
 
+
+
+@mixin content_table(){
+  table {
+    min-width: 40%;
+    max-width: 90%;
+
+    td, th {
+      border: 1px solid $gray-body-background;
+      padding: 5px;
+    }
+  }
+}
