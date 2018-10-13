@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require("webpack");
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const BabelMinifyPlugin = require("babel-minify-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 
@@ -46,11 +46,7 @@ module.exports = (env, argv) =>  ({
     },
     optimization: {
         minimizer: [
-            new UglifyJsPlugin({
-                cache: true,
-                parallel: true,
-                sourceMap: true
-            }),
+            new BabelMinifyPlugin(),
             new OptimizeCSSAssetsPlugin({})
         ],
         splitChunks: {
