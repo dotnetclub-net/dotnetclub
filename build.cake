@@ -18,6 +18,22 @@ Task("Default")
           }
         });
 
+Task("clean")
+  .Does(() =>{
+        var directoriesToDelete = new DirectoryPath[]{
+            Directory("./src/Discussion.Web/publish"),
+            Directory("./src/Discussion.Web/wwwroot/dist"),
+            Directory("./src/Discussion.Admin/ClientApp/dist")
+        }.Where(DirectoryExists).ToArray();
+
+        DeleteDirectories(directoriesToDelete, new DeleteDirectorySettings {
+            Recursive = true,
+            Force = true
+        });
+
+        DotNetCoreClean("./dotnetclub.sln");
+    });
+
 Task("build")
   .Does(() =>
     {
@@ -36,7 +52,6 @@ Task("build")
         });
         DoInDirectory("./src/Discussion.Web/wwwroot", () =>
         {
-            Execute("npm run clean");
             Execute("npm run dev");
             Execute("npm run prod");
         });
@@ -111,6 +126,7 @@ Task("package")
 
 
 Task("ci")
+   .IsDependentOn("clean")
    .IsDependentOn("build")
    .IsDependentOn("test")
    .IsDependentOn("package");

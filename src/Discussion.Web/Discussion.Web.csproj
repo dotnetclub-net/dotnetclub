@@ -13,7 +13,7 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <StartupObject>Discussion.Web.Startup</StartupObject>
-    <DnClubExcludes>publish\**;logs\**;wwwroot\dist\**;dotnetclub.db</DnClubExcludes>
+    <DnClubExcludes>publish\**;logs\**;dotnetclub.db</DnClubExcludes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.15.2" />
