@@ -81,8 +81,13 @@ namespace Discussion.Web
             else
             {
                 app.UseExceptionHandler("/error");
+                if(bool.TryParse(_appConfiguration["HSTS"] ?? "False", out var useHsts) && useHsts)
+                { 
+                    app.UseHsts();
+                }
             }
             
+            app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseMvc();
