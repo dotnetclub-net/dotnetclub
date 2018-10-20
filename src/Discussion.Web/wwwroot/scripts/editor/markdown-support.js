@@ -1,4 +1,5 @@
 import TurndownService from "../../lib/node_modules/turndown"
+import { tables as tdTables } from "../../lib/node_modules/turndown-plugin-gfm"
 import Markd from "../../lib/node_modules/marked"
 
 
@@ -22,6 +23,12 @@ export class MarkdownCodeViewModule {
                 codable.val(md);
             }else{
                 const md = codable.val();
+                Markd.setOptions({
+                    gfm: true,
+                    breaks: false,
+                    headerIds: false,
+                    silent: true                    
+                });
                 const html = Markd(md);
                 context.layoutInfo.editable.html(html);
                 context.triggerEvent('change');
@@ -41,7 +48,12 @@ export function viewMarkdownButton(context) {
     }).render();
 }
 
-export function convertToMarkdown(htmlContent) {
+let turndownService;
+function createTurnDownService(){
+    if(turndownService){
+        return turndownService;
+    }
+    
     const converters = [
         {
             filter: ['strike', 'del', 's'],
@@ -49,25 +61,6 @@ export function convertToMarkdown(htmlContent) {
                 return '~~' + content + '~~';
             }
         },
-        {
-            filter: ['i', 'em'],
-            replacement: function (content) {
-                return '*' + content + '*';
-            }
-        },
-        {
-            filter: ['b', 'strong'],
-            replacement: function (content) {
-                return '**' + content + '**';
-            }
-        }, {
-            filter: ['br'],
-            replacement: function () {
-                // http://stackoverflow.com/a/28633712/1817042
-                return '&nbsp;\n\n';
-            }
-        },
-        // Fenced code blocks
         {
             filter: ['pre'],
             replacement: function (content, node) {
@@ -77,9 +70,20 @@ export function convertToMarkdown(htmlContent) {
             }
         }
     ];
-    const turndownService = new TurndownService({codeBlockStyle: 'fenced'});
+    turndownService = new TurndownService({
+        codeBlockStyle: 'fenced',
+        emDelimiter: '*',
+        strongDelimiter: '**',
+        headingStyle: 'atx',
+        hr: '---'
+    });
     $.each(converters, function (i, rule) {
         turndownService.addRule(rule.filter.join(''), rule);
     });
-    return turndownService.turndown(htmlContent);
+    turndownService.use(tdTables);
+    return turndownService;
+}
+export function convertToMarkdown(htmlContent) {
+    var turnDown = createTurnDownService();
+    return turnDown.turndown(htmlContent);
 }

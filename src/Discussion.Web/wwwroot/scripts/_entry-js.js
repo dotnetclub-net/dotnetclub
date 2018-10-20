@@ -4,6 +4,7 @@
 import '../lib/node_modules/jquery';
 import '../lib/node_modules/bootstrap';
 import '../lib/node_modules/summernote';
+import '../lib/node_modules/summernote/dist/lang/summernote-zh-CN.min';
 
 import '../lib/node_modules/turndown';
 import '../lib/node_modules/prismjs';
