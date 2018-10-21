@@ -131,7 +131,36 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
         
-        
+        [Route("/setting")]
+        public IActionResult Setting()
+        {
+            if (HttpContext.IsAuthenticated())
+            {
+                return RedirectTo("/");
+            }
+
+            return View();
+        }
+        [HttpPost]
+        [Route("/setting")]
+        public async Task<IActionResult> DoSetting(EmailSettingViewModel emailSettingViewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("Setting");
+            }
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            if (string.IsNullOrEmpty(user.EmailAddress))
+            {
+                //添加邮箱
+            }
+            else
+            {
+                //更新邮箱
+            }
+            return null;
+        }
+
         private IActionResult RedirectTo(string returnUrl)
         {
             if (string.IsNullOrEmpty(returnUrl))
