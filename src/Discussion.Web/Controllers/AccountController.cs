@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Web.Services.Emailconfirmation;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,16 +18,21 @@ namespace Discussion.Web.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User>_signInManager;
+        private readonly IRepository<EmailBindOptions> _emailBindRepo;
         private readonly ILogger<AccountController> _logger;
-
+        private readonly IEmailSender _emailSender;
         public AccountController(
             UserManager<User> userManager, 
             SignInManager<User> signInManager,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger, 
+            IEmailSender emailSender,
+            IRepository<EmailBindOptions> emailBindRepo)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _emailSender = emailSender;
+            _emailBindRepo = emailBindRepo;
         }
         
         [Route("/signin")]
@@ -153,6 +162,28 @@ namespace Discussion.Web.Controllers
             if (string.IsNullOrEmpty(user.EmailAddress))
             {
                 //添加邮箱
+                user.EmailAddress = emailSettingViewModel.EmailAddress;
+                var result = _userManager.UpdateAsync(user);
+
+                string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                _emailBindRepo.Save(new EmailBindOptions
+                {
+                    UserId = user.Id,
+                    EmailAddress = emailSettingViewModel.EmailAddress,
+                    OldEmailAddress = "",
+                    CallbackToken = code,
+                    IsActivation = false,
+                    CreatedAtUtc = DateTime.Now
+                });
+
+                //发送邮件
+                var callBack = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Scheme);
+                StringBuilder body = new StringBuilder();
+                body.AppendLine("尊敬的用户请您妥善保存如下信息：");
+                body.Append("你的客户端ID：").AppendLine("111");
+                body.Append("你的客户端密钥：").AppendLine("222");
+                body.AppendLine("请通过单击 <a href=\"" + callBack + "\">这里</a>来确认你的帐户");
+                await _emailSender.SendEmailAsync("m13671241939@163.com", emailSettingViewModel.EmailAddress, "dotnetclub用户确认", body.ToString());
             }
             else
             {
@@ -160,7 +191,17 @@ namespace Discussion.Web.Controllers
             }
             return null;
         }
-
+        [AllowAnonymous]
+        public async Task<ActionResult> ConfirmEmail(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                return View("Error");
+            }
+            var user = _userManager.Users.Where(t => t.Id.Equals(userId)).FirstOrDefault();
+            var result = await _userManager.ConfirmEmailAsync(user, code);
+            return View(result.Succeeded ? "ConfirmEmail" : "Error");
+        }
         private IActionResult RedirectTo(string returnUrl)
         {
             if (string.IsNullOrEmpty(returnUrl))

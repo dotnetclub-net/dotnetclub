@@ -19,7 +19,8 @@ namespace Discussion.Migrations
                .WithColumn("DisplayName").AsString(50).Nullable()
                .WithColumn("HashedPassword").AsString(2000).Nullable()
                .WithColumn("LastSeenAt").AsDateTime().Nullable()
-               .WithColumn("EmailAddress").AsString(50).Nullable();
+               .WithColumn("EmailAddress").AsString(50).Nullable()
+               .WithColumn("IsActivation").AsBoolean();
         }
 
     }

@@ -16,16 +16,16 @@ namespace Discussion.Web.Services.Emailconfirmation
         {
             Options = optionsAccessor.Value;
         }
-        public Task SendEmailAsync(string email, string subject, string message)
+        public Task SendEmailAsync(string email, string emailTo, string subject, string message)
         {
-            return Execute(Options.SendGridKey, subject, message, email);
+            return Execute(Options.SendGridKey, emailTo,subject, message, email);
         }
-        public Task Execute(string apiKey,string subject,string message,string email)
+        public Task Execute(string apiKey, string emailTo, string subject,string message,string email)
         {
             var client = new SendGridClient(apiKey);
             var msg = new SendGridMessage()
             {
-                From = new EmailAddress("Joe@contoso.com", "Joe Smith"),
+                From = new EmailAddress(emailTo),
                 Subject = subject,
                 PlainTextContent = message,
                 HtmlContent = message

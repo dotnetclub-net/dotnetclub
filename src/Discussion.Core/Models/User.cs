@@ -10,6 +10,7 @@ namespace Discussion.Core.Models
 
         public string HashedPassword { get; set; }
         public DateTime? LastSeenAt { get; set; }
+        public bool IsActivation { get; set; }
     }
 
 
@@ -19,6 +20,7 @@ namespace Discussion.Core.Models
         string UserName { get; set; }
         string DisplayName { get; }
         string EmailAddress { get; set; }
+        bool IsActivation { get; set; }
     }
 
     public class Role
