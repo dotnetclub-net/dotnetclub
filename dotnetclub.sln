@@ -18,11 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Scratches", "_Scratches", 
 		build.cake = build.cake
 		build.ps1 = build.ps1
 		build.sh = build.sh
-		deploy-on-hyper.sh = deploy-on-hyper.sh
 		DockerFile = DockerFile
 		readme-en.md = readme-en.md
 		readme.md = readme.md
-		upgrade-from-existing.sh = upgrade-from-existing.sh
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discussion.Core", "src\Discussion.Core\Discussion.Core.csproj", "{D9E60D32-042F-4916-B006-F815E6323D12}"
