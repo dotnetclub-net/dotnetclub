@@ -7,6 +7,6 @@ namespace Discussion.Web.Services.Emailconfirmation
 {
     public interface IEmailSender
     {
-        Task SendEmailAsync(string email,string emailTo, string subject, string message);
+        Task SendEmailAsync(string emailTo, string subject, string message);
     }
 }
