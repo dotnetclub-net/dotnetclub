@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common
 {
     public class StubLoggerProvider : ILoggerProvider, IDisposable
     {

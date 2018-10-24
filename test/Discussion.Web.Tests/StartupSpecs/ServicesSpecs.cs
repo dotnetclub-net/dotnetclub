@@ -4,6 +4,7 @@ using Moq;
 using System;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Tests.Common;
 using Xunit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

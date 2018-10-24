@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using Discussion.Tests.Common;
 using Xunit;
 
 

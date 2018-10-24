@@ -1,4 +1,5 @@
-﻿using Discussion.Web.ViewModels;
+﻿using Discussion.Tests.Common;
+using Discussion.Web.ViewModels;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.ViewModels

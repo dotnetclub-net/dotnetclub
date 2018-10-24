@@ -1,5 +1,6 @@
 ﻿using System;
 using Discussion.Core.Models;
+using Discussion.Tests.Common;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Xunit;

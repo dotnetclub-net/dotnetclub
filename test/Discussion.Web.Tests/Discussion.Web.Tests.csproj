@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Discussion.Web/Discussion.Web.csproj" />
     <ProjectReference Include="..\..\src\Discussion.Core\Discussion.Core.csproj" />
+    <ProjectReference Include="..\Discussion.Tests.Common\Discussion.Tests.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.1.1" />

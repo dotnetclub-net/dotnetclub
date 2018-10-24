@@ -1,6 +1,7 @@
 ﻿using System;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Tests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

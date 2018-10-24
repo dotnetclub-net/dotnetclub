@@ -3,9 +3,9 @@ using Xunit;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
 using System.Threading.Tasks;
+using Discussion.Tests.Common;
 using Microsoft.AspNetCore.TestHost;
 
 namespace Discussion.Web.Tests.StartupSpecs
@@ -26,7 +26,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_use_iis_platform()
         {
-            var app = TestApplication.BuildApplication(new TestApplication(initlizeApp: false), "UnitTest", host =>
+            var app = TestApplication.BuildApplication<Startup>(new TestApplication(), "UnitTest", host =>
             {
                 host.UseSetting("PORT", "5000");
                 host.UseSetting("APPL_PATH", "/");
@@ -81,7 +81,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_use_temporary_database_when_no_database_connection_string_specified()
         {
-            var app = TestApplication.BuildApplication(new TestApplication(initlizeApp: false), "UnitTest");
+            var app = TestApplication.BuildApplication<Startup>(new TestApplication(), "UnitTest");
 
             var logs = app.GetLogs();
             

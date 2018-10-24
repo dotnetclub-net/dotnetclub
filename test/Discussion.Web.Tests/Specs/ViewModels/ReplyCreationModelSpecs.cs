@@ -1,3 +1,4 @@
+using Discussion.Tests.Common;
 using Discussion.Web.ViewModels;
 using Xunit;
 

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Tests.Common;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;

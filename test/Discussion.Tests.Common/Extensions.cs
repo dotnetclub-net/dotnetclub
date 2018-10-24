@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
@@ -12,7 +10,7 @@ using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common
 {
     public static class Extensions
     {
@@ -22,7 +20,7 @@ namespace Discussion.Web.Tests
             return httpContext.RequestServices.GetService<T>();
         }
                 
-        public static T GetService<T>(this Controller controller) where T : class
+        public static T GetService<T>(this ControllerBase controller) where T : class
         {
             return controller.HttpContext.RequestServices.GetService<T>();
         }
@@ -91,7 +89,7 @@ namespace Discussion.Web.Tests
             });
         }
 
-        public static RequestBuilder RequestAntiForgeryForm(this TestApplication app, string path, Dictionary<string, string> obj = null)
+        public static RequestBuilder RequestAntiForgeryForm(this TestDiscussionApplication app, string path, Dictionary<string, string> obj = null)
         {
             var tokens = app.GetAntiForgeryTokens();
             var request = app.Server.CreateRequest(path);

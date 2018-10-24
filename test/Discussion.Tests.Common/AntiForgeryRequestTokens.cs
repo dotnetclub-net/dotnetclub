@@ -2,9 +2,10 @@
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using Discussion.Web.Tests;
 using Microsoft.Net.Http.Headers;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common
 {
 
     public class AntiForgeryRequestTokens
@@ -13,7 +14,7 @@ namespace Discussion.Web.Tests
         public Cookie Cookie { get; private set; }
         
         
-        public static AntiForgeryRequestTokens GetFromApplication(TestApplication app)
+        public static AntiForgeryRequestTokens GetFromApplication(TestDiscussionApplication app)
         {
             var homeResponseTask = app.Server.CreateRequest("/").GetAsync();
             homeResponseTask.ConfigureAwait(false);

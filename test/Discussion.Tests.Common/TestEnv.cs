@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace Discussion.Web.Tests {
+namespace Discussion.Tests.Common {
 
     public static class TestEnv
     {

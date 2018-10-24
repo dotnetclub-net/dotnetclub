@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
-using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +14,11 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common
 {
     public static class TestApplicationExtensions
     {
-                
-        public static T CreateController<T>(this TestApplication app) where T : Controller
+        public static T CreateController<T>(this TestDiscussionApplication app) where T : ControllerBase
         {
             var httpContext = app.GetService<IHttpContextFactory>().Create(new DefaultHttpContext().Features);
             httpContext.User = app.User;
@@ -38,12 +35,12 @@ namespace Discussion.Web.Tests
                 .CreateController(new ControllerContext(actionContext)) as T;
         }
 
-        public static T GetService<T>(this TestApplication app) where T : class
+        public static T GetService<T>(this TestDiscussionApplication app) where T : class
         {
             return app.ApplicationServices.GetService<T>();
         }
         
-        public static void MockUser(this TestApplication app)
+        public static void MockUser(this TestDiscussionApplication app)
         {
             var userRepo = app.GetService<IRepository<User>>();
             var passwordHasher = app.GetService<IPasswordHasher<User>>();
@@ -68,13 +65,8 @@ namespace Discussion.Web.Tests
             app.User = new ClaimsPrincipal(identity);
         }
         
-        public static User GetDiscussionUser(this TestApplication app)
-        {
-            var userRepo = app.GetService<IRepository<User>>();
-            return app.User.ToDiscussionUser(userRepo);
-        }
 
-        public static ModelStateDictionary ValidateModel(this TestApplication app, object model)
+        public static ModelStateDictionary ValidateModel(this TestDiscussionApplication app, object model)
         {
             var validator = app.GetService<IObjectModelValidator>();
             var actionContext = new ActionContext();
@@ -84,13 +76,13 @@ namespace Discussion.Web.Tests
             return actionContext.ModelState;
         }
         
-        public static IEnumerable<StubLoggerProvider.LogItem> GetLogs(this TestApplication app)
+        public static IEnumerable<StubLoggerProvider.LogItem> GetLogs(this TestDiscussionApplication app)
         {
             var loggerProvider = app.ApplicationServices.GetRequiredService<ILoggerProvider>() as StubLoggerProvider;
             return loggerProvider?.LogItems;
         }
 
-        public static User CreateUser(this TestApplication app, string username, string password = null, string displayName = null)
+        public static User CreateUser(this TestDiscussionApplication app, string username, string password = null, string displayName = null)
         {
             var actualPassword = string.IsNullOrEmpty(password) ? Guid.NewGuid().ToString("N").Substring(4, 8) : password;
             var userManager = app.GetService<UserManager<User>>();

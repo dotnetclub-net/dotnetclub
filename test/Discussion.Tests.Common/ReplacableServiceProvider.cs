@@ -1,8 +1,7 @@
 ﻿using System;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common
 {
     public class ReplacableServiceProvider : IServiceProvider, IServiceScope
     {

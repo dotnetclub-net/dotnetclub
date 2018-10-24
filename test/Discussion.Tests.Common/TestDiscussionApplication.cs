@@ -1,45 +1,33 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using System.Security.Claims;
+using Discussion.Core;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using Xunit;
-using static Discussion.Web.Tests.TestEnv;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Features.Authentication;
-using System.Security.Claims;
-using Discussion.Core;
-using Microsoft.AspNetCore.Hosting.Internal;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common
 {
-    public sealed class TestApplication : IDisposable
+    public class TestDiscussionApplication: IDisposable
     {
-        readonly ClaimsPrincipal _originalUser;
+        ClaimsPrincipal _originalUser;
         AntiForgeryRequestTokens _antiForgeryRequestTokens;
 
-
-        public TestApplication() : this(true){ }
-
-        internal TestApplication(bool initlizeApp)
-        {
-            if (initlizeApp)
-            {
-                BuildApplication(this, "UnitTest");
-                // BuildApplication(this);
-            }
-
+        protected void Init<TStartup>() where TStartup: class 
+        {           
+            BuildApplication<TStartup>(this, "UnitTest");
             _originalUser = User;
         }
 
-
-        public TestApplication Reset()
+        protected void Reset()
         {
             _antiForgeryRequestTokens = null;
             User = _originalUser;
             ReplacableServiceProvider.Reset();
-            return this;
         }
 
 
@@ -62,7 +50,9 @@ namespace Discussion.Web.Tests
             return _antiForgeryRequestTokens;
         }
         
-        public static TestApplication BuildApplication(TestApplication testApp, string environmentName = "Production", Action<IWebHostBuilder> configureHost = null)
+        public static TestDiscussionApplication BuildApplication<TStartup>(TestDiscussionApplication testApp, 
+            string environmentName = "Production",
+            Action<IWebHostBuilder> configureHost = null) where TStartup: class 
         {
             testApp.LoggerProvider = new StubLoggerProvider();
             testApp.User = new ClaimsPrincipal(new ClaimsIdentity());
@@ -95,9 +85,9 @@ namespace Discussion.Web.Tests
                 loggingBuilder.AddProvider(testApp.LoggerProvider);
             });
             hostBuilder
-                .UseContentRoot(WebProjectPath())
+                .UseContentRoot(TestEnv.WebProjectPath())
                 .UseEnvironment(environmentName)
-                .UseStartup<Startup>();
+                .UseStartup<TStartup>();
             
             testApp.Server = new TestServer(hostBuilder);
             testApp.ApplicationServices = testApp.Server.Host.Services;
@@ -108,7 +98,7 @@ namespace Discussion.Web.Tests
         
         #region Disposing
 
-        ~TestApplication()
+        ~TestDiscussionApplication()
         {
             Dispose(false);
         }
@@ -144,15 +134,4 @@ namespace Discussion.Web.Tests
 
         #endregion
     }
-
-    // Use shared context to maintain database fixture
-    // see https://xunit.github.io/docs/shared-context.html#collection-fixture
-    [CollectionDefinition("AppSpecs")]
-    public class ApplicationCollection : ICollectionFixture<TestApplication>
-    {
-        // This class has no code, and is never created. Its purpose is simply
-        // to be the place to apply [CollectionDefinition] and all the
-        // ICollectionFixture<> interfaces.
-    }
-
 }

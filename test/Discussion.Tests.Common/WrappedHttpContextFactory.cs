@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common
 {
     public class WrappedHttpContextFactory : IHttpContextFactory
     {

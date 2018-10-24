@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Tests.Common;
 using Xunit;
 
 

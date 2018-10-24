@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Discussion.Tests.Common;
 using Discussion.Web.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
