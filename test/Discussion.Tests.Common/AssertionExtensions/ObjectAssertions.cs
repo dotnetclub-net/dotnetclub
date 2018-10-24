@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Xunit;
-using static Xunit.Assert;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common.AssertionExtensions
 {
     public static class ObjectAssertions
     {
@@ -12,48 +11,48 @@ namespace Discussion.Web.Tests
 
         public static void ShouldEqual(this string obj, string expected)
         {
-            Equal(expected, obj);
+            Assert.Equal(expected, obj);
         }
 
         public static void ShouldEqual(this string actual, string expected, bool ignoreCase = false, bool ignoreLineEndingDifferences = false, bool ignoreWhiteSpaceDifferences = false)
         {
-            Equal(expected, actual, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+            Assert.Equal(expected, actual, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
         }
 
         public static void ShouldEqual<T>(this T obj, T expected)
         {
-            Equal(expected, obj);
+            Assert.Equal(expected, obj);
         }
 
         public static void ShouldEqual<T>(this T obj, T expected, Func<T, T, bool> comparer)
         {
-            Equal(expected, obj, new ObjectComparer<T>(comparer));
+            Assert.Equal(expected, obj, new ObjectComparer<T>(comparer));
         }
 
         public static void ShouldEqual(this object obj, object expected)
         {
-            Equal(expected, obj);
+            Assert.Equal(expected, obj);
         }
         
 
         public static void ShouldNotEqual(this string obj, string expected)
         {
-            NotEqual(expected, obj);
+            Assert.NotEqual(expected, obj);
         }
 
         public static void ShouldNotEqual<T>(this T obj, T expected)
         {
-            NotEqual(expected, obj);
+            Assert.NotEqual(expected, obj);
         }
 
         public static void ShouldNotEqual<T>(this T obj, T expected, Func<T, T, bool> comparer)
         {
-            NotEqual(expected, obj, new ObjectComparer<T>(comparer));
+            Assert.NotEqual(expected, obj, new ObjectComparer<T>(comparer));
         }
 
         public static void ShouldNotEqual(this object obj, object expected)
         {
-            NotEqual(expected, obj);
+            Assert.NotEqual(expected, obj);
         }
 
         #endregion
@@ -61,12 +60,12 @@ namespace Discussion.Web.Tests
 
         public static void ShouldBeNull(this object obj)
         {
-            Null(obj);
+            Assert.Null(obj);
         }
 
         public static void ShouldNotBeNull(this object obj)
         {
-            NotNull(obj);
+            Assert.NotNull(obj);
         }
 
         public static void IsType(this object obj, Type expectedType)

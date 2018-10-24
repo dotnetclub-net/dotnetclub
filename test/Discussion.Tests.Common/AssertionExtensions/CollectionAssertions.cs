@@ -1,30 +1,30 @@
-﻿using static Xunit.Assert;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
+using Xunit;
 
-namespace Discussion.Web.Tests
+namespace Discussion.Tests.Common.AssertionExtensions
 {
     public static class CollectionAssertions
     {
         public static void ShouldBeEmpty(this IEnumerable enumerable)
         {
-            Empty(enumerable);
+            Assert.Empty(enumerable);
         }
 
         public static void ShouldContain<T>(this IEnumerable<T> enumerable, T expected)
         {
-            Contains<T>(expected, enumerable);
+            Assert.Contains<T>(expected, enumerable);
         }
 
         public static void ShouldContain<T>(this IEnumerable<T> enumerable, T expected, Func<T, T, bool> comparer)
         {
-            Contains<T>(expected, enumerable, new ObjectAssertions.ObjectComparer<T>(comparer));
+            Assert.Contains<T>(expected, enumerable, new ObjectAssertions.ObjectComparer<T>(comparer));
         }
 
         public static void ShouldContain<T>(this IEnumerable<T> enumerable, Func<T, bool> filter)
         {
-            Contains<T>(enumerable, delegate (T obj)
+            Assert.Contains<T>(enumerable, delegate (T obj)
             {
                 return filter(obj);
             });
@@ -32,23 +32,23 @@ namespace Discussion.Web.Tests
 
         public static void ShouldNotEmpty(this IEnumerable enumerable)
         {
-            NotEmpty(enumerable);
+            Assert.NotEmpty(enumerable);
         }
 
 
         public static void ShouldNotContain<T>(this IEnumerable<T> enumerable, T expected)
         {
-            DoesNotContain<T>(expected, enumerable);
+            Assert.DoesNotContain<T>(expected, enumerable);
         }
 
         public static void ShouldNotContain<T>(this IEnumerable<T> enumerable, T expected, Func<T, T, bool> comparer)
         {
-            DoesNotContain<T>(expected, enumerable, new ObjectAssertions.ObjectComparer<T>(comparer));
+            Assert.DoesNotContain<T>(expected, enumerable, new ObjectAssertions.ObjectComparer<T>(comparer));
         }
 
         public static void ShouldNotContain<T>(this IEnumerable<T> enumerable, Func<T, bool> filter)
         {
-            DoesNotContain<T>(enumerable, delegate (T obj)
+            Assert.DoesNotContain<T>(enumerable, delegate (T obj)
             {
                 return filter(obj);
             });
@@ -56,22 +56,22 @@ namespace Discussion.Web.Tests
 
         public static void ShouldContain(this string obj, string expectedSubstring)
         {
-            Contains(expectedSubstring, obj);
+            Assert.Contains(expectedSubstring, obj);
         }
 
         public static void ShouldContain(this string obj, string expectedSubstring, StringComparison comparisonType)
         {
-            Contains(expectedSubstring, obj, comparisonType);
+            Assert.Contains(expectedSubstring, obj, comparisonType);
         }
 
         public static void ShouldNotContain(this string obj, string expectedSubstring)
         {
-            DoesNotContain(expectedSubstring, obj);
+            Assert.DoesNotContain(expectedSubstring, obj);
         }
 
         public static void ShouldNotContain(this string obj, string expectedSubstring, StringComparison comparisonType)
         {
-            DoesNotContain(expectedSubstring, obj, comparisonType);
+            Assert.DoesNotContain(expectedSubstring, obj, comparisonType);
         }
     }
 }

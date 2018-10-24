@@ -12,14 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Discussion.Tests.Common
 {
-    public class TestDiscussionApplication: IDisposable
+    public class TestApplication: IDisposable
     {
         ClaimsPrincipal _originalUser;
         AntiForgeryRequestTokens _antiForgeryRequestTokens;
 
         protected void Init<TStartup>() where TStartup: class 
         {           
-            BuildApplication<TStartup>(this, "UnitTest");
+            BuildTestAppplication<TStartup>(this, "UnitTest");
             _originalUser = User;
         }
 
@@ -50,7 +50,7 @@ namespace Discussion.Tests.Common
             return _antiForgeryRequestTokens;
         }
         
-        public static TestDiscussionApplication BuildApplication<TStartup>(TestDiscussionApplication testApp, 
+        public static TestApplication BuildTestAppplication<TStartup>(TestApplication testApp, 
             string environmentName = "Production",
             Action<IWebHostBuilder> configureHost = null) where TStartup: class 
         {
@@ -98,7 +98,7 @@ namespace Discussion.Tests.Common
         
         #region Disposing
 
-        ~TestDiscussionApplication()
+        ~TestApplication()
         {
             Dispose(false);
         }

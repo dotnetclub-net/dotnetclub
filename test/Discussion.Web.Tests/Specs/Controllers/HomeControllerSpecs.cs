@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
@@ -9,10 +10,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
     [Collection("AppSpecs")]
     public class HomeControllerSpecs
     {
-        private readonly TestApplication _myApp;
-        public HomeControllerSpecs(TestApplication app)
+        private readonly TestDiscussionWebApp _theApp;
+        public HomeControllerSpecs(TestDiscussionWebApp app)
         {
-            _myApp = app;
+            _theApp = app;
         }
 
 
@@ -32,7 +33,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_serve_error_page_as_view_result()
         {
-            var homeController = _myApp.CreateController<HomeController>();
+            var homeController = _theApp.CreateController<HomeController>();
 
             var errorResult = homeController.Error();
 

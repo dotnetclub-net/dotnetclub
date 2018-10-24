@@ -89,7 +89,7 @@ namespace Discussion.Tests.Common
             });
         }
 
-        public static RequestBuilder RequestAntiForgeryForm(this TestDiscussionApplication app, string path, Dictionary<string, string> obj = null)
+        public static RequestBuilder RequestAntiForgeryForm(this TestApplication app, string path, Dictionary<string, string> obj = null)
         {
             var tokens = app.GetAntiForgeryTokens();
             var request = app.Server.CreateRequest(path);

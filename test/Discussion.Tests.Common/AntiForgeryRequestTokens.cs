@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
-using Discussion.Web.Tests;
 using Microsoft.Net.Http.Headers;
 
 namespace Discussion.Tests.Common
@@ -14,7 +13,7 @@ namespace Discussion.Tests.Common
         public Cookie Cookie { get; private set; }
         
         
-        public static AntiForgeryRequestTokens GetFromApplication(TestDiscussionApplication app)
+        public static AntiForgeryRequestTokens GetFromApplication(TestApplication app)
         {
             var homeResponseTask = app.Server.CreateRequest("/").GetAsync();
             homeResponseTask.ConfigureAwait(false);

@@ -1,6 +1,7 @@
 ﻿using System;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Xunit;
@@ -10,11 +11,11 @@ namespace Discussion.Web.Tests.Specs.ViewModels
     [Collection("AppSpecs")]
     public class CreateTopicModelSpecs
     {
-        private readonly TestApplication _myApp;
+        private readonly TestDiscussionWebApp _app;
 
-        public CreateTopicModelSpecs(TestApplication app)
+        public CreateTopicModelSpecs(TestDiscussionWebApp app)
         {
-            _myApp = app;
+            _app = app;
         }
 
         [Fact]
@@ -79,7 +80,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         private ModelStateDictionary ValidateTopic(string title, string content, TopicType? type = TopicType.Discussion)
         {
             var createModel = new TopicCreationModel { Title = title, Content = content, Type = type };
-            return _myApp.ValidateModel(createModel);
+            return _app.ValidateModel(createModel);
         }
 
         private static string CreateString(int length)

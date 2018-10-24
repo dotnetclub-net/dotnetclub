@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
@@ -21,19 +22,19 @@ namespace Discussion.Web.Tests.Specs.Controllers
     [Collection("AppSpecs")]
     public class AccountControllerSpecs
     {
-        private readonly TestApplication _myApp;
+        private readonly TestDiscussionWebApp _theApp;
         private readonly IRepository<User> _userRepo;
 
-        public AccountControllerSpecs(TestApplication app)
+        public AccountControllerSpecs(TestDiscussionWebApp app)
         {
-            _myApp = app.Reset();
-            _userRepo = _myApp.GetService<IRepository<User>>();
+            _theApp = app.Reset();
+            _userRepo = _theApp.GetService<IRepository<User>>();
         }
         
         [Fact]
         public void should_serve_signin_page_as_view_result()
         {
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
 
             IActionResult signinPageResult = accountCtrl.Signin(null);
 
@@ -60,11 +61,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
                     services.AddSingleton(authService.Object);
                 });
             
-            var accountCtrl = _myApp.CreateController<AccountController>();
-            var userRepo = _myApp.GetService<IRepository<User>>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
+            var userRepo = _theApp.GetService<IRepository<User>>();
 
             const string password = "111111";
-            _myApp.CreateUser("jim", password, "Jim Green");
+            _theApp.CreateUser("jim", password, "Jim Green");
             
             // Act
             var userModel = new SigninUserViewModel
@@ -85,7 +86,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_return_signin_view_when_username_does_not_exist()
         {
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
             var userModel = new SigninUserViewModel
             {
                 UserName = "jimdoesnotexists",
@@ -107,8 +108,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_return_signin_view_when_incorrect_password()
         {
-            var passwordHasher = _myApp.GetService<IPasswordHasher<User>>();
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var passwordHasher = _theApp.GetService<IPasswordHasher<User>>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
             _userRepo.Save(new User
             {
                 UserName = "jimwrongpwd",
@@ -136,7 +137,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_return_signin_view_when_invalid_signin_request()
         {
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
             accountCtrl.ModelState.AddModelError("UserName", "UserName is required");
 
             var sigininResult = await accountCtrl.DoSignin(new SigninUserViewModel(), null);
@@ -149,7 +150,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_return_register_page_as_viewresult()
         {
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
             accountCtrl.ModelState.AddModelError("UserName", "UserName is required");
 
             var registerPage = accountCtrl.Register();
@@ -161,7 +162,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_register_new_user()
         {
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
             var userName = "newuser";
             var newUser = new SigninUserViewModel
             {
@@ -182,7 +183,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_hash_password_for_user()
         {
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
             var userName = "user";
             var clearPassword = "password1";
             var newUser = new SigninUserViewModel
@@ -204,7 +205,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_not_register_with_invalid_request()
         {
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
             var notToBeCreated = "not-to-be-created";
             var newUser = new SigninUserViewModel
             {
@@ -235,7 +236,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 DisplayName = "old user",
                 CreatedAtUtc = new DateTime(2018, 02, 14)
             });
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            var accountCtrl = _theApp.CreateController<AccountController>();
 
             
             var newUser = new SigninUserViewModel
@@ -269,8 +270,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             {
                 services.AddSingleton(authService.Object);
             });
-            _myApp.MockUser();
-            var accountCtrl = _myApp.CreateController<AccountController>();
+            _theApp.MockUser();
+            var accountCtrl = _theApp.CreateController<AccountController>();
             
             var signoutResult = await accountCtrl.DoSignOut();
 

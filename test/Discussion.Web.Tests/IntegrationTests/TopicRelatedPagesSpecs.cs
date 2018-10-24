@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
@@ -11,17 +12,17 @@ namespace Discussion.Web.Tests.IntegrationTests
     public class TopicRelatedPagesSpecs
     {
         
-        private readonly TestApplication _theApp;
-        public TopicRelatedPagesSpecs(TestApplication theApp)
+        private readonly TestDiscussionWebApp _app;
+        public TopicRelatedPagesSpecs(TestDiscussionWebApp app)
         {
-            _theApp = theApp.Reset();
+            _app = app.Reset();
         }
 
         [Fact]
         public async Task should_serve_topic_list_page()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topics");
+            var request = _app.Server.CreateRequest("/topics");
 
             // act
             var response = await request.GetAsync();
@@ -35,8 +36,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_create_topic_page()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topics/create");
-            _theApp.MockUser();
+            var request = _app.Server.CreateRequest("/topics/create");
+            _app.MockUser();
             // act
             var response = await request.GetAsync();
 
@@ -49,7 +50,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_redirect_to_signin_when_access_create_topic_page_without_user_principal()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/topics/create");
+            var request = _app.Server.CreateRequest("/topics/create");
 
             // act
             var response = await request.GetAsync();
@@ -64,8 +65,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_accept_create_topic_request_with_valid_post_data()
         {
             // arrange
-            _theApp.MockUser();
-            var request = _theApp.RequestAntiForgeryForm("/topics",
+            _app.MockUser();
+            var request = _app.RequestAntiForgeryForm("/topics",
                 new Dictionary<string, string>
                 {
                     {"title", "中文的 title"},
@@ -86,8 +87,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_not_accept_create_topic_request_with_invalid_post_data()
         {
             // arrange
-            _theApp.MockUser();
-            var request = _theApp.RequestAntiForgeryForm("/topics");
+            _app.MockUser();
+            var request = _app.RequestAntiForgeryForm("/topics");
 
             // act
             var response = await request.PostAsync();
@@ -100,8 +101,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_show_topic_detail_page_with_markdown_content()
         {
             // arrange
-            _theApp.MockUser();
-            var request = _theApp.RequestAntiForgeryForm("/topics",
+            _app.MockUser();
+            var request = _app.RequestAntiForgeryForm("/topics",
                 new Dictionary<string, string>
                 {
                     {"title", "中文字 &quot;title"},
@@ -111,11 +112,11 @@ namespace Discussion.Web.Tests.IntegrationTests
             var createResponse = await request.PostAsync();
             var redirectToUrl = createResponse.Headers.Location.ToString();
             var postId = int.Parse(redirectToUrl.Substring(redirectToUrl.LastIndexOf('/') + 1));
-            await ReplyPageSpecs.RequestToCreateReply(_theApp, postId, "# heading in reply\n*italic*");
+            await ReplyPageSpecs.RequestToCreateReply(_app, postId, "# heading in reply\n*italic*");
                 
             
             // act
-            var requestDetail = _theApp.Server.CreateRequest(redirectToUrl);
+            var requestDetail = _app.Server.CreateRequest(redirectToUrl);
             var response = await requestDetail.GetAsync();
 
             // assert

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Xunit;
 
 
@@ -17,17 +18,17 @@ namespace Discussion.Web.Tests.IntegrationTests
         public const string NotFoundPath = "/something-not-defined";
         public const string NotFoundStaticFile = "/something-not-defined.css";
 
-        private readonly TestApplication _theApp;
-        public NotFoundSpecs(TestApplication theApp)
+        private readonly TestDiscussionWebApp _app;
+        public NotFoundSpecs(TestDiscussionWebApp app)
         {
-            _theApp = theApp;
+            _app = app;
         }
 
         [Fact]
         public async Task should_response_not_found_by_default()
         {
             // act
-            var response = await _theApp.Server.CreateRequest(NotFoundPath).GetAsync();
+            var response = await _app.Server.CreateRequest(NotFoundPath).GetAsync();
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.NotFound);
@@ -37,7 +38,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_response_not_found_for_a_static_file_path()
         {
             // act
-            var response = await _theApp.Server.CreateRequest(NotFoundStaticFile).GetAsync();
+            var response = await _app.Server.CreateRequest(NotFoundStaticFile).GetAsync();
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.NotFound);
@@ -49,10 +50,10 @@ namespace Discussion.Web.Tests.IntegrationTests
             // arrange
             var username = Guid.NewGuid().ToString("N").Substring(4, 8);
             var password = "11111a";
-            var tokens = _theApp.GetAntiForgeryTokens();
+            var tokens = _app.GetAntiForgeryTokens();
             
             // Act
-            var request = _theApp.Server.CreateRequest("/register")
+            var request = _app.Server.CreateRequest("/register")
                 .WithFormContent(new Dictionary<string, string>()
                 {
                     {"UserName", username},
@@ -64,7 +65,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.BadRequest);
-            var isRegistered = _theApp.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
+            var isRegistered = _app.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
             isRegistered.ShouldEqual(false);
         }
         
@@ -74,10 +75,10 @@ namespace Discussion.Web.Tests.IntegrationTests
             // arrange
             var username = Guid.NewGuid().ToString("N").Substring(4, 8);
             var password = "11111a";
-            var tokens = _theApp.GetAntiForgeryTokens();
+            var tokens = _app.GetAntiForgeryTokens();
             
             // Act
-            var request = _theApp.Server.CreateRequest("/register")
+            var request = _app.Server.CreateRequest("/register")
                 .WithFormContent(new Dictionary<string, string>()
                 {
                     {"UserName", username},
@@ -88,7 +89,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.BadRequest);
-            var isRegistered = _theApp.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
+            var isRegistered = _app.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
             isRegistered.ShouldEqual(false);
         }
 

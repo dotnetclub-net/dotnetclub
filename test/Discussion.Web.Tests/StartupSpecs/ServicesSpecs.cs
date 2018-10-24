@@ -5,6 +5,7 @@ using System;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Xunit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
