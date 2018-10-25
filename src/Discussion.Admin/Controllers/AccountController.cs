@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Security.Claims;
 using System.Security.Principal;
-using Discussion.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using Discussion.Admin.Supporting;
 using Discussion.Admin.ViewModels;
 using Discussion.Core.Data;
 using Discussion.Core.Models;

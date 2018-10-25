@@ -1,4 +1,4 @@
-﻿using Discussion.Admin.Extensions;
+﻿using Discussion.Admin.Supporting;
 using Discussion.Core;
 using Discussion.Core.Data;
 using Microsoft.AspNetCore.Builder;
@@ -16,7 +16,7 @@ namespace Discussion.Admin
         private readonly IConfiguration _appConfiguration;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly ILoggerFactory _loggerFactory;
-        public static IContractResolver JsonContractResolver = new CamelCasePropertyNamesContractResolver();
+        public static readonly IContractResolver JsonContractResolver = new CamelCasePropertyNamesContractResolver();
 
         public Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory loggerFactory)
         {
@@ -39,12 +39,13 @@ namespace Discussion.Admin
         {
             services.AddJwtAuthentication(_appConfiguration);
 
-            services.AddMvc()
+            services.AddMvc(options => { options.Filters.Add(typeof(ApiResponseResultFilter)); })
                     .AddJsonOptions(options =>
                     {
                         options.SerializerSettings.ContractResolver = JsonContractResolver;
                         options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
-                    }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                    })
+                   .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddSpaStaticFiles(configuration =>
             {

@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using Discussion.Admin.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
-namespace Discussion.Admin.Extensions
+namespace Discussion.Admin.Supporting
 {
     public static class ResponseExtensions
     {
@@ -15,7 +14,12 @@ namespace Discussion.Admin.Extensions
             {
                 builder.Run(async context =>
                 {
-                    // 在异常出现时，仍使用 200 的响应以防止前端 SPA 出现强制的 500 重定向 
+                    if (context.Response.HasStarted)
+                    {
+                        return;
+                    }
+                    
+                    // Still use HttpStatus OK on server errors to prevent a redirection on the SPA page
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
                     
                     context.Response.ContentType = "application/json";

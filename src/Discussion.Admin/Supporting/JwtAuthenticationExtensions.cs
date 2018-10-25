@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Text;
-using Discussion.Admin.Models;
 using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Discussion.Admin.Extensions
+namespace Discussion.Admin.Supporting
 {
     public static class JwtAuthenticationExtensions
     {

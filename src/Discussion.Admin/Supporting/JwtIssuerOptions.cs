@@ -1,7 +1,7 @@
 using System;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Discussion.Admin.Models
+namespace Discussion.Admin.Supporting
 {
     public class JwtIssuerOptions
     {

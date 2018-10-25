@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Discussion.Admin.Models;
+using Discussion.Admin.Supporting;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

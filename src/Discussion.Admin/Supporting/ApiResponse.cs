@@ -2,17 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace Discussion.Admin.Models
+namespace Discussion.Admin.Supporting
 {
     public class ApiResponse
     {
-        protected ApiResponse()
-        {
-        }
-        
         private const char ErrorMsgKVDelimiter = ':';
         private const char ErrorDelimiter = '\n';
         private const char ErrorMsgDelimiter = ';';
@@ -28,7 +22,7 @@ namespace Discussion.Admin.Models
                 return Errors?.Aggregate(string.Empty, (prev, err) =>
                 {
                     var key = string.IsNullOrWhiteSpace(err.Key) ? string.Empty : string.Concat(err.Key, ErrorMsgKVDelimiter);
-                    return string.Concat(prev, ErrorDelimiter, key, string.Join(ErrorMsgDelimiter, err.Value));
+                    return string.Concat(prev, ErrorDelimiter, key, string.Join<string>(ErrorMsgDelimiter, err.Value));
                 }).Trim();
             }
         }
@@ -99,42 +93,5 @@ namespace Discussion.Admin.Models
             };
         }
 
-    }
-
-
-    public static class ApiResponseControllerBaseExtensions
-    {
-        public static ApiResponse Respond(this ControllerBase controller, object result = null)
-        {
-            return ApiResponse.ActionResult(result);
-        }
-        
-        public static ApiResponse Error(this ControllerBase controller, Exception exception)
-        {
-            return ApiResponse.Error(exception);
-        }
-        
-        public static ApiResponse Error(this ControllerBase controller, string message)
-        {
-            return ApiResponse.Error(message);
-        }
-        
-        public static ApiResponse Error(this ControllerBase controller, ModelStateDictionary modelState)
-        {
-            if (modelState.IsValid)
-            {
-                return ApiResponse.NoContent();
-            }
-            
-            var errors = modelState
-                .ToDictionary(state => state.Key,
-                              state => state.Value
-                                     .Errors
-                                     .Select(err => err.ErrorMessage ?? err.Exception?.Message)
-                                     .ToList());
-            var response = ApiResponse.NoContent(400);
-            response.Errors = errors;
-            return response;
-        }
     }
 }
