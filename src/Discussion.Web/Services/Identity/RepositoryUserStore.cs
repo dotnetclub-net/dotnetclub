@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Discussion.Web.Services.Identity
 {
-    public class RepositoryUserStore: IUserPasswordStore<User>
+    public class RepositoryUserStore: IUserPasswordStore<User>, IUserEmailStore<User>
     {
         private readonly IRepository<User> _useRepository;
         public RepositoryUserStore(IRepository<User> useRepository)
@@ -96,6 +96,46 @@ namespace Discussion.Web.Services.Identity
         public void Dispose()
         {
 
+        }
+
+        public Task SetEmailAsync(User user, string email, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetEmailAsync(User user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.EmailAddress);
+        }
+
+        public Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.IsActivation);
+        }
+
+        public Task SetEmailConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
+        {
+            user.IsActivation = confirmed;
+            return Task.FromResult(0);
+        }
+
+        public Task<User> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        {
+            //return
+            //    Task.FromResult(
+            //        Users.FirstOrDefault(u => u.NormalizedEmail == email));
+            return null;
+        }
+
+        public Task<string> GetNormalizedEmailAsync(User user, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetNormalizedEmailAsync(User user, string normalizedEmail, CancellationToken cancellationToken)
+        {
+            user.EmailAddress = normalizedEmail;
+            return Task.FromResult(0);
         }
     }
 

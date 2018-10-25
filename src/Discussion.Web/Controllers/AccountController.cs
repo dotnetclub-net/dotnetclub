@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -161,46 +162,56 @@ namespace Discussion.Web.Controllers
                 return View("Setting");
             }
             var user = HttpContext.DiscussionUser();
-            if (string.IsNullOrEmpty(user.EmailAddress))
+            //添加邮箱 不能绑定旧邮箱
+            string oldEmailAddress = string.Empty;
+            if (!string.IsNullOrWhiteSpace(user.EmailAddress))
             {
-                //添加邮箱
-                user.EmailAddress = emailSettingViewModel.EmailAddress;
-                var result = _userManager.UpdateAsync(user);
-
-                string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                _emailBindRepo.Save(new EmailBindOptions
-                {
-                    UserId = user.Id,
-                    EmailAddress = emailSettingViewModel.EmailAddress,
-                    OldEmailAddress = "",
-                    CallbackToken = code,
-                    IsActivation = false,
-                    CreatedAtUtc = DateTime.Now
-                });
-                //发送邮件
-                var callBack = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Scheme);
-                StringBuilder body = new StringBuilder();
-                body.AppendLine("尊敬的用户请您妥善保存如下信息：");
-                body.Append("你的客户端ID：").AppendLine("111");
-                body.Append("你的客户端密钥：").AppendLine("222");
-                body.AppendLine("请通过单击 <a href=\"" + callBack + "\">这里</a>来确认你的帐户");
-                await _emailSender.SendEmailAsync(emailSettingViewModel.EmailAddress, "dotnetclub用户确认", body.ToString());
+                var eamilBindOption = _emailBindRepo.All().Where(t => t.EmailAddress.Equals(user.EmailAddress)).First();
+                oldEmailAddress = eamilBindOption.OldEmailAddress;
+                if (oldEmailAddress != null && oldEmailAddress.Equals(emailSettingViewModel.EmailAddress))
+                    return View("Setting");
+                else
+                    oldEmailAddress = user.EmailAddress;
             }
-            else
+            user.EmailAddress = emailSettingViewModel.EmailAddress;
+            var result = _userManager.UpdateAsync(user);
+            string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            _emailBindRepo.Save(new EmailBindOptions
             {
-                //更新邮箱
-            }
+                UserId = user.Id,
+                EmailAddress = emailSettingViewModel.EmailAddress,
+                OldEmailAddress = oldEmailAddress,
+                CallbackToken = code,
+                IsActivation = false,
+                CreatedAtUtc = DateTime.Now
+            });
+            //发送邮件
+            var callBack = Url.Action(
+                action: "ConfirmEmail",
+                controller: "Account",
+                values: new { userId = user.Id, code = code },
+                protocol: Request.Scheme);
+            StringBuilder body = new StringBuilder();
+            
+            body.AppendLine("尊敬的用户您好：");
+            body.AppendLine($"请点击此链接确认邮箱 <a href='{HtmlEncoder.Default.Encode(callBack)}'>点击</a>.");
+            await _emailSender.SendEmailAsync(emailSettingViewModel.EmailAddress, "dotnetclub用户确认", body.ToString());
             return RedirectTo("/");
         }
-        [AllowAnonymous]
+        [Route("/[controller]/[action]")]
         public async Task<ActionResult> ConfirmEmail(string userId, string code)
         {
             if (userId == null || code == null)
             {
                 return View("Error");
             }
-            var user = _userManager.Users.Where(t => t.Id.Equals(userId)).FirstOrDefault();
+            var user = await _userManager.FindByIdAsync(userId);  //.Users.Where(t => t.Id.Equals(userId)).FirstOrDefault();
             var result = await _userManager.ConfirmEmailAsync(user, code);
+            if (result.Succeeded)
+            {
+                user.IsActivation = true;
+                var activationResult = await _userManager.UpdateAsync(user);
+            }
             return View(result.Succeeded ? "Register" : "Error");
         }
         private IActionResult RedirectTo(string returnUrl)
