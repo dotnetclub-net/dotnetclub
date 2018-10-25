@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.Emailconfirmation;
-using Discussion.Web.Infrastructure;
 
 namespace Discussion.Web
 {
@@ -55,9 +54,8 @@ namespace Discussion.Web
             {
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             });
-
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
-
+        
             services.AddAuthorization();
             services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
             services.Configure<IdentityOptions>(options =>
@@ -74,7 +72,6 @@ namespace Discussion.Web
             });
 
             services.AddTransient<IEmailSender, EmailSender>();
-            services.Configure<AuthMessageSenderOptions>(_appConfiguration);
         }
 
         public void Configure(IApplicationBuilder app)
@@ -90,8 +87,12 @@ namespace Discussion.Web
             
             app.UseAuthentication();
             app.UseStaticFiles();
+            //app.UseMvc(routes => {
+            //    routes.MapRoute(
+            //        name: "default",
+            //        template: "{controller=Home}/{action=About}/{id?}");
+            //});
             app.UseMvc();
-
             var logger = _loggerFactory.CreateLogger<Startup>();
             app.EnsureDatabase(connStr =>
             {
