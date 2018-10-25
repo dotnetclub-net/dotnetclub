@@ -77,7 +77,16 @@ Task("test")
         DoInDirectory("./test/Discussion.Web.Tests/", () =>
         {
             if(isLinux && isCI){
-                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover");
+                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=\\\"[*]Discussion.Tests.Common.*\\\"");
+            }else{
+                DotNetCoreTest();
+            }
+        });
+
+        DoInDirectory("./test/Discussion.Admin.Tests/", () =>
+        {
+            if(isLinux && isCI){
+                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=\\\"[*]Discussion.Tests.Common.*\\\"");
             }else{
                 DotNetCoreTest();
             }

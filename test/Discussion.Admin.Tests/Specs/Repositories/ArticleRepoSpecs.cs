@@ -44,7 +44,6 @@ namespace Discussion.Admin.Tests.Specs.Repositories
             var articleList = repo.All().ToList();
            
             articleList.ShouldNotBeNull();
-            Assert.Equal(1, articleList.Count);
             Assert.Equal(article.Title, articleList[0].Title);
         }
 
