@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using Discussion.Core;
+using Discussion.Core.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Http;
@@ -75,7 +76,11 @@ namespace Discussion.Tests.Common
                 });
             });
 
-            Environment.SetEnvironmentVariable("DOTNETCLUB_sqliteConnectionString", " ");
+            var connectionStringEVKey = $"DOTNETCLUB_{ApplicationDataServices.ConfigKeyConnectionString}";
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(connectionStringEVKey)))
+            {
+                Environment.SetEnvironmentVariable(connectionStringEVKey, " ");
+            }
             Environment.SetEnvironmentVariable("DOTNETCLUB_Logging:Console:LogLevel:Default", "Warning");
             Configuration.ConfigureHost(hostBuilder);
 

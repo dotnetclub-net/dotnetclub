@@ -4,4 +4,12 @@
         <TargetFramework>netcoreapp2.1</TargetFramework>
     </PropertyGroup>
 
+    <ItemGroup>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Discussion.Admin\Discussion.Admin.csproj" />
+      <ProjectReference Include="..\Discussion.Tests.Common\Discussion.Tests.Common.csproj" />
+    </ItemGroup>
+
 </Project>

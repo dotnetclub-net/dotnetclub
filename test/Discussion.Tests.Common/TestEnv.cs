@@ -8,22 +8,22 @@ namespace Discussion.Tests.Common {
     {
         public static string SolutionPath()
         {
-            const string testProjectSubPath = "test/Discussion.Web.Tests/Discussion.Web.Tests.csproj";
+            const string webProjectSubPath = "src/Discussion.Web/Discussion.Web.csproj";
             var currentPath = Directory.GetCurrentDirectory();
 
             do
             {
-                var testProjectPath = Path.Combine(currentPath, testProjectSubPath).NormalizeToAbsolutePath();
-                if (File.Exists(testProjectPath))
+                var webProjectPath = Path.Combine(currentPath, webProjectSubPath).NormalizeToAbsolutePath();
+                if (File.Exists(webProjectPath))
                 {
                     return currentPath;
                 }
 
                 var parent = Directory.GetParent(currentPath);
-                currentPath = parent == null ? null : parent.FullName;
+                currentPath = parent?.FullName;
             } while (currentPath != null);
 
-            throw new InvalidOperationException("Cannot find the Discussion.Web.Tests test project.");
+            throw new InvalidOperationException("Cannot find the project path based on current directory.");
         }
 
         public static string WebProjectPath()

@@ -13,7 +13,7 @@ namespace Discussion.Core.Data
 {
     public static class ApplicationDataServices
     {
-        private const string ConfigKeyConnectionString = "sqliteConnectionString";
+        public const string ConfigKeyConnectionString = "sqliteConnectionString";
         
         public static void AddDataServices(this IServiceCollection services, IConfiguration appConfiguration, ILogger logger)
         {

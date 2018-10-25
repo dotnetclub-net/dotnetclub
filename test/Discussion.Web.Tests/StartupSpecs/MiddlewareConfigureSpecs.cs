@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class MiddlewareConfigureSpecs
     {
 

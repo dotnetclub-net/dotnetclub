@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class TopicRelatedPagesSpecs
     {
         

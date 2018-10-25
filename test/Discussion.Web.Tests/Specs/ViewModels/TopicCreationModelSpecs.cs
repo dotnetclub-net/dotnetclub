@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Discussion.Web.Tests.Specs.ViewModels
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class CreateTopicModelSpecs
     {
         private readonly TestDiscussionWebApp _app;

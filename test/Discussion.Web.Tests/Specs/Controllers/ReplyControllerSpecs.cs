@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class ReplyControllerSpecs
     {
         private TestDiscussionWebApp _app;

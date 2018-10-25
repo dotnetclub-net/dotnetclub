@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class NotFoundSpecs
     {
         public const string NotFoundPath = "/something-not-defined";

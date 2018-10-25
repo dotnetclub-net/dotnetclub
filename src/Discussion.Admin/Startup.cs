@@ -1,5 +1,6 @@
 ﻿using Discussion.Admin.Extensions;
 using Discussion.Core;
+using Discussion.Core.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,8 @@ namespace Discussion.Admin
             {
                 configuration.RootPath = "ClientApp/dist";
             });
+            
+            services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -57,8 +60,6 @@ namespace Discussion.Admin
             app.UseAuthentication();
 
             app.UseMvc();
-            app.UseStaticFiles();
-            app.UseSpaStaticFiles();
             app.UseSpa(spa =>
             {
                 // To learn more about options for serving an Angular SPA from ASP.NET Core, see https://go.microsoft.com/fwlink/?linkid=864501
