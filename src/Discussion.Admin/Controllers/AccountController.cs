@@ -5,6 +5,9 @@ using Discussion.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using Discussion.Admin.ViewModels;
+using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -16,9 +19,11 @@ namespace Discussion.Admin.Controllers
     public class AccountController : ControllerBase
     {
         private readonly JwtIssuerOptions jwtOptions;
+        private readonly IRepository<AdminUser> _adminUserRepo;
 
-        public AccountController(IOptions<JwtIssuerOptions> jwtOptions)
+        public AccountController(IOptions<JwtIssuerOptions> jwtOptions, IRepository<AdminUser> adminUserRepo)
         {
+            _adminUserRepo = adminUserRepo;
             this.jwtOptions = jwtOptions.Value;
         }
 
@@ -78,5 +83,14 @@ namespace Discussion.Admin.Controllers
 
         private static long ToUnixEpochDate(DateTime date)
             => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
+
+        
+        public ApiResponse Register([FromBody]AdminUserRegistration newAdminUser)
+        {
+            var admin = new AdminUser {Username = newAdminUser.Username};
+            _adminUserRepo.Save(admin);
+
+            return this.Respond();
+        }
     }
 }

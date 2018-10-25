@@ -24,14 +24,15 @@ namespace Discussion.Core.Data
                 logger.LogCritical($"没有配置数据库连接字符串。可以用 \"{ConfigKeyConnectionString}\" 来配置数据库连接字符串。");
                 appConfiguration[ConfigKeyConnectionString] = connectionString;
             }
-            
+
+            var useSqlite = PrepareSqlite(connectionString);
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlite(connectionString);
+                useSqlite(options);
             });
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
         }
-        
+
         public static void EnsureDatabase(this IApplicationBuilder app, Action<string> databaseInitializer, ILogger logger)
         {
             var services = app.ApplicationServices;
@@ -60,6 +61,20 @@ namespace Discussion.Core.Data
             return createTemporary 
                 ? $"Data Source={RandomDbName()}" 
                 : configuredConnectionString;
+        }
+        
+        private static Action<DbContextOptionsBuilder> PrepareSqlite(string connectionString)
+        {
+            // If use in-memory mode, then persist the db connection across ApplicationDbContext instances
+            if (connectionString.Contains(":memory:"))
+            {
+                var connection = new SqliteConnection(connectionString);
+                return options => options.UseSqlite(connection); 
+            }
+            else
+            {
+                return options => options.UseSqlite(connectionString);
+            }
         }
     }
 }
