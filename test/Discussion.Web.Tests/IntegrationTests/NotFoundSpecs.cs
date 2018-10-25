@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Xunit;
@@ -48,7 +49,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_reject_post_request_without_valid_anti_forgery_token()
         {
             // arrange
-            var username = Guid.NewGuid().ToString("N").Substring(4, 8);
+            var username = StringUtility.Random();
             var password = "11111a";
             var tokens = _app.GetAntiForgeryTokens();
             
@@ -73,7 +74,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_reject_post_request_without_valid_anti_forgery_cookie()
         {
             // arrange
-            var username = Guid.NewGuid().ToString("N").Substring(4, 8);
+            var username = StringUtility.Random();
             var password = "11111a";
             var tokens = _app.GetAntiForgeryTokens();
             

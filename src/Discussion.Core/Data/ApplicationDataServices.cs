@@ -1,6 +1,7 @@
 
 using System;
 using System.IO;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
@@ -47,14 +48,12 @@ namespace Discussion.Core.Data
                     .Register(() => databaseInitializer(connectionString));     
             }
         }
-
-        
         
         private static string NormalizeConnectionString(string configuredConnectionString, out bool createTemporary)
         {
             string RandomDbName()
             {
-                return Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N").Substring(10, 8) + "-dnclub.db");
+                return Path.Combine(Path.GetTempPath(), $"{StringUtility.Random()}-dnclub.db");
             }
             
             createTemporary = string.IsNullOrWhiteSpace(configuredConnectionString);

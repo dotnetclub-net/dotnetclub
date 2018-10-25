@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Security.Claims;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -84,7 +85,7 @@ namespace Discussion.Tests.Common
 
         public static User CreateUser(this TestApplication app, string username, string password = null, string displayName = null)
         {
-            var actualPassword = string.IsNullOrEmpty(password) ? Guid.NewGuid().ToString("N").Substring(4, 8) : password;
+            var actualPassword = string.IsNullOrEmpty(password) ? StringUtility.Random() : password;
             var userManager = app.GetService<UserManager<User>>();
             var user = new User
             {

@@ -1,5 +1,5 @@
-﻿using System;
-using Discussion.Core.Models;
+﻿using Discussion.Core.Models;
+using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.ViewModels;
@@ -90,7 +90,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
                 return string.Empty;
             }
 
-            var letter = Guid.NewGuid().ToString("N")[0];
+            var letter = StringUtility.Random(1)[0];
             return new string(letter, length);
         }
     }
