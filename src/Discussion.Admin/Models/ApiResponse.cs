@@ -29,7 +29,7 @@ namespace Discussion.Admin.Models
                 {
                     var key = string.IsNullOrWhiteSpace(err.Key) ? string.Empty : string.Concat(err.Key, ErrorMsgKVDelimiter);
                     return string.Concat(prev, ErrorDelimiter, key, string.Join(ErrorMsgDelimiter, err.Value));
-                });
+                }).Trim();
             }
         }
 

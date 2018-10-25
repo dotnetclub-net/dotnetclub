@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Discussion.Admin.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -8,7 +9,7 @@ namespace Discussion.Admin.Extensions
 {
     public static class ResponseExtensions
     {
-        public static void UseJsonExceptionHandler(this IApplicationBuilder app)
+        public static void UseApiResponseExceptionHandler(this IApplicationBuilder app)
         {
             app.UseExceptionHandler(builder =>
             {
@@ -21,8 +22,12 @@ namespace Discussion.Admin.Extensions
                     var exceptionHandler = context.Features.Get<IExceptionHandlerFeature>();
                     if (exceptionHandler != null)
                     {
-                        var result = new { status = -1, message = exceptionHandler.Error?.Message };
-                        await context.Response.WriteAsync(JsonConvert.SerializeObject(result)).ConfigureAwait(false);
+                        var result = ApiResponse.Error(exceptionHandler.Error);
+                        var json = JsonConvert.SerializeObject(result, new JsonSerializerSettings
+                        {
+                            ContractResolver = Startup.JsonContractResolver
+                        });
+                        await context.Response.WriteAsync(json).ConfigureAwait(false);
                     }
                 });
             });

@@ -16,6 +16,7 @@ namespace Discussion.Admin
         private readonly IConfiguration _appConfiguration;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly ILoggerFactory _loggerFactory;
+        public static IContractResolver JsonContractResolver = new CamelCasePropertyNamesContractResolver();
 
         public Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory loggerFactory)
         {
@@ -41,7 +42,7 @@ namespace Discussion.Admin
             services.AddMvc()
                     .AddJsonOptions(options =>
                     {
-                        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                        options.SerializerSettings.ContractResolver = JsonContractResolver;
                         options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
                     }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
@@ -55,7 +56,7 @@ namespace Discussion.Admin
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseJsonExceptionHandler();
+            app.UseApiResponseExceptionHandler();
 
             app.UseAuthentication();
 
