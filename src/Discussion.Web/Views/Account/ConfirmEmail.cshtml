@@ -2,10 +2,9 @@
 @{
     ViewData["Title"] = "ConfirmEmail";
 }
-
-<h2>@ViewBag.Title.</h2>
+<h2>ConfirmEmail</h2>
 <div>
     <p>
-        Thank you for confirming your email. Please @Html.ActionLink("Click here to Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })
+        感谢你确认电子邮件。请 @Html.ActionLink("单击此处登录", "/about", routeValues: null, htmlAttributes: new { id = "loginLink" })
     </p>
 </div>

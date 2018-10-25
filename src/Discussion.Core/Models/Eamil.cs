@@ -8,7 +8,6 @@ namespace Discussion.Core.Models
     {
         public int UserId { get; set; }
         public string UserEmail { get; set; }
-        public string OldEmail { get; set; }
         public string EncryptionToken { get; set; }
         public string ExpireTime { get; set; }
         public bool IsActicated { get; set; }
