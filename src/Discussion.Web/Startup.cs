@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.Emailconfirmation;
-using Discussion.Web.Infrastructure;
 
 namespace Discussion.Web
 {
@@ -74,7 +73,6 @@ namespace Discussion.Web
             });
 
             services.AddTransient<IEmailSender, EmailSender>();
-            services.Configure<AuthMessageSenderOptions>(_appConfiguration);
         }
 
         public void Configure(IApplicationBuilder app)

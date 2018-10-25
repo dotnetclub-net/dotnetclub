@@ -1,7 +1,31 @@
-﻿
+
+﻿@using Discussion.Web.ViewModels
+@model EmailSettingViewModel
 @{
     ViewData["Title"] = "Setting";
 }
-
 <h2>Setting</h2>
-<span>Email:</span>
+<div class="row">
+    <div class="col-md-8">
+        <section>
+            @using (Html.BeginForm("DoSetting", "Accout", FormMethod.Post, htmlAttributes: new { @class = "form-horizontal", role = "form" }))
+            {
+                @Html.AntiForgeryToken()
+                <hr />
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="form-group">
+                    @Html.LabelFor(m => m.EmailAddress, new { @class = "col-md-2 control-label" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(m => m.EmailAddress, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.EmailAddress, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="设置" class="btn btn-default" />
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+</div>
