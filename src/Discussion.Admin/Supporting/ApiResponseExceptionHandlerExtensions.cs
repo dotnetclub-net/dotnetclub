@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -18,10 +19,10 @@ namespace Discussion.Admin.Supporting
                     {
                         return;
                     }
-                    
+
                     // Still use HttpStatus OK on server errors to prevent a redirection on the SPA page
                     context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    
+
                     context.Response.ContentType = "application/json";
                     var exceptionHandler = context.Features.Get<IExceptionHandlerFeature>();
                     if (exceptionHandler != null)

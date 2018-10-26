@@ -1,5 +1,6 @@
 using System;
 using Discussion.Admin.Supporting;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Admin.Controllers
@@ -12,21 +13,19 @@ namespace Discussion.Admin.Controllers
             return new ContentResult
             {
                 Content = "Hello Admin"
-            }; 
+            };
         }
-        
-        
+
         [Route("error")]
         public ApiResponse Error()
         {
             throw new Exception("A server error has occured");
         }
-        
-        
+
         [Route("ping")]
         public object Ping()
         {
-            return new {Ping = "pong"};
+            return new { Ping = "pong" };
         }
     }
 }

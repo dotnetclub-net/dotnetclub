@@ -8,6 +8,7 @@ using Discussion.Admin.Supporting;
 using Discussion.Admin.ViewModels;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -84,10 +85,9 @@ namespace Discussion.Admin.Controllers
         private static long ToUnixEpochDate(DateTime date)
             => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
 
-        
         public ApiResponse Register([FromBody]AdminUserRegistration newAdminUser)
         {
-            var admin = new AdminUser {Username = newAdminUser.Username};
+            var admin = new AdminUser { Username = newAdminUser.Username };
             _adminUserRepo.Save(admin);
 
             return this.Respond();

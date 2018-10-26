@@ -1,9 +1,10 @@
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Discussion.Admin.Supporting
 {
-    public class ApiResponseResultFilter: IResultFilter
+    public class ApiResponseResultFilter : IResultFilter
     {
         public void OnResultExecuting(ResultExecutingContext context)
         {
@@ -15,7 +16,6 @@ namespace Discussion.Admin.Supporting
 
         public void OnResultExecuted(ResultExecutedContext context)
         {
-            
         }
     }
 }
