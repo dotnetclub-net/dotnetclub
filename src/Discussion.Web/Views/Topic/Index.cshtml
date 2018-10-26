@@ -68,7 +68,18 @@
             </div>
 
             <div class="panel-body">
-                <textarea id="content-editor" placeholder="回复话题"></textarea>
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a id="tab-editor" href="#editor" aria-controls="home" role="tab" data-toggle="tab">编辑</a></li>
+                    <li role="presentation"><a id="tab-preview" href="#preview" aria-controls="profile" role="tab" data-toggle="tab">预览</a></li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="editor">
+                        <textarea id="content-editor" placeholder="回复话题"></textarea>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="preview"></div>
+                </div>
                 <button id="submit-create" class="btn btn-default submit-create-btn">回复</button>
             </div>
         </div>
@@ -80,33 +91,61 @@
         $(document).ready(function() {
             window.DiscussionApp.utils.transformTimestampOn('.created-at-time', 'data-created-at');
             window.DiscussionApp.utils.transformTimestampOn('.replied-at', 'data-replied-at');
-        });
 
-        $("#submit-create").on("click",
-            function() {
-                var editor = $("#content-editor");
-                var replyContent = editor.val();
-                if (!$.trim(replyContent)) {
-                    editor.focus();
-                    return false;
-                }
 
-                var topicId = parseInt('@Model.Id');
-                var postUrl = '/topics/' + topicId + '/replies';
-                $.ajax({
-                    url: postUrl,
-                    method: 'POST',
-                    data: { content: replyContent, __RequestVerificationToken: window.__RequestVerificationToken },
-                    // contentType: 'json',
-                    dataType: 'json',
-                    success: function() {
-                        location.reload();
-                    },
-                    error: function(xhr) {
-                        var errors = JSON.parse(xhr.responseText);
-                        // Object.values(errors);  // [], [], []
+            $("#submit-create").on("click",
+                function() {
+                    var editor = $("#content-editor");
+                    var replyContent = editor.val();
+                    if (!$.trim(replyContent)) {
+                        editor.focus();
+                        return false;
                     }
+
+                    var topicId = parseInt('@Model.Id');
+                    var postUrl = '/topics/' + topicId + '/replies';
+                    $.ajax({
+                        url: postUrl,
+                        method: 'POST',
+                        data: { content: replyContent, __RequestVerificationToken: window.__RequestVerificationToken },
+                        // contentType: 'json',
+                        dataType: 'json',
+                        success: function() {
+                            location.reload();
+                        },
+                        error: function(xhr) {
+                            var errors = JSON.parse(xhr.responseText);
+                            // Object.values(errors);  // [], [], []
+                        }
+                    });
                 });
-            });
+
+            $('#tab-preview').on('shown.bs.tab',
+                function(e) {
+                    var editor = $("#content-editor");
+                    var replyContent = editor.val();
+                    if (!$.trim(replyContent)) {
+                        editor.focus();
+                        return false;
+                    }
+
+                    $.ajax({
+                        url: '/common/md2html',
+                        method: 'POST',
+                        data: { markdown: replyContent, __RequestVerificationToken: window.__RequestVerificationToken },
+                        success: function(res) {
+                            if (res.code === 200)
+                                $('#preview').html(res.result.html);
+                            else
+                                $('#preview').html(`<span style="color:red">${res.errorMessage}</span>`);
+                        }
+                    });
+                });
+
+            $('#tab-editor').on('shown.bs.tab',
+                function () {
+                    $('#preview').html('');
+                });
+        });
     </script>
 }

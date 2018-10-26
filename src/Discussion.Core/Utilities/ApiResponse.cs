@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
-namespace Discussion.Admin.Supporting
+namespace Discussion.Core.Utilities
 {
     public class ApiResponse
     {
         private const char ErrorMsgKVDelimiter = ':';
         private const char ErrorDelimiter = '\n';
-        private const char ErrorMsgDelimiter = ';';
+        private const string ErrorMsgDelimiter = ";";
 
         public int Code { get; set; } = 200;
         public object Result { get; set; }
@@ -22,18 +22,16 @@ namespace Discussion.Admin.Supporting
                 return Errors?.Aggregate(string.Empty, (prev, err) =>
                 {
                     var key = string.IsNullOrWhiteSpace(err.Key) ? string.Empty : string.Concat(err.Key, ErrorMsgKVDelimiter);
-                    return string.Concat(prev, ErrorDelimiter, key, string.Join<string>(ErrorMsgDelimiter, err.Value));
+                    return string.Concat(prev, ErrorDelimiter, key, string.Join(ErrorMsgDelimiter, err.Value));
                 }).Trim();
             }
         }
 
         public bool HasSucceeded => Code >= 200 && Code <= 399;
 
-        
-        public static  ApiResponse ActionResult(object result)
+        public static ApiResponse ActionResult(object result)
         {
-            return new ApiResponse {Result = result};
-
+            return new ApiResponse { Result = result };
         }
 
         public static ApiResponse Error(Exception error)
@@ -79,7 +77,7 @@ namespace Discussion.Admin.Supporting
                 Code = code
             };
         }
-        
+
         public static ApiResponse NoContent()
         {
             return new ApiResponse();
@@ -89,9 +87,8 @@ namespace Discussion.Admin.Supporting
         {
             return new ApiResponse
             {
-                Code = (int) statusCode
+                Code = (int)statusCode
             };
         }
-
     }
 }
