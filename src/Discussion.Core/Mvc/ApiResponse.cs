@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
-namespace Discussion.Core.Utilities
+namespace Discussion.Core.Mvc
 {
     public class ApiResponse
     {

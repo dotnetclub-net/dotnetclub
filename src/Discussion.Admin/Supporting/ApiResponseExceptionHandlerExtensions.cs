@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Discussion.Core.Utilities;
+using Discussion.Core.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;

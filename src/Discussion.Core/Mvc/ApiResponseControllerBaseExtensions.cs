@@ -1,10 +1,10 @@
 using System;
-using System.Linq;
-using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Linq;
+using System.Net;
 
-namespace Discussion.Admin.Supporting
+namespace Discussion.Core.Mvc
 {
     public static class ApiResponseControllerBaseExtensions
     {
@@ -36,7 +36,7 @@ namespace Discussion.Admin.Supporting
                         .Errors
                         .Select(err => err.ErrorMessage ?? err.Exception?.Message)
                         .ToList());
-            var response = ApiResponse.NoContent(400);
+            var response = ApiResponse.NoContent(HttpStatusCode.BadRequest);
             response.Errors = errors;
             return response;
         }

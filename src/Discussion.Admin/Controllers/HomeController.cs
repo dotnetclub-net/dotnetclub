@@ -1,5 +1,6 @@
 using System;
 using Discussion.Admin.Supporting;
+using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Mvc;
 

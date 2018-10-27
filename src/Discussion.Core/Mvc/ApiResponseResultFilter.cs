@@ -1,8 +1,7 @@
-using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Discussion.Admin.Supporting
+namespace Discussion.Core.Mvc
 {
     public class ApiResponseResultFilter : IResultFilter
     {

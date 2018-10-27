@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Discussion.Core.Utilities;
-using Discussion.Tests.Common;
+﻿using Discussion.Tests.Common;
 using Discussion.Web.Controllers;
-using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
@@ -24,15 +19,13 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             // Act
             var commonController = _app.CreateController<CommonController>();
-            var renderResult = commonController.RenderMarkdown("# Title");
 
-            // Assert
-            var statusCodeResult = renderResult as OkObjectResult;
-            Assert.NotNull(statusCodeResult);
-            Assert.Equal(200, statusCodeResult.StatusCode);
+            // Action
+            dynamic htmlFromMd = commonController.RenderMarkdown("# Title");
 
-            var result = statusCodeResult.Value as ApiResponse;
-            Assert.NotNull(result);
+            Assert.Equal("<h2>Title</h2>\n",  htmlFromMd.html);
         }
+
+        
     }
 }

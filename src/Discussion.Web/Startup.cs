@@ -3,6 +3,7 @@ using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -52,6 +53,7 @@ namespace Discussion.Web
             services.AddMvc(options =>
             {
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+                options.Filters.Add(new ApiResponseResultFilter());
             });
 
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());

@@ -1,6 +1,7 @@
 ﻿using Discussion.Admin.Supporting;
 using Discussion.Core;
 using Discussion.Core.Data;
+using Discussion.Core.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
