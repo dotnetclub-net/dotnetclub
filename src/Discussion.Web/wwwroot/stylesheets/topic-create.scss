@@ -42,7 +42,7 @@
   }
 
   .note-editor.note-frame .note-editing-area .note-editable{
-    @include content_table
+    @include article_content
   }
   
   .note-editor.note-frame .note-editing-area .note-codable{

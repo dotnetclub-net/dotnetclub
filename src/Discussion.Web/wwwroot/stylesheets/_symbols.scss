@@ -27,7 +27,20 @@ $fa-font-path:                "../lib/node_modules/@fortawesome/fontawesome-free
 
 
 
-@mixin content_table(){
+@mixin article_content(){
+  max-width: 100%;
+
+  h3{
+    font-size:18px;
+  }
+  h4{
+    font-size:16px;
+  }
+
+  & *{
+    max-width: 95%;
+  }
+
   table {
     min-width: 40%;
     max-width: 90%;
