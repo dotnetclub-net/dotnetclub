@@ -140,6 +140,9 @@
                             } else {
                                 $('#preview').html('<span style="color:red">' + res.errorMessage + '</span>');
                             }
+                        },
+                        error: function() {
+                            $('#preview').html('暂时无法预览');
                         }
                     });
                 });

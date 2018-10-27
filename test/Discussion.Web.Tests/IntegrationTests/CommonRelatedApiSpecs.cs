@@ -19,7 +19,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task should_serve_home_page_correctly()
+        public async Task should_serve_convert_md2html_api_correctly()
         {
             // arrange
             var request = _app.RequestAntiForgeryForm("/common/md2html",
