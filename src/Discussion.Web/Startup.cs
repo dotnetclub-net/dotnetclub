@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.Emailconfirmation;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
+using System;
 
 namespace Discussion.Web
 {
@@ -72,6 +75,11 @@ namespace Discussion.Web
             });
 
             services.AddTransient<IEmailSender, EmailSender>();
+            services.AddDataProtection()
+                //.PersistKeysToFileSystem(new DirectoryInfo(@"\\server\share\directory\"))
+                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
+                .SetApplicationName("Discussion.Web");
+            services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
         }
 
         public void Configure(IApplicationBuilder app)
@@ -87,11 +95,6 @@ namespace Discussion.Web
             
             app.UseAuthentication();
             app.UseStaticFiles();
-            //app.UseMvc(routes => {
-            //    routes.MapRoute(
-            //        name: "default",
-            //        template: "{controller=Home}/{action=About}/{id?}");
-            //});
             app.UseMvc();
             var logger = _loggerFactory.CreateLogger<Startup>();
             app.EnsureDatabase(connStr =>

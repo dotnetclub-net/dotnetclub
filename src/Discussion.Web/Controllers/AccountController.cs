@@ -10,9 +10,12 @@ using Discussion.Web.Services.Emailconfirmation;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Discussion.Web.Controllers
 {
@@ -23,18 +26,24 @@ namespace Discussion.Web.Controllers
         private readonly IRepository<EmailBindOptions> _emailBindRepo;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
+        private IDataProtector _protector;
+        private AuthMessageSenderOptions _authMessageSenderOptions;
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             ILogger<AccountController> logger,
             IEmailSender emailSender,
-            IRepository<EmailBindOptions> emailBindRepo)
+            IRepository<EmailBindOptions> emailBindRepo,
+            IDataProtectionProvider provider,
+            IOptions<AuthMessageSenderOptions> authMessageSenderOptions)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
             _emailBindRepo = emailBindRepo;
+            _protector = provider.CreateProtector("Contoso.MyClass.v1"); //authMessageSenderOptions.Value.EncryptionKey
+            _authMessageSenderOptions = authMessageSenderOptions.Value;
         }
 
         [Route("/signin")]
@@ -158,12 +167,12 @@ namespace Discussion.Web.Controllers
             {
                 return View("Setting");
             }
-            var user = HttpContext.DiscussionUser();
+            var user = HttpContext.DiscussionUser();  
             //添加邮箱 不能绑定旧邮箱
             string oldEmailAddress = string.Empty;
             if (!string.IsNullOrWhiteSpace(user.EmailAddress))
             {
-                var eamilBindOption = _emailBindRepo.All().Where(t => t.EmailAddress.Equals(user.EmailAddress)).First();
+                var eamilBindOption = _emailBindRepo.All().FirstOrDefault(t => t.EmailAddress.Equals(user.EmailAddress.ToLower()));
                 oldEmailAddress = eamilBindOption.OldEmailAddress;
                 if (oldEmailAddress != null && oldEmailAddress.Equals(emailSettingViewModel.EmailAddress))
                     return View("Setting");
@@ -172,13 +181,15 @@ namespace Discussion.Web.Controllers
             }
             user.EmailAddress = emailSettingViewModel.EmailAddress;
             var result = _userManager.UpdateAsync(user);
-            string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            string initialToken = $"{user.Id.ToString()}|dotnetclub";
+            string sendToken = _protector.Protect(initialToken);
+            //string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);  //加密  userid 时间 dotnetclub
             _emailBindRepo.Save(new EmailBindOptions
             {
                 UserId = user.Id,
                 EmailAddress = emailSettingViewModel.EmailAddress,
                 OldEmailAddress = oldEmailAddress,
-                CallbackToken = code,
+                CallbackToken = initialToken,
                 IsActivation = false,
                 CreatedAtUtc = DateTime.Now
             });
@@ -186,25 +197,28 @@ namespace Discussion.Web.Controllers
             var callBack = Url.Action(
                 action: "ConfirmEmail",
                 controller: "Account",
-                values: new { userId = user.Id, code = code },
+                values: new { code = sendToken },
                 protocol: Request.Scheme);
-            StringBuilder body = new StringBuilder();
-            
-            body.AppendLine("尊敬的用户您好：");
-            body.AppendLine($"请点击此链接确认邮箱 <a href='{HtmlEncoder.Default.Encode(callBack)}'>点击</a>.");
-            await _emailSender.SendEmailAsync(emailSettingViewModel.EmailAddress, "dotnetclub用户确认", body.ToString());
-            return RedirectTo("/");
+            var sendBody = EmailExtensions.SplicedMailTemplate(HtmlEncoder.Default.Encode(callBack));
+            await _emailSender.SendEmailAsync(emailSettingViewModel.EmailAddress, "dotnetclub用户确认", sendBody);
+            return RedirectTo("/setting");
         }
         [Route("/[controller]/[action]")]
-        public async Task<ActionResult> ConfirmEmail(string userId, string code)
+        public async Task<ActionResult> ConfirmEmail(string code)
         {
-            if (userId == null || code == null)
+            if ( code == null)
             {
                 return View("Error");
             }
-            var user = await _userManager.FindByIdAsync(userId);    //回到设置邮箱页面，并且显示邮箱
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            return View(result.Succeeded ? "Setting" : "Error");
+            var sendToken = _protector.Unprotect(code);
+            if (string.IsNullOrEmpty(sendToken))
+            {
+                return View("Error"); 
+            }
+            var userId = sendToken.Substring(0, sendToken.IndexOf('|'));
+            var user = await _userManager.FindByIdAsync(userId);        
+            var result = await _userManager.ConfirmEmailByProtectorAsync(_emailBindRepo, user, sendToken);
+            return View(); 
         }
         private IActionResult RedirectTo(string returnUrl)
         {
@@ -212,7 +226,6 @@ namespace Discussion.Web.Controllers
             {
                 returnUrl = "/";
             }
-
             return Redirect(returnUrl);
         }
     }

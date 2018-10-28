@@ -5,6 +5,7 @@
 <h2>ConfirmEmail</h2>
 <div>
     <p>
-        感谢你确认电子邮件。请 @Html.ActionLink("单击此处登录", "/about", routeValues: null, htmlAttributes: new { id = "loginLink" })
+        @*感谢你确认电子邮件。请 @Html.ActionLink("单击此处登录", "/signin", routeValues: null, htmlAttributes: new { id = "loginLink" })*@
+        感谢你确认电子邮件。请 <a asp-action="/Signin"  asp-route-returnUrl="/">单击此处登录</a>
     </p>
 </div>
