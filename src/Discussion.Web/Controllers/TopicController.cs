@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Discussion.Web.Controllers

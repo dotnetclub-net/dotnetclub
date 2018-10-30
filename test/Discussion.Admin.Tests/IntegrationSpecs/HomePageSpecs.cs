@@ -64,5 +64,23 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
             Assert.NotNull(result);
             Assert.Equal("pong", result["ping"]);
         }
+        
+        [Fact]
+        public async Task should_not_wrap_api_response_object_a_second_time()
+        {
+            var request = _app.Server.CreateRequest("/api-object");
+
+            var response = await request.GetAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var jsonContent = response.ReadAllContent();
+            var apiRes = JsonConvert.DeserializeObject<ApiResponse>(jsonContent);
+            var result = apiRes.Result as JObject;
+
+            Assert.Equal(200, apiRes.Code);
+            Assert.NotNull(result);
+            Assert.Equal("foo", result["field"]);
+        }
     }
 }

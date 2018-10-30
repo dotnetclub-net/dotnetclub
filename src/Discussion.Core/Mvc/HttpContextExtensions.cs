@@ -5,7 +5,7 @@ using Discussion.Core.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Discussion.Web.Services.Identity
+namespace Discussion.Core.Mvc
 {
     public static class HttpContextExtensions
     {

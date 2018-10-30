@@ -4,6 +4,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
+using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
@@ -68,7 +70,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _theApp.CreateUser("jim", password, "Jim Green");
             
             // Act
-            var userModel = new SigninUserViewModel
+            var userModel = new UserViewModel
             {
                 UserName = "jim",
                 Password = password
@@ -87,7 +89,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         public async Task should_return_signin_view_when_username_does_not_exist()
         {
             var accountCtrl = _theApp.CreateController<AccountController>();
-            var userModel = new SigninUserViewModel
+            var userModel = new UserViewModel
             {
                 UserName = "jimdoesnotexists",
                 Password = "111111"
@@ -117,7 +119,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 HashedPassword = passwordHasher.HashPassword(null, "11111F"),
                 CreatedAtUtc = DateTime.UtcNow
             });
-            var userModel = new SigninUserViewModel
+            var userModel = new UserViewModel
             {
                 UserName = "jimwrongpwd",
                 Password = "11111f"
@@ -140,7 +142,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var accountCtrl = _theApp.CreateController<AccountController>();
             accountCtrl.ModelState.AddModelError("UserName", "UserName is required");
 
-            var sigininResult = await accountCtrl.DoSignin(new SigninUserViewModel(), null);
+            var sigininResult = await accountCtrl.DoSignin(new UserViewModel(), null);
 
             var viewResult = sigininResult as ViewResult;
             Assert.NotNull(viewResult);
@@ -164,7 +166,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var accountCtrl = _theApp.CreateController<AccountController>();
             var userName = "newuser";
-            var newUser = new SigninUserViewModel
+            var newUser = new UserViewModel
             {
                 UserName = userName,
                 Password = "hello1"
@@ -186,7 +188,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var accountCtrl = _theApp.CreateController<AccountController>();
             var userName = "user";
             var clearPassword = "password1";
-            var newUser = new SigninUserViewModel
+            var newUser = new UserViewModel
             {
                 UserName = userName,
                 Password = clearPassword
@@ -207,7 +209,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var accountCtrl = _theApp.CreateController<AccountController>();
             var notToBeCreated = "not-to-be-created";
-            var newUser = new SigninUserViewModel
+            var newUser = new UserViewModel
             {
                 UserName = notToBeCreated,
                 Password = "hello"
@@ -239,7 +241,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var accountCtrl = _theApp.CreateController<AccountController>();
 
             
-            var newUser = new SigninUserViewModel
+            var newUser = new UserViewModel
             {
                 UserName = userName.ToUpper(),
                 Password = "hello"

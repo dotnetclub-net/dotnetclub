@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Discussion.Core.Mvc
 {
@@ -69,6 +70,24 @@ namespace Discussion.Core.Mvc
                 }
             };
         }
+        
+        public static ApiResponse Error(ModelStateDictionary modelState)
+        {
+            if (modelState.IsValid)
+            {
+                return NoContent();
+            }
+
+            var errors = modelState
+                .ToDictionary(state => state.Key,
+                    state => state.Value
+                        .Errors
+                        .Select(err => err.ErrorMessage ?? err.Exception?.Message)
+                        .ToList());
+            var response = NoContent(HttpStatusCode.BadRequest);
+            response.Errors = errors;
+            return response;
+        }
 
         public static ApiResponse NoContent(int code)
         {
@@ -78,12 +97,7 @@ namespace Discussion.Core.Mvc
             };
         }
 
-        public static ApiResponse NoContent()
-        {
-            return new ApiResponse();
-        }
-
-        public static ApiResponse NoContent(HttpStatusCode statusCode)
+        public static ApiResponse NoContent(HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             return new ApiResponse
             {

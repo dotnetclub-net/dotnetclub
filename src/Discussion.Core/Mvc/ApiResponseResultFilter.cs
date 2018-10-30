@@ -7,7 +7,8 @@ namespace Discussion.Core.Mvc
     {
         public void OnResultExecuting(ResultExecutingContext context)
         {
-            if (context.Result is ObjectResult objectResult)
+            if (context.Result is ObjectResult objectResult &&
+                !(objectResult.Value is ApiResponse))
             {
                 objectResult.Value = ApiResponse.ActionResult(objectResult.Value);
             }

@@ -4,13 +4,15 @@ using System.Security.Principal;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using Discussion.Admin.Supporting;
 using Discussion.Admin.ViewModels;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
-using Discussion.Core.Utilities;
+using Discussion.Core.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -86,12 +88,25 @@ namespace Discussion.Admin.Controllers
         private static long ToUnixEpochDate(DateTime date)
             => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
 
-        public ApiResponse Register([FromBody]AdminUserRegistration newAdminUser)
+        public ApiResponse Register([FromBody]UserViewModel newAdminUser)
         {
-            var admin = new AdminUser { Username = newAdminUser.Username };
+            var isAuthenticated = HttpContext.IsAuthenticated();
+            var canAccessAnonymously = !(_adminUserRepo.All().Any());
+
+            if (!canAccessAnonymously && !isAuthenticated)
+            {
+                return ApiResponse.NoContent(HttpStatusCode.Unauthorized);
+            }
+            
+            if (!ModelState.IsValid)
+            {
+                return ApiResponse.Error(ModelState);
+            }
+            
+            var admin = new AdminUser { Username = newAdminUser.UserName };
             _adminUserRepo.Save(admin);
 
-            return this.Respond();
+            return ApiResponse.NoContent();
         }
     }
 }

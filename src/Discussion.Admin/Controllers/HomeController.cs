@@ -28,5 +28,11 @@ namespace Discussion.Admin.Controllers
         {
             return new { Ping = "pong" };
         }
+        
+        [Route("api-object")]
+        public ApiResponse ApiObj()
+        {
+            return ApiResponse.ActionResult(new { field = "foo" });
+        }
     }
 }

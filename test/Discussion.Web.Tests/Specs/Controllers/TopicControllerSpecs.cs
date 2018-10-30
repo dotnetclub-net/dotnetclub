@@ -2,6 +2,7 @@
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
@@ -52,8 +53,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_calc_topic_list_with_paging()
         {
+            _app.DeleteAll<Topic>();
             var repo = _app.GetService<IRepository<Topic>>();
-            repo.All().ToList().ForEach(topic => repo.Delete(topic));
             var all = 30;
             do
             {

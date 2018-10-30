@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;

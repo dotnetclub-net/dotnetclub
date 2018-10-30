@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using Discussion.Core.Data;
@@ -40,6 +41,12 @@ namespace Discussion.Tests.Common
         {
             return app.ApplicationServices.GetService<T>();
         }
+
+        public static void DeleteAll<T>(this TestApplication app) where T: Entity
+        {
+            var repo = app.GetService<IRepository<T>>();
+            repo.All().ToList().ForEach(topic => repo.Delete(topic));
+        }
         
         public static void MockUser(this TestApplication app)
         {
@@ -66,7 +73,6 @@ namespace Discussion.Tests.Common
             app.User = new ClaimsPrincipal(identity);
         }
         
-
         public static ModelStateDictionary ValidateModel(this TestApplication app, object model)
         {
             var validator = app.GetService<IObjectModelValidator>();

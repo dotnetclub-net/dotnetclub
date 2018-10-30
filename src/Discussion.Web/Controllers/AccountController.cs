@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
+using Discussion.Core.ViewModels;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -39,7 +41,7 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/signin")]        
-        public async Task<IActionResult> DoSignin([FromForm]SigninUserViewModel viewModel, [FromQuery]string returnUrl)
+        public async Task<IActionResult> DoSignin([FromForm]UserViewModel viewModel, [FromQuery]string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -101,7 +103,7 @@ namespace Discussion.Web.Controllers
         
         [HttpPost]
         [Route("/register")]  
-        public async Task<IActionResult> DoRegister(SigninUserViewModel userViewModel)
+        public async Task<IActionResult> DoRegister(UserViewModel userViewModel)
         {
             if (!ModelState.IsValid)
             {

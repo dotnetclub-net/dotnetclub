@@ -1,4 +1,6 @@
-﻿using Discussion.Tests.Common;
+﻿using Discussion.Core.Models;
+using Discussion.Core.ViewModels;
+using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.ViewModels;
 using Xunit;
@@ -18,7 +20,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         public void should_validate_normal_username_and_password_values_as_valid()
         {
             var modelState = _app.ValidateModel(
-                new SigninUserViewModel
+                new UserViewModel
                 {
                     UserName = "validusername",
                     Password = "Mypassword"
@@ -40,7 +42,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         public void should_validate_valid_username_values_as_valid(string username)
         {
             var modelState = _app.ValidateModel(
-                new SigninUserViewModel
+                new UserViewModel
                 {
                     UserName = username,
                     Password = "password1"
@@ -61,7 +63,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         public void should_validate_invalid_username_values_as_invalid(string username)
         {
             var modelState = _app.ValidateModel(
-                new SigninUserViewModel
+                new UserViewModel
                 {
                     UserName = username,
                     Password = "password1"
@@ -90,7 +92,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         public void should_validate_valid_password_values_as_valid(string password)
         {
             var modelState = _app.ValidateModel(
-                new SigninUserViewModel
+                new UserViewModel
                 {
                     UserName = "validuser",
                     Password = password
@@ -114,7 +116,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         public void should_validate_invalid_password_values_as_invalid(string password)
         {
             var modelState = _app.ValidateModel(
-                new SigninUserViewModel
+                new UserViewModel
                 {
                     UserName = "validuser",
                     Password = password
