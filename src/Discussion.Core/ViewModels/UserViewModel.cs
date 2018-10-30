@@ -10,7 +10,7 @@ namespace Discussion.Core.ViewModels
         [Required(ErrorMessage = "必须填写用户名")]
         [MinLength(3, ErrorMessage = "用户名最少包含 3 个字符")]
         [MaxLength(20, ErrorMessage = "用户名最多包含 20 个字符")]
-        [RegularExpression(@"[a-zA-Z0-9\-_]+", ErrorMessage = "用户名只能包含大小写字母、数字，以及短横线（ -_）")]
+        [RegularExpression(@"^[a-zA-Z0-9\-_]+$", ErrorMessage = "用户名只能包含大小写字母、数字，以及短横线（ -_）")]
         public string UserName { get; set; }
 
         [DisplayName("密码")]

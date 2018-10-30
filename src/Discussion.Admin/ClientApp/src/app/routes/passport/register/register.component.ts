@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import {Component, NgZone, OnDestroy} from '@angular/core';
 import { Router } from '@angular/router';
 import {
   FormGroup,
@@ -7,6 +7,8 @@ import {
   FormControl,
 } from '@angular/forms';
 import { NzMessageService } from 'ng-zorro-antd';
+import {_HttpClient} from '@delon/theme';
+import { ApiResponse } from '../../../api-response';
 
 @Component({
   selector: 'passport-register',
@@ -16,33 +18,36 @@ import { NzMessageService } from 'ng-zorro-antd';
 export class UserRegisterComponent implements OnDestroy {
   form: FormGroup;
   error = '';
-  type = 0;
   loading = false;
   visible = false;
-  status = 'pool';
+  status = 'poor';
   progress = 0;
   passwordProgressMap = {
     ok: 'success',
     pass: 'normal',
-    pool: 'exception',
+    poor: 'exception',
   };
 
-  count = 0;
-  interval$: any;
 
   constructor(
     fb: FormBuilder,
-    private router: Router,
     public msg: NzMessageService,
+    private ngZone: NgZone,
+    private router: Router,
+    private httpClient: _HttpClient
   ) {
-    this.form = fb.group({
-      mail: [null, [Validators.email]],
+      this.form = fb.group({
+      username: [null, [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.pattern(/^[a-zA-Z0-9\-_]+$/)]],
       password: [
         null,
         [
           Validators.required,
           Validators.minLength(6),
-          UserRegisterComponent.checkPassword.bind(this),
+          UserRegisterComponent.checkPasswordRules.bind(this),
+          UserRegisterComponent.updatePasswordHint.bind(this),
         ],
       ],
       confirm: [
@@ -53,23 +58,63 @@ export class UserRegisterComponent implements OnDestroy {
           UserRegisterComponent.passwordEquar,
         ],
       ],
-      mobilePrefix: ['+86'],
-      mobile: [null, [Validators.required, Validators.pattern(/^1\d{10}$/)]],
-      captcha: [null, [Validators.required]],
     });
   }
 
-  static checkPassword(control: FormControl) {
+  static checkPasswordRules(control: FormControl) {
+    if (!control || !control.value) {
+      return null;
+    }
+
+    const val = control.value;
+    const numbers = /\d/;
+    const lower = /[a-z]/;
+    const upper = /[A-Z]/;
+    const symbols = /[\x20,<.>/?;:'"[{\]}\\|`~!@#$%^&*()\-_=+]/;
+
+    let counter = 0;
+    if (numbers.test(val)) {
+      counter++;
+    }
+
+    if (lower.test(val)) {
+      counter++;
+    }
+
+    if (upper.test(val)) {
+      counter++;
+    }
+
+    if (symbols.test(val)) {
+      counter++;
+    }
+
+    return counter >= 2 ? null : {
+      'rules': '请至少包含两种：大写、小写、字符，特殊字符'
+    };
+  }
+
+
+  static updatePasswordHint(control: FormControl) {
     if (!control) return null;
     const self: any = this;
     self.visible = !!control.value;
-    if (control.value && control.value.length > 9) self.status = 'ok';
-    else if (control.value && control.value.length > 5) self.status = 'pass';
-    else self.status = 'pool';
 
-    if (self.visible)
-      self.progress =
-        control.value.length * 10 > 100 ? 100 : control.value.length * 10;
+    if (!control.value) {
+      return null;
+    }
+
+    if (control.value.length > 9) {
+      self.status = 'ok';
+    } else if (control.value.length > 5) {
+      self.status = 'pass';
+    } else {
+      self.status = 'poor';
+    }
+
+    if (self.visible) {
+      self.progress = Math.min(control.value.length * 10, 100);
+    }
   }
 
   static passwordEquar(control: FormControl) {
@@ -82,31 +127,14 @@ export class UserRegisterComponent implements OnDestroy {
 
   // region: fields
 
-  get mail() {
-    return this.form.controls.mail;
+  get username() {
+    return this.form.controls.username;
   }
   get password() {
     return this.form.controls.password;
   }
   get confirm() {
     return this.form.controls.confirm;
-  }
-  get mobile() {
-    return this.form.controls.mobile;
-  }
-  get captcha() {
-    return this.form.controls.captcha;
-  }
-
-  // endregion
-
-  // region: get captcha
-  getCaptcha() {
-    this.count = 59;
-    this.interval$ = setInterval(() => {
-      this.count -= 1;
-      if (this.count <= 0) clearInterval(this.interval$);
-    }, 1000);
   }
 
   // endregion
@@ -117,16 +145,28 @@ export class UserRegisterComponent implements OnDestroy {
       this.form.controls[i].markAsDirty();
       this.form.controls[i].updateValueAndValidity();
     }
-    if (this.form.invalid) return;
-    // mock http
+
+    if (this.form.invalid) {
+      return;
+    }
+
+
     this.loading = true;
-    setTimeout(() => {
-      this.loading = false;
-      this.router.navigate(['/passport/register-result']);
-    }, 1000);
+    this.httpClient.post<ApiResponse>('api/account/register',
+      {
+        userName: this.form.controls.username.value,
+        password: this.form.controls.password.value
+      })
+      .subscribe(res => {
+        this.loading = false;
+        if (res.hasSucceeded) {
+          this.ngZone.run(() => this.router.navigate(['/passport/login'])).then();
+        } else {
+          this.error = res.errorMessage;
+        }
+      });
   }
 
   ngOnDestroy(): void {
-    if (this.interval$) clearInterval(this.interval$);
   }
 }

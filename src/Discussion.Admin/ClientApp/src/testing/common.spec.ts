@@ -16,6 +16,7 @@ import { SharedModule } from '@shared/shared.module';
 
 import { DelonModule } from '../app/delon.module';
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
 const resetTestingModule = TestBed.resetTestingModule,
   preventAngularFromResetting = () =>
@@ -46,6 +47,8 @@ export const setUpTestBed = (moduleDef: TestModuleMetadata) => {
       moduleDef.imports.push(HttpClientModule);
       moduleDef.imports.push(DelonModule);
       moduleDef.imports.push(SharedModule);
+      moduleDef.imports.push(ReactiveFormsModule);
+      moduleDef.imports.push(FormsModule);
       // auth
       moduleDef.imports.push(DelonAuthModule.forRoot());
       // endregion
