@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Selenium.Support" Version="3.14.0" />
+      <PackageReference Include="Selenium.WebDriver" Version="3.14.0" />
+      <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="2.43.0" />
+      <PackageReference Include="SpecFlow.xUnit" Version="3.0.132-beta" />
+      <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.0.132-beta" />
+      <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    </ItemGroup>
+  
+
+</Project>

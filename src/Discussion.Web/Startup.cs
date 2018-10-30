@@ -1,4 +1,6 @@
-﻿using System.Text.Encodings.Web;
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Data;
