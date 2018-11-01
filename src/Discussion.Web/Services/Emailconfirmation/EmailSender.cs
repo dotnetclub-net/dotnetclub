@@ -12,9 +12,16 @@ namespace Discussion.Web.Services.Emailconfirmation
 {
     public class EmailSender : IEmailSender
     {
-        private const string smtpServer = "smtp.163.com";
-        private const string mailFrom = "13671241939@163.com";
-        private const string mailPwd = "lmc1995.!";
+        private readonly string smtpServer;
+        private readonly string mailFrom;
+        private readonly string mailPwd;
+        private AuthMessageSenderOptions _authMessageSenderOptions;
+        public EmailSender(IOptions<AuthMessageSenderOptions> authMessageSenderOptions)
+        {
+            smtpServer = authMessageSenderOptions.Value.SendServer;
+            mailFrom = authMessageSenderOptions.Value.SendGridUser;
+            mailPwd = authMessageSenderOptions.Value.SendGridKey;
+        }
         public Task SendEmailAsync(string emailTo, string subject, string message)
         {
             return Execute(emailTo,subject, message);

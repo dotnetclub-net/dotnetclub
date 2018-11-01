@@ -1,21 +1,17 @@
-﻿using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
-using Discussion.Core.Data;
+﻿using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Web.Services.Emailconfirmation;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using System;
+using System.Linq;
+using System.Text.Encodings.Web;
+using System.Threading.Tasks;
 
 namespace Discussion.Web.Controllers
 {
@@ -42,7 +38,7 @@ namespace Discussion.Web.Controllers
             _logger = logger;
             _emailSender = emailSender;
             _emailBindRepo = emailBindRepo;
-            _protector = provider.CreateProtector("Contoso.MyClass.v1"); //authMessageSenderOptions.Value.EncryptionKey
+            _protector = provider.CreateProtector(authMessageSenderOptions.Value.EncryptionKey);
             _authMessageSenderOptions = authMessageSenderOptions.Value;
         }
 
@@ -183,7 +179,6 @@ namespace Discussion.Web.Controllers
             var result = _userManager.UpdateAsync(user);
             string initialToken = $"{user.Id.ToString()}|dotnetclub";
             string sendToken = _protector.Protect(initialToken);
-            //string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);  //加密  userid 时间 dotnetclub
             _emailBindRepo.Save(new EmailBindOptions
             {
                 UserId = user.Id,
