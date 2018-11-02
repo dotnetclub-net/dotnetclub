@@ -1,4 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
+using Discussion.Admin.Services;
+using Discussion.Admin.Services.Impl;
 using Discussion.Admin.Supporting;
 using Discussion.Core;
 using Discussion.Core.Data;
@@ -57,6 +59,8 @@ namespace Discussion.Admin
             });
             
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
+
+            services.AddScoped<IAdminUserService, AdminUserServiceImpl>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

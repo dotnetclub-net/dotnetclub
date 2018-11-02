@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
+using Discussion.Admin.Services;
 using Discussion.Admin.Supporting;
 using Discussion.Admin.ViewModels;
 using Discussion.Core.Data;
@@ -24,15 +25,13 @@ namespace Discussion.Admin.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly JwtIssuerOptions jwtOptions;
         private readonly IRepository<AdminUser> _adminUserRepo;
-        private readonly IPasswordHasher<AdminUser> _passwordHasher;
+        private readonly IAdminUserService _adminUserService;
 
-        public AccountController(IOptions<JwtIssuerOptions> jwtOptions, IRepository<AdminUser> adminUserRepo, IPasswordHasher<AdminUser> passwordHasher)
+        public AccountController(IRepository<AdminUser> adminUserRepo, IAdminUserService adminUserService)
         {
             _adminUserRepo = adminUserRepo;
-            _passwordHasher = passwordHasher;
-            this.jwtOptions = jwtOptions.Value;
+            _adminUserService = adminUserService;
         }
 
         [HttpPost("signin")]
@@ -44,64 +43,19 @@ namespace Discussion.Admin.Controllers
             }
             
             var adminUser = _adminUserRepo.All().SingleOrDefault(u => u.Username.Equals(model.UserName, StringComparison.OrdinalIgnoreCase));
-            if (!VerifyPassword(adminUser, model.Password))
+            if (!_adminUserService.VerifyPassword(adminUser, model.Password))
             {
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }
 
-            var bearerIdentity = new GenericIdentity(model.UserName, JwtBearerDefaults.AuthenticationScheme);
-            var identity = new ClaimsIdentity(
-                bearerIdentity,
-                new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, adminUser.Id.ToString()),
-                    new Claim(ClaimTypes.Name, model.UserName),
-
-                    new Claim(JwtRegisteredClaimNames.Sub, model.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, jwtOptions.JtiGenerator()),
-                    new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(jwtOptions.IssuedAt).ToString(),
-                        ClaimValueTypes.Integer64),
-                });
-
-            var handler = new JwtSecurityTokenHandler();
-
-            var securityToken = handler.CreateToken(new SecurityTokenDescriptor
-            {
-                Issuer = jwtOptions.Issuer,
-                Audience = jwtOptions.Audience,
-                SigningCredentials = jwtOptions.SigningCredentials,
-                NotBefore = jwtOptions.NotBefore,
-                Subject = identity,
-                Expires = jwtOptions.Expiration,
-            });
-
-            var encodedJwt = handler.WriteToken(securityToken);
-
+            var issuedToken = _adminUserService.IssueJwtToken(adminUser);
             return new
             {
                 adminUser.Id,
-                Token = encodedJwt,
-                Expires = (int) jwtOptions.ValidFor.TotalSeconds
+                Token = issuedToken.TokenString,
+                ExpiresInSeconds = issuedToken.ValidForSeconds
             };
         }
-
-        private bool VerifyPassword(AdminUser adminUser, string providedPassword)
-        {
-            if (adminUser == null)
-            {
-                return false;
-            }
-            
-            var pwdVerification = _passwordHasher.VerifyHashedPassword(
-                                                    adminUser, 
-                                                    adminUser.HashedPassword, 
-                                                    providedPassword);
-            return pwdVerification == PasswordVerificationResult.Success || 
-                   pwdVerification == PasswordVerificationResult.SuccessRehashNeeded;
-        }
-        
-        private static long ToUnixEpochDate(DateTime date)
-            => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
 
         [HttpPost("register")]
         public ApiResponse Register([FromBody]UserViewModel newAdminUser)
@@ -122,7 +76,7 @@ namespace Discussion.Admin.Controllers
             var admin = new AdminUser
             {
                 Username = newAdminUser.UserName,
-                HashedPassword = _passwordHasher.HashPassword(null, newAdminUser.Password)
+                HashedPassword = _adminUserService.HashPassword(newAdminUser.Password)
             };
             _adminUserRepo.Save(admin);
 

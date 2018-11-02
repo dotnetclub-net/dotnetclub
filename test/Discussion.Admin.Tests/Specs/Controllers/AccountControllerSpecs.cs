@@ -144,7 +144,7 @@ namespace Discussion.Admin.Tests.Specs.Controllers
             
             int userId = signinResult.Id;
             string jwtToken = signinResult.Token;
-            int expires = signinResult.Expires;
+            int expires = signinResult.ExpiresInSeconds;
 
             Assert.Equal(found.Id, userId);
             Assert.Equal(TimeSpan.FromMinutes(120).TotalSeconds, expires);
