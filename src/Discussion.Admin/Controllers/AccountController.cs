@@ -11,6 +11,7 @@ using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.ViewModels;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -35,18 +36,32 @@ namespace Discussion.Admin.Controllers
         }
 
         [HttpPost("signin")]
-        public IActionResult Signin(SigninModel model)
+        public object Signin(UserViewModel model)
         {
-            var identity = new ClaimsIdentity(new GenericIdentity(model.UserName, "Token"), new[]
+            if (!ModelState.IsValid)
             {
-                new Claim("id","123" ),
-                new Claim("rol", "api_access"),
-                new Claim(ClaimTypes.Name, model.UserName),
+                return ApiResponse.Error(ModelState);
+            }
+            
+            var adminUser = _adminUserRepo.All().SingleOrDefault(u => u.Username.Equals(model.UserName, StringComparison.OrdinalIgnoreCase));
+            if (!VerifyPassword(adminUser, model.Password))
+            {
+                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+            }
 
-                new Claim(JwtRegisteredClaimNames.Sub, model.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti,  jwtOptions.JtiGenerator()),
-                new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(jwtOptions.IssuedAt).ToString(), ClaimValueTypes.Integer64),
-            });
+            var bearerIdentity = new GenericIdentity(model.UserName, JwtBearerDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(
+                bearerIdentity,
+                new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, adminUser.Id.ToString()),
+                    new Claim(ClaimTypes.Name, model.UserName),
+
+                    new Claim(JwtRegisteredClaimNames.Sub, model.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, jwtOptions.JtiGenerator()),
+                    new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(jwtOptions.IssuedAt).ToString(),
+                        ClaimValueTypes.Integer64),
+                });
 
             var handler = new JwtSecurityTokenHandler();
 
@@ -62,32 +77,29 @@ namespace Discussion.Admin.Controllers
 
             var encodedJwt = handler.WriteToken(securityToken);
 
-            return Ok(new
+            return new
             {
-                status = 1,
-                result = new
-                {
-                    id = identity.Claims.Single(c => c.Type == "id").Value,
-                    auth_token = encodedJwt,
-                    expires_in = (int)jwtOptions.ValidFor.TotalSeconds
-                }
-            });
+                adminUser.Id,
+                Token = encodedJwt,
+                Expires = (int) jwtOptions.ValidFor.TotalSeconds
+            };
         }
 
-        [HttpGet("user")]
-        [Authorize]
-        public IActionResult UserInfo()
+        private bool VerifyPassword(AdminUser adminUser, string providedPassword)
         {
-            return Ok(new
+            if (adminUser == null)
             {
-                status = 1,
-                result = new
-                {
-                    UserName = "dotnet_lover",
-                }
-            });
+                return false;
+            }
+            
+            var pwdVerification = _passwordHasher.VerifyHashedPassword(
+                                                    adminUser, 
+                                                    adminUser.HashedPassword, 
+                                                    providedPassword);
+            return pwdVerification == PasswordVerificationResult.Success || 
+                   pwdVerification == PasswordVerificationResult.SuccessRehashNeeded;
         }
-
+        
         private static long ToUnixEpochDate(DateTime date)
             => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
 
@@ -106,7 +118,7 @@ namespace Discussion.Admin.Controllers
             {
                 return ApiResponse.Error(ModelState);
             }
-
+            
             var admin = new AdminUser
             {
                 Username = newAdminUser.UserName,
@@ -115,6 +127,20 @@ namespace Discussion.Admin.Controllers
             _adminUserRepo.Save(admin);
 
             return ApiResponse.NoContent();
+        }
+
+        [HttpGet("user")]
+        [Authorize]
+        public IActionResult UserInfo()
+        {
+            return Ok(new
+            {
+                status = 1,
+                result = new
+                {
+                    UserName = "dotnet_lover",
+                }
+            });
         }
     }
 }

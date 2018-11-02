@@ -1,4 +1,5 @@
-﻿using Discussion.Admin.Supporting;
+﻿using System.Runtime.CompilerServices;
+using Discussion.Admin.Supporting;
 using Discussion.Core;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
 
+[assembly:InternalsVisibleTo("Discussion.Admin.Tests")]
 namespace Discussion.Admin
 {
     public class Startup

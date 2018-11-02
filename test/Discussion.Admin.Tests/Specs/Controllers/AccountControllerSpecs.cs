@@ -1,7 +1,10 @@
+using System;
 using System.Linq;
+using System.Net;
 using Discussion.Admin.Controllers;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
 using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
@@ -42,9 +45,33 @@ namespace Discussion.Admin.Tests.Specs.Controllers
             Assert.NotNull(found.HashedPassword);
             Assert.NotEqual(newAdminUser.Password, found.HashedPassword);
         }
-        
+ 
         [Fact]
         public void should_not_register_second_admin_without_signin()
+        {
+            _adminUserRepo.Save(new AdminUser
+            {
+                Username = "first-admin"
+            });
+
+            var newAdminUser = new UserViewModel
+            {
+                UserName = StringUtility.Random(),
+                Password = "abcdefA@"
+            };
+
+            
+            var accountController = _adminApp.CreateController<AccountController>();
+            var apiResponse = accountController.Register(newAdminUser);
+            
+            
+            var found = _adminUserRepo.All().Any(u => u.Username == newAdminUser.UserName);
+            Assert.Equal(401, apiResponse.Code);
+            Assert.False(found);
+        }
+        
+        [Fact(Skip = "not implemented")]
+        public void should_not_register_one_username_a_second_time()
         {
             _adminUserRepo.Save(new AdminUser
             {
@@ -99,6 +126,66 @@ namespace Discussion.Admin.Tests.Specs.Controllers
             Assert.False(found);
         }
         
+               
+        [Fact]
+        public void should_signin_admin_with_valid_credential()
+        {
+            var newAdminUser = new UserViewModel
+            {
+                UserName = StringUtility.Random(),
+                Password = "abcdefA@"
+            };
+            
+            var accountController = _adminApp.CreateController<AccountController>();
+            accountController.Register(newAdminUser);
+            var found = _adminUserRepo.All().FirstOrDefault(u => u.Username == newAdminUser.UserName);
+
+            dynamic signinResult = accountController.Signin(newAdminUser);
+            
+            int userId = signinResult.Id;
+            string jwtToken = signinResult.Token;
+            int expires = signinResult.Expires;
+
+            Assert.Equal(found.Id, userId);
+            Assert.Equal(TimeSpan.FromMinutes(120).TotalSeconds, expires);
+            Assert.NotNull(jwtToken);
+        }
         
+        [Fact]
+        public void should_not_signin_admin_with_non_existing_username()
+        {
+            var newAdminUser = new UserViewModel
+            {
+                UserName = "someone",
+                Password = "abcdefA@"
+            };
+            
+            var signinResult = _adminApp.CreateController<AccountController>()
+                                        .Signin(newAdminUser) as ApiResponse;
+           
+            Assert.Equal((int)HttpStatusCode.BadRequest, signinResult.Code);
+            Assert.False(signinResult.HasSucceeded);
+        }
+        
+        [Fact]
+        public void should_not_signin_admin_with_wrong_password()
+        {
+            var newAdminUser = new UserViewModel
+            {
+                UserName = StringUtility.Random(),
+                Password = "abcdefA@"
+            };
+            
+            var accountController = _adminApp.CreateController<AccountController>();
+            accountController.Register(newAdminUser);
+
+            newAdminUser.Password = "1242kd!";
+            var signinResult = _adminApp.CreateController<AccountController>()
+                                        .Signin(newAdminUser) as ApiResponse;
+           
+            Assert.Equal((int)HttpStatusCode.BadRequest, signinResult.Code);
+            Assert.False(signinResult.HasSucceeded);
+        }
+
     }
 }
