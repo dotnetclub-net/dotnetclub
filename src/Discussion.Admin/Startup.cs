@@ -1,6 +1,7 @@
 ﻿using Discussion.Admin.Supporting;
 using Discussion.Core;
 using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,14 +40,14 @@ namespace Discussion.Admin
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddJwtAuthentication(_appConfiguration);
-
+            services.AddIdentityCore<AdminUser>();
             services.AddMvc(options => { options.Filters.Add(typeof(ApiResponseResultFilter)); })
-                    .AddJsonOptions(options =>
-                    {
-                        options.SerializerSettings.ContractResolver = JsonContractResolver;
-                        options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
-                    })
-                   .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.ContractResolver = JsonContractResolver;
+                    options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddSpaStaticFiles(configuration =>
             {

@@ -12,6 +12,7 @@ using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -24,10 +25,12 @@ namespace Discussion.Admin.Controllers
     {
         private readonly JwtIssuerOptions jwtOptions;
         private readonly IRepository<AdminUser> _adminUserRepo;
+        private readonly IPasswordHasher<AdminUser> _passwordHasher;
 
-        public AccountController(IOptions<JwtIssuerOptions> jwtOptions, IRepository<AdminUser> adminUserRepo)
+        public AccountController(IOptions<JwtIssuerOptions> jwtOptions, IRepository<AdminUser> adminUserRepo, IPasswordHasher<AdminUser> passwordHasher)
         {
             _adminUserRepo = adminUserRepo;
+            _passwordHasher = passwordHasher;
             this.jwtOptions = jwtOptions.Value;
         }
 
@@ -103,8 +106,12 @@ namespace Discussion.Admin.Controllers
             {
                 return ApiResponse.Error(ModelState);
             }
-            
-            var admin = new AdminUser { Username = newAdminUser.UserName };
+
+            var admin = new AdminUser
+            {
+                Username = newAdminUser.UserName,
+                HashedPassword = _passwordHasher.HashPassword(null, newAdminUser.Password)
+            };
             _adminUserRepo.Save(admin);
 
             return ApiResponse.NoContent();

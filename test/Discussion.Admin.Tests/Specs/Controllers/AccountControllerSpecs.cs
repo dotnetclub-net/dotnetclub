@@ -30,15 +30,17 @@ namespace Discussion.Admin.Tests.Specs.Controllers
                 UserName = StringUtility.Random(),
                 Password = "abcdefA@"
             };
-
             
             var accountController = _adminApp.CreateController<AccountController>();
             var apiResponse = accountController.Register(newAdminUser);
             
             
-            var found = _adminUserRepo.All().Any(u => u.Username == newAdminUser.UserName);
+            var found = _adminUserRepo.All().FirstOrDefault(u => u.Username == newAdminUser.UserName);
             Assert.Equal(200, apiResponse.Code);
-            Assert.True(found);
+            Assert.NotNull(found);
+            Assert.Equal(newAdminUser.UserName, found.Username);
+            Assert.NotNull(found.HashedPassword);
+            Assert.NotEqual(newAdminUser.Password, found.HashedPassword);
         }
         
         [Fact]
