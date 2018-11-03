@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Discussion.Core.Mvc;
 using Microsoft.AspNetCore.Builder;
@@ -10,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace Discussion.Admin.Supporting
 {
-    public static class ResponseExtensions
+    public static class UnifiedApiResponseExtensions
     {
         public static void UseUnifiedApiResponse(this IApplicationBuilder app)
         {
@@ -24,16 +25,11 @@ namespace Discussion.Admin.Supporting
                         return;
                     }
 
-                    // Still use HttpStatus OK on server errors to prevent a redirection on the SPA page
-                    context.Response.StatusCode = (int) HttpStatusCode.OK;
-
-                    context.Response.ContentType = "application/json";
                     var exceptionHandler = context.Features.Get<IExceptionHandlerFeature>();
                     if (exceptionHandler != null)
                     {
                         var result = ApiResponse.Error(exceptionHandler.Error);
-                        var json = SerializeToJson(result);
-                        await context.Response.WriteAsync(json).ConfigureAwait(false);
+                        await WriteJsonToResponse(context, result);
                     }
                 });
             });
@@ -59,7 +55,7 @@ namespace Discussion.Admin.Supporting
 
                 if (ShouldNotWrap(httpContext))
                 {
-                    await WriteToResponseAsync(httpContext, memoryStream, originalStream);
+                    await PipeToResponseAsync(httpContext, memoryStream, originalStream);
                     return;
                 }
                 
@@ -70,18 +66,19 @@ namespace Discussion.Admin.Supporting
                     apiResult.Result = allContent;
                 }
 
-                if (!httpContext.Response.HasStarted)
-                {
-                    httpContext.Response.StatusCode = 200;
-                    httpContext.Response.ContentType = "application/json";
-                }
                 httpContext.Response.Body = originalStream;
-                await httpContext.Response.WriteAsync(SerializeToJson(apiResult));
+                await WriteJsonToResponse(httpContext, apiResult);
             }
         }
 
+
         private static bool ShouldNotWrap(HttpContext httpContext)
         {
+            if (httpContext.Response.HasStarted)
+            {
+                return true;
+            }
+            
             var contentType = httpContext.Response.ContentType;
             var hasContentType = contentType != null;
             var isAlreadyJson = hasContentType && contentType.Contains("json");
@@ -90,13 +87,23 @@ namespace Discussion.Admin.Supporting
             return httpContext.Response.StatusCode < 400 || isAlreadyJson || isNotText;
         }
 
-        private static async Task WriteToResponseAsync(HttpContext httpContext, MemoryStream contentStream, Stream responseStream)
+        private static async Task PipeToResponseAsync(HttpContext httpContext, MemoryStream contentStream, Stream responseStream)
         {
             httpContext.Response.Body = responseStream;
             using (var bufferedStream = new BufferedStream(contentStream))
             {
                 await bufferedStream.CopyToAsync(httpContext.Response.Body);
             }
+        }
+        
+        private static async Task WriteJsonToResponse(HttpContext httpContext, ApiResponse apiResult)
+        {
+            var bytes = Encoding.UTF8.GetBytes(SerializeToJson(apiResult));
+            httpContext.Response.StatusCode = 200;
+            httpContext.Response.ContentLength = bytes.Length;
+            httpContext.Response.ContentType = "application/json";
+            
+            await httpContext.Response.Body.WriteAsync(bytes);
         }
         
         private static string SerializeToJson(ApiResponse result)

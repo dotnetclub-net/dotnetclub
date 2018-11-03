@@ -3,19 +3,33 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Discussion.Core.Mvc
 {
-    public class ApiResponseResultFilter : IResultFilter
+    public class ApiResponseResultFilter : IResultFilter, IActionFilter
     {
-        public void OnResultExecuting(ResultExecutingContext context)
+        public void OnActionExecuting(ActionExecutingContext context)
         {
-            if (context.Result is ObjectResult objectResult &&
-                !(objectResult.Value is ApiResponse))
+            if (!context.ModelState.IsValid)
             {
-                objectResult.Value = ApiResponse.ActionResult(objectResult.Value);
+                context.Result = new ObjectResult(ApiResponse.Error(context.ModelState));
             }
         }
 
-        public void OnResultExecuted(ResultExecutedContext context)
+        public void OnActionExecuted(ActionExecutedContext context)
         {
+            
         }
+        
+        
+        public void OnResultExecuting(ResultExecutingContext context)
+         {
+             if (context.Result is ObjectResult objectResult &&
+                 !(objectResult.Value is ApiResponse))
+             {
+                 objectResult.Value = ApiResponse.ActionResult(objectResult.Value);
+             }
+         }
+    
+         public void OnResultExecuted(ResultExecutedContext context)
+         {
+         }
     }
 }

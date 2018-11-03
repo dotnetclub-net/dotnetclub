@@ -8,7 +8,6 @@ namespace Discussion.Core.Mvc
 {
     public class ApiResponse
     {
-        private const char ErrorMsgKVDelimiter = ':';
         private const char ErrorDelimiter = '\n';
         private const string ErrorMsgDelimiter = ";";
 
@@ -20,11 +19,12 @@ namespace Discussion.Core.Mvc
         {
             get
             {
-                return Errors?.Aggregate(string.Empty, (prev, err) =>
-                {
-                    var key = string.IsNullOrWhiteSpace(err.Key) ? string.Empty : string.Concat(err.Key, ErrorMsgKVDelimiter);
-                    return string.Concat(prev, ErrorDelimiter, key, string.Join(ErrorMsgDelimiter, err.Value));
-                }).Trim();
+                return Errors?
+                    .Aggregate(string.Empty, (prev, err) => 
+                                                string.Concat(prev, 
+                                                    ErrorDelimiter, 
+                                                    string.Join(ErrorMsgDelimiter, err.Value)))
+                    .Trim();
             }
         }
 
@@ -86,6 +86,7 @@ namespace Discussion.Core.Mvc
                         .ToList());
             var response = NoContent(HttpStatusCode.BadRequest);
             response.Errors = errors;
+            modelState.Clear();
             return response;
         }
 

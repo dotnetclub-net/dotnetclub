@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Net;
 using Discussion.Admin.Services;
@@ -8,13 +7,10 @@ using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Discussion.Admin.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
     public class AccountController : ControllerBase
     {
         private readonly IRepository<AdminUser> _adminUserRepo;
@@ -27,17 +23,17 @@ namespace Discussion.Admin.Controllers
         }
 
         [HttpPost("signin")]
-        public object Signin(UserViewModel model)
+        public object Signin([FromBody]UserViewModel model)
         {
+            var adminUser = _adminUserRepo.All().SingleOrDefault(u => u.Username.ToLower() == model.UserName.ToLower());
+            if (!_adminUserService.VerifyPassword(adminUser, model.Password))
+            {
+                ModelState.AddModelError("UserName", "用户名或密码错误");
+            }
+
             if (!ModelState.IsValid)
             {
                 return ApiResponse.Error(ModelState);
-            }
-            
-            var adminUser = _adminUserRepo.All().SingleOrDefault(u => u.Username.Equals(model.UserName, StringComparison.OrdinalIgnoreCase));
-            if (!_adminUserService.VerifyPassword(adminUser, model.Password))
-            {
-                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }
 
             var issuedToken = _adminUserService.IssueJwtToken(adminUser);
