@@ -94,11 +94,9 @@ namespace Discussion.Tests.Common
 
             var token = adminUserService.IssueJwtToken(adminUser);
             var options =  app.GetService<IOptionsMonitor<JwtBearerOptions>>().Get("Bearer");
-            ClaimsPrincipal identity = options.SecurityTokenValidators
-                                    .First()
-                                    .ValidateToken(token.TokenString, 
-                                                    options.TokenValidationParameters, 
-                                                    out _);
+            var identity = options.SecurityTokenValidators
+                                  .First()
+                                  .ValidateToken(token.TokenString, options.TokenValidationParameters, out _);
             app.User = identity;
         }
         

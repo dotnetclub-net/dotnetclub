@@ -33,12 +33,10 @@ namespace Discussion.Admin.Services.Impl
                 new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, adminUser.Id.ToString(), ClaimValueTypes.Integer32),
-                    new Claim(ClaimTypes.Name, adminUser.Username),
 
                     new Claim(JwtRegisteredClaimNames.Sub, adminUser.Username),
                     new Claim(JwtRegisteredClaimNames.Jti, _jwtOptions.JtiGenerator()),
-                    new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(_jwtOptions.IssuedAt).ToString(),
-                        ClaimValueTypes.Integer64),
+                    new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(_jwtOptions.IssuedAt).ToString(), ClaimValueTypes.Integer64),
                 });
             
             var handler = new JwtSecurityTokenHandler();

@@ -14,9 +14,18 @@ describe('Component: UserRegister', () => {
   });
 
     let registerComp : UserRegisterComponent;
+    let usernameCtrl : FormControl;
+    let passwordCtrl : FormControl;
+    let passwordConfirmCtrl : FormControl;
+    let mockedHttp;
 
     beforeAll(() => {
+        mockedHttp = mockedHttpBackend();
+
         registerComp = createComponent(UserRegisterComponent);
+        usernameCtrl = registerComp.username as FormControl;
+        passwordCtrl = registerComp.password as FormControl;
+        passwordConfirmCtrl = registerComp.confirm as FormControl;
     });
 
 
@@ -25,11 +34,6 @@ describe('Component: UserRegister', () => {
   });
 
   it('should register user with valid username and password', () => {
-    const mockedHttp = mockedHttpBackend();
-
-    const usernameCtrl = registerComp.form.controls['username'] as FormControl;
-    const passwordCtrl = registerComp.form.controls['password'] as FormControl;
-    const passwordConfirmCtrl = registerComp.form.controls['confirm'] as FormControl;
     usernameCtrl.setValue("admin");
     passwordCtrl.setValue("password1");
     passwordConfirmCtrl.setValue("password1");
@@ -45,8 +49,36 @@ describe('Component: UserRegister', () => {
 
       return true;
     });
+
     request.flush({code: 200, hasSucceeded: true, errors: null, errorMessage: null, result: null});
     mockedHttp.verify();
+  });
+
+  it('should show error on server error', () => {
+    usernameCtrl.setValue("admin");
+    passwordCtrl.setValue("password1");
+    passwordConfirmCtrl.setValue("password1");
+
+    registerComp.submit();
+
+    const request = mockedHttp.expectOne(req =>  true);
+    request.flush({code: 400, hasSucceeded: false, errors: {username: ['用户名已被占用']}, errorMessage: '用户名已被占用', result: null});
+    mockedHttp.verify();
+
+    expect(registerComp.error).toEqual('用户名已被占用');
+  });
+
+  it('should show login message 401 response', () => {
+    usernameCtrl.setValue("admin");
+    passwordCtrl.setValue("password1");
+    passwordConfirmCtrl.setValue("password1");
+
+    registerComp.submit();
+    const request = mockedHttp.expectOne(req =>  true);
+    request.flush({code: 401, hasSucceeded: false, errors: null, errorMessage: null, result: null});
+    mockedHttp.verify();
+
+    expect(registerComp.error).toEqual('需要登录后才能继续操作');
   });
 
   cases([
@@ -58,7 +90,6 @@ describe('Component: UserRegister', () => {
     "35425325",
     "somepassword"
   ]).it('should validate invalid password', () => {
-    const passwordCtrl = registerComp.form.controls['password'] as FormControl;
     passwordCtrl.setValue("somepassword");
     const errors = UserRegisterComponent.checkPasswordRules(passwordCtrl);
 
@@ -75,7 +106,6 @@ describe('Component: UserRegister', () => {
     "3542532L5",
     "Qpassword"
   ]).it('should validate valid password', () => {
-    const passwordCtrl = registerComp.form.controls['password'] as FormControl;
     passwordCtrl.setValue("passwo1");
     const errors = UserRegisterComponent.checkPasswordRules(passwordCtrl);
 

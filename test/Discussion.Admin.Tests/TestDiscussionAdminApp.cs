@@ -23,14 +23,14 @@ namespace Discussion.Admin.Tests
     
     public class TestDiscussionAdminApp : TestApplication
     {
-        internal TestDiscussionAdminApp(bool initialize)
+        internal const string JwtIssuer = "testing";
+        internal const string JwtAudience = "specs";
+        
+        public TestDiscussionAdminApp()
         {
-            if (initialize)
-            {
-                InitAdminApp();
-            }
+            InitAdminApp();
         }
-
+        
         private void InitAdminApp()
         {
             var connectionStringEVKey = $"DOTNETCLUB_{ApplicationDataServices.ConfigKeyConnectionString}";
@@ -43,8 +43,8 @@ namespace Discussion.Admin.Tests
                     var jwtOptions = new Dictionary<string, string>()
                     {
                         {"JwtIssuerOptions:Secret", Guid.NewGuid().ToString()},
-                        {$"JwtIssuerOptions:{nameof(JwtIssuerOptions.Issuer)}", "testing"},
-                        {$"JwtIssuerOptions:{nameof(JwtIssuerOptions.Audience)}", "specs"}
+                        {$"JwtIssuerOptions:{nameof(JwtIssuerOptions.Issuer)}", JwtIssuer},
+                        {$"JwtIssuerOptions:{nameof(JwtIssuerOptions.Audience)}", JwtAudience}
                     };
 
                     config.AddInMemoryCollection(jwtOptions);
@@ -56,9 +56,6 @@ namespace Discussion.Admin.Tests
             dbContext.Database.EnsureCreated();
         }
 
-        public TestDiscussionAdminApp() : this(true)
-        {
-        }
 
         public new TestDiscussionAdminApp Reset()
         {

@@ -31,7 +31,6 @@ export class UserRegisterComponent implements OnDestroy {
 
   constructor(
     fb: FormBuilder,
-    public msg: NzMessageService,
     private ngZone: NgZone,
     private router: Router,
     private httpClient: _HttpClient
@@ -125,8 +124,6 @@ export class UserRegisterComponent implements OnDestroy {
     return null;
   }
 
-  // region: fields
-
   get username() {
     return this.form.controls.username;
   }
@@ -136,8 +133,6 @@ export class UserRegisterComponent implements OnDestroy {
   get confirm() {
     return this.form.controls.confirm;
   }
-
-  // endregion
 
   submit() {
     this.error = '';
@@ -159,11 +154,15 @@ export class UserRegisterComponent implements OnDestroy {
       })
       .subscribe(res => {
         this.loading = false;
-        if (res.hasSucceeded) {
-          this.ngZone.run(() => this.router.navigate(['/passport/login'])).then();
-        } else {
+        if (!res.hasSucceeded) {
+          if(res.code === 401 && !res.errorMessage){
+            res.errorMessage = '需要登录后才能继续操作';
+          }
           this.error = res.errorMessage;
+          return;
         }
+
+        this.ngZone.run(() => this.router.navigate(['/passport/login'])).then();
       });
   }
 

@@ -27,29 +27,6 @@ const MOCK_MODULES = !environment.production
   : [];
 // #endregion
 
-// #region reuse-tab
-/**
- * 若需要[路由复用](https://ng-alain.com/components/reuse-tab)需要：
- * 1、增加 `REUSETAB_PROVIDES`
- * 2、在 `src/app/layout/default/default.component.html` 修改：
- *  ```html
- *  <section class="alain-default__content">
- *    <reuse-tab></reuse-tab>
- *    <router-outlet></router-outlet>
- *  </section>
- *  ```
- */
-import { RouteReuseStrategy } from '@angular/router';
-import { ReuseTabService, ReuseTabStrategy } from '@delon/abc/reuse-tab';
-const REUSETAB_PROVIDES = [
-  // {
-  //   provide: RouteReuseStrategy,
-  //   useClass: ReuseTabStrategy,
-  //   deps: [ReuseTabService],
-  // },
-];
-// #endregion
-
 // #region global config functions
 
 import { PageHeaderConfig } from '@delon/abc';
@@ -99,7 +76,7 @@ export class DelonModule {
   static forRoot(): ModuleWithProviders {
     return {
       ngModule: DelonModule,
-      providers: [...REUSETAB_PROVIDES, ...GLOBAL_CONFIG_PROVIDES],
+      providers: [...GLOBAL_CONFIG_PROVIDES],
     };
   }
 }
