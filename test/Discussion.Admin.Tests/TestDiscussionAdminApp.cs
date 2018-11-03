@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
+using Discussion.Admin.Supporting;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -33,7 +36,20 @@ namespace Discussion.Admin.Tests
             var connectionStringEVKey = $"DOTNETCLUB_{ApplicationDataServices.ConfigKeyConnectionString}";
             Environment.SetEnvironmentVariable(connectionStringEVKey, "Data Source=:memory:");
 
-            this.Init<Startup>();
+            this.Init<Startup>(hostBuilder =>
+            {
+                hostBuilder.ConfigureAppConfiguration((host, config) =>
+                {
+                    var jwtOptions = new Dictionary<string, string>()
+                    {
+                        {"JwtIssuerOptions:Secret", Guid.NewGuid().ToString()},
+                        {$"JwtIssuerOptions:{nameof(JwtIssuerOptions.Issuer)}", "testing"},
+                        {$"JwtIssuerOptions:{nameof(JwtIssuerOptions.Audience)}", "specs"}
+                    };
+
+                    config.AddInMemoryCollection(jwtOptions);
+                });
+            });
 
             var dbContext = ApplicationServices.GetService<ApplicationDbContext>();
             dbContext.Database.OpenConnection();

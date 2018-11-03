@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
+using Discussion.Admin.Services;
+using Discussion.Admin.Supporting;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Utilities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +19,8 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Discussion.Tests.Common
 {
@@ -71,6 +77,29 @@ namespace Discussion.Tests.Common
             };
             var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
             app.User = new ClaimsPrincipal(identity);
+        }
+        
+        public static void MockAdminUser(this TestApplication app)
+        {
+            var adminUserRepo = app.GetService<IRepository<AdminUser>>();
+            var adminUserService = app.GetService<IAdminUserService>();
+
+            var adminUser = new AdminUser
+            {
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
+                Username = "AdminUser",
+                HashedPassword = adminUserService.HashPassword("11111A")
+            };
+            adminUserRepo.Save(adminUser);
+
+            var token = adminUserService.IssueJwtToken(adminUser);
+            var options =  app.GetService<IOptionsMonitor<JwtBearerOptions>>().Get("Bearer");
+            ClaimsPrincipal identity = options.SecurityTokenValidators
+                                    .First()
+                                    .ValidateToken(token.TokenString, 
+                                                    options.TokenValidationParameters, 
+                                                    out _);
+            app.User = identity;
         }
         
         public static ModelStateDictionary ValidateModel(this TestApplication app, object model)

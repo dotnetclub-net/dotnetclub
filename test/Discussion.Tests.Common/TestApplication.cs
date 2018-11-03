@@ -18,9 +18,9 @@ namespace Discussion.Tests.Common
         ClaimsPrincipal _originalUser;
         AntiForgeryRequestTokens _antiForgeryRequestTokens;
 
-        protected void Init<TStartup>() where TStartup: class 
+        protected void Init<TStartup>(Action<IWebHostBuilder> configureHost = null) where TStartup: class 
         {           
-            BuildTestAppplication<TStartup>(this, "UnitTest");
+            BuildTestApplication<TStartup>(this, "UnitTest", configureHost);
             _originalUser = User;
         }
 
@@ -51,7 +51,7 @@ namespace Discussion.Tests.Common
             return _antiForgeryRequestTokens;
         }
         
-        public static TestApplication BuildTestAppplication<TStartup>(TestApplication testApp, 
+        public static TestApplication BuildTestApplication<TStartup>(TestApplication testApp, 
             string environmentName = "Production",
             Action<IWebHostBuilder> configureHost = null) where TStartup: class 
         {
@@ -82,8 +82,8 @@ namespace Discussion.Tests.Common
                 Environment.SetEnvironmentVariable(connectionStringEVKey, " ");
             }
             Environment.SetEnvironmentVariable("DOTNETCLUB_Logging:Console:LogLevel:Default", "Warning");
+            
             Configuration.ConfigureHost(hostBuilder);
-
             hostBuilder.ConfigureLogging(loggingBuilder =>
             {
                 loggingBuilder.SetMinimumLevel(LogLevel.Trace);

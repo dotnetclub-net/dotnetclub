@@ -15,9 +15,9 @@
         <PackageReference Include="Moq" Version="4.9.0" />
         <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
         <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.1.2" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\..\src\Discussion.Admin\Discussion.Admin.csproj" />
       <ProjectReference Include="..\..\src\Discussion.Core\Discussion.Core.csproj" />
     </ItemGroup>
 </Project>

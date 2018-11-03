@@ -2,12 +2,14 @@ using System;
 using System.Linq;
 using System.Net;
 using Discussion.Admin.Controllers;
+using Discussion.Admin.Services;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
 using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
+using Microsoft.AspNetCore.Identity;
 using Xunit;
 
 namespace Discussion.Admin.Tests.Specs.Controllers
@@ -22,6 +24,7 @@ namespace Discussion.Admin.Tests.Specs.Controllers
         {
             _adminApp = adminApp;
             _adminUserRepo = adminApp.GetService<IRepository<AdminUser>>();
+            _adminApp.Reset();
             _adminApp.DeleteAll<AdminUser>();
         }
 
@@ -45,7 +48,26 @@ namespace Discussion.Admin.Tests.Specs.Controllers
             Assert.NotNull(found.HashedPassword);
             Assert.NotEqual(newAdminUser.Password, found.HashedPassword);
         }
- 
+
+        [Fact]
+        public void should_register_new_admin_after_signin()
+        {
+            _adminApp.MockAdminUser();
+            var newAdminUser = new UserViewModel
+            {
+                UserName = StringUtility.Random(),
+                Password = "abcdefA@"
+            };
+            
+            var accountController = _adminApp.CreateController<AccountController>();
+            var apiResponse = accountController.Register(newAdminUser);
+            
+            
+            var found = _adminUserRepo.All().Any(u => u.Username == newAdminUser.UserName);
+            Assert.Equal(200, apiResponse.Code);
+            Assert.True(found);
+        }
+
         [Fact]
         public void should_not_register_second_admin_without_signin()
         {
@@ -69,29 +91,29 @@ namespace Discussion.Admin.Tests.Specs.Controllers
             Assert.Equal(401, apiResponse.Code);
             Assert.False(found);
         }
-        
-        [Fact(Skip = "not implemented")]
+
+        [Fact]
         public void should_not_register_one_username_a_second_time()
         {
-            _adminUserRepo.Save(new AdminUser
-            {
-                Username = "first-admin"
-            });
-
+            var password = "12345A";
+            var hashedPassword = _adminApp.GetService<IAdminUserService>().HashPassword(password);
+            var firstAdminUser = new AdminUser { Username = "first-admin", HashedPassword = hashedPassword  };
+            _adminUserRepo.Save(firstAdminUser);
+            _adminApp.MockAdminUser();
+            
+            
             var newAdminUser = new UserViewModel
             {
-                UserName = StringUtility.Random(),
-                Password = "abcdefA@"
+                UserName = firstAdminUser.Username,
+                Password = "another-password"
             };
-
-            
             var accountController = _adminApp.CreateController<AccountController>();
             var apiResponse = accountController.Register(newAdminUser);
             
             
-            var found = _adminUserRepo.All().Any(u => u.Username == newAdminUser.UserName);
-            Assert.Equal(401, apiResponse.Code);
-            Assert.False(found);
+            var users = _adminUserRepo.All().Where(u => u.Username == newAdminUser.UserName).ToList();
+            Assert.Equal(400, apiResponse.Code);
+            Assert.Equal(1, users.Count);
         }
         
         [Theory]
@@ -126,7 +148,6 @@ namespace Discussion.Admin.Tests.Specs.Controllers
             Assert.False(found);
         }
         
-               
         [Fact]
         public void should_signin_admin_with_valid_credential()
         {

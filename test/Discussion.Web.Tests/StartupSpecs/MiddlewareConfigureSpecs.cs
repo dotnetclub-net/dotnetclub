@@ -27,7 +27,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_use_iis_platform()
         {
-            var app = TestDiscussionWebApp.BuildTestAppplication<Startup>(new TestDiscussionWebApp(initialize: false), "UnitTest", host =>
+            var app = TestDiscussionWebApp.BuildTestApplication<Startup>(new TestDiscussionWebApp(initialize: false), "UnitTest", host =>
             {
                 host.UseSetting("PORT", "5000");
                 host.UseSetting("APPL_PATH", "/");
@@ -82,7 +82,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public void should_use_temporary_database_when_no_database_connection_string_specified()
         {
-            var app = TestDiscussionWebApp.BuildTestAppplication<Startup>(new TestDiscussionWebApp(initialize: false), "UnitTest");
+            var app = TestDiscussionWebApp.BuildTestApplication<Startup>(new TestDiscussionWebApp(initialize: false), "UnitTest");
 
             var logs = app.GetLogs();
             

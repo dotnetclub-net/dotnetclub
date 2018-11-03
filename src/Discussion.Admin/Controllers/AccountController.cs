@@ -1,23 +1,15 @@
 ﻿using System;
-using System.Security.Claims;
-using System.Security.Principal;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using Discussion.Admin.Services;
-using Discussion.Admin.Supporting;
-using Discussion.Admin.ViewModels;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.ViewModels;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Discussion.Admin.Controllers
 {
@@ -62,10 +54,15 @@ namespace Discussion.Admin.Controllers
         {
             var isAuthenticated = HttpContext.IsAuthenticated();
             var canAccessAnonymously = !(_adminUserRepo.All().Any());
-
             if (!canAccessAnonymously && !isAuthenticated)
             {
                 return ApiResponse.NoContent(HttpStatusCode.Unauthorized);
+            }
+    
+            var userNameTaken =_adminUserRepo.All().Any(u => u.Username.ToLower() == newAdminUser.UserName.ToLower());
+            if (userNameTaken)
+            {
+                ModelState.AddModelError(nameof(UserViewModel.UserName), "用户名已被占用");
             }
             
             if (!ModelState.IsValid)
@@ -79,7 +76,7 @@ namespace Discussion.Admin.Controllers
                 HashedPassword = _adminUserService.HashPassword(newAdminUser.Password)
             };
             _adminUserRepo.Save(admin);
-
+    
             return ApiResponse.NoContent();
         }
 

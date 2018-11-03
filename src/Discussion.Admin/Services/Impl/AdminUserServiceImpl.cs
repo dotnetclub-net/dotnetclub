@@ -32,7 +32,7 @@ namespace Discussion.Admin.Services.Impl
                 bearerIdentity,
                 new[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, adminUser.Id.ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, adminUser.Id.ToString(), ClaimValueTypes.Integer32),
                     new Claim(ClaimTypes.Name, adminUser.Username),
 
                     new Claim(JwtRegisteredClaimNames.Sub, adminUser.Username),
@@ -41,8 +41,6 @@ namespace Discussion.Admin.Services.Impl
                         ClaimValueTypes.Integer64),
                 });
             
-            
-
             var handler = new JwtSecurityTokenHandler();
 
             var securityToken = handler.CreateToken(new SecurityTokenDescriptor
