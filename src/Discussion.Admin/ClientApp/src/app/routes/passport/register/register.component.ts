@@ -155,7 +155,7 @@ export class UserRegisterComponent implements OnDestroy {
       .subscribe(res => {
         this.loading = false;
         if (!res.hasSucceeded) {
-          if(res.code === 401 && !res.errorMessage){
+          if (res.code === 401 && !res.errorMessage) {
             res.errorMessage = '需要登录后才能继续操作';
           }
           this.error = res.errorMessage;

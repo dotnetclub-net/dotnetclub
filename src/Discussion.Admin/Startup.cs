@@ -65,10 +65,8 @@ namespace Discussion.Admin
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseApiResponseExceptionHandler();
-
+            app.UseUnifiedApiResponse();
             app.UseAuthentication();
-
             app.UseMvc();
             app.UseSpa(spa =>
             {

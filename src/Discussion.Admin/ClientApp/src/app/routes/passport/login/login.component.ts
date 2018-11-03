@@ -7,7 +7,7 @@ import {
   DA_SERVICE_TOKEN,
 } from '@delon/auth';
 import { StartupService } from '@core/startup/startup.service';
-import {ApiResponse} from "../../../api-response";
+import {ApiResponse} from '../../../api-response';
 
 @Component({
   selector: 'passport-login',
@@ -55,8 +55,8 @@ export class UserLoginComponent implements OnDestroy {
       password: this.password.value
     }).subscribe((res: ApiResponse) => {
       this.loading = false;
-      if(!res.hasSucceeded){
-        if(!res.errorMessage){
+      if (!res.hasSucceeded) {
+        if (!res.errorMessage) {
           res.errorMessage = '服务器返回错误：' + res.code;
         }
 

@@ -2,6 +2,7 @@ using System;
 using Discussion.Admin.Supporting;
 using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Admin.Controllers
@@ -33,6 +34,13 @@ namespace Discussion.Admin.Controllers
         public ApiResponse ApiObj()
         {
             return ApiResponse.ActionResult(new { field = "foo" });
+        }
+        
+        [Route("api/require-auth")]
+        [Authorize]
+        public ApiResponse RequireAuth()
+        {
+            return ApiResponse.NoContent();
         }
     }
 }

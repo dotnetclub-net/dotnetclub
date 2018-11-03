@@ -20,8 +20,6 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
         {
             _app = app;
         }
-
-        
         
         [Fact]
         public async Task should_serve_register_api()
@@ -37,6 +35,23 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
             var jsonContent = response.ReadAllContent();
             var apiRes = JsonConvert.DeserializeObject<ApiResponse>(jsonContent);
             Assert.Equal(200, apiRes.Code);
+        }
+        
+        
+        [Fact]
+        public async Task should_serve_signin_api()
+        {
+            _app.DeleteAll<AdminUser>();
+            var request = _app.Server.CreateRequest("/api/account/signin");
+
+            var response = await request
+                                    .WithJsonContent(new {userName = StringUtility.Random(), password = "password1"})
+                                    .PostAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var jsonContent = response.ReadAllContent();
+            var apiRes = JsonConvert.DeserializeObject<ApiResponse>(jsonContent);
+            Assert.Equal(400, apiRes.Code);
         }
     }
 }

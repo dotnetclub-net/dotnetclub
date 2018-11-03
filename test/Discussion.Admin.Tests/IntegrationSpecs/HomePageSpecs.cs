@@ -79,5 +79,21 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
             Assert.NotNull(result);
             Assert.Equal("foo", result["field"]);
         }
+        
+        [Fact]
+        public async Task should_respond_api_response_on_unauthorized_api()
+        {
+            var request = _app.Server.CreateRequest("/api/require-auth");
+
+            
+            var response = await request.GetAsync();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            
+            var jsonContent = response.ReadAllContent();
+            var apiRes = JsonConvert.DeserializeObject<ApiResponse>(jsonContent);
+
+            Assert.Equal(401, apiRes.Code);
+        }
     }
 }
