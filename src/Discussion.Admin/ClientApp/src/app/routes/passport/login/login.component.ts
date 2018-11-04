@@ -1,57 +1,37 @@
-import { SettingsService, _HttpClient } from '@delon/theme';
-import { Component, OnDestroy, Inject, Optional } from '@angular/core';
+import { _HttpClient } from '@delon/theme';
+import {Component, OnDestroy, Inject, Optional, NgZone} from '@angular/core';
 import { Router } from '@angular/router';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { NzMessageService, NzModalService } from 'ng-zorro-antd';
 import {
-  SocialService,
-  SocialOpenType,
   TokenService,
   DA_SERVICE_TOKEN,
 } from '@delon/auth';
-import { ReuseTabService } from '@delon/abc';
-import { environment } from '@env/environment';
 import { StartupService } from '@core/startup/startup.service';
+import {ApiResponse} from '../../../api-response';
 
 @Component({
   selector: 'passport-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.less'],
-  providers: [SocialService],
+  styleUrls: ['./login.component.less']
 })
 export class UserLoginComponent implements OnDestroy {
   form: FormGroup;
   error = '';
-  type = 0;
   loading = false;
-  count = 0;
-  interval$: any;
 
   constructor(
     fb: FormBuilder,
     private router: Router,
-    public msg: NzMessageService,
-    private modalSrv: NzModalService,
-    private settingsService: SettingsService,
-    private socialService: SocialService,
-    @Optional()
-    @Inject(ReuseTabService)
-    private reuseTabService: ReuseTabService,
+    private ngZone: NgZone,
     @Inject(DA_SERVICE_TOKEN) private tokenService: TokenService,
     private startupSrv: StartupService,
-    private http: _HttpClient
-  ) {
-    this.form = fb.group({
-      userName: [null, [Validators.required, Validators.minLength(5)]],
-      password: [null, Validators.required],
-      mobile: [null, [Validators.required, Validators.pattern(/^1\d{10}$/)]],
-      captcha: [null, [Validators.required]],
-      remember: [true],
-    });
-    modalSrv.closeAll();
-  }
+    private http: _HttpClient) {
 
-  // region: fields
+    this.form = fb.group({
+      userName: [null, [Validators.required, Validators.minLength(3)]],
+      password: [null, Validators.required]
+    });
+  }
 
   get userName() {
     return this.form.controls.userName;
@@ -59,70 +39,40 @@ export class UserLoginComponent implements OnDestroy {
   get password() {
     return this.form.controls.password;
   }
-  get mobile() {
-    return this.form.controls.mobile;
-  }
-  get captcha() {
-    return this.form.controls.captcha;
-  }
-
-  // endregion
-
-  switch(ret: any) {
-    this.type = ret.index;
-  }
-
-  getCaptcha() {
-    this.count = 59;
-    this.interval$ = setInterval(() => {
-      this.count -= 1;
-      if (this.count <= 0) clearInterval(this.interval$);
-    }, 1000);
-  }
-
-  // endregion
 
   submit() {
     this.error = '';
-    if (this.type === 0) {
-      this.userName.markAsDirty();
-      this.userName.updateValueAndValidity();
-      this.password.markAsDirty();
-      this.password.updateValueAndValidity();
-      if (this.userName.invalid || this.password.invalid) return;
-    } else {
-      this.mobile.markAsDirty();
-      this.mobile.updateValueAndValidity();
-      this.captcha.markAsDirty();
-      this.captcha.updateValueAndValidity();
-      if (this.mobile.invalid || this.captcha.invalid) return;
-    }
+    this.userName.markAsDirty();
+    this.userName.updateValueAndValidity();
 
-    // **注：** DEMO中使用 `setTimeout` 来模拟 http
-    // 默认配置中对所有HTTP请求都会强制[校验](https://ng-alain.com/auth/getting-started) 用户 Token
-    // 然一般来说登录请求不需要校验，因此可以在请求URL加上：`/login?_allow_anonymous=true` 表示不触发用户 Token 校验
-    this.loading = this.http.loading;
+    this.password.markAsDirty();
+    this.password.updateValueAndValidity();
+
+    if (this.userName.invalid || this.password.invalid) return;
 
     this.http.post('api/account/signin', {
-      UserName: this.userName.value,
-      Password: this.password.value,
-      // RememberMe: this.form.controls.remember
-    }).subscribe((res: any) => {
-      // 清空路由复用信息
-      this.reuseTabService.clear();
-      // 设置Token信息
+      userName: this.userName.value,
+      password: this.password.value
+    }).subscribe((res: ApiResponse) => {
+      this.loading = false;
+      if (!res.hasSucceeded) {
+        if (!res.errorMessage) {
+          res.errorMessage = '服务器返回错误：' + res.code;
+        }
+
+        this.error = res.errorMessage;
+        return;
+      }
+
       this.tokenService.set({
-        token: res.auth_token,
+        token: res.result.token,
       });
-      // 重新获取 StartupService 内容，若其包括 User 有关的信息的话
-      this.startupSrv.load().then(() => this.router.navigate(['/']));
-      // 否则直接跳转
-      // this.router.navigate(['/']);
+      this.startupSrv.load().then(() => this.ngZone.run(() =>
+                            this.router.navigate(['/'])).then());
     });
+    this.loading = this.http.loading;
   }
-  // endregion
 
   ngOnDestroy(): void {
-    if (this.interval$) clearInterval(this.interval$);
   }
 }

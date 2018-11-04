@@ -40,6 +40,15 @@
       color: $gray;
     }
   }
+
+  .note-editor.note-frame .note-editing-area .note-editable{
+    @include article_content
+  }
+  
+  .note-editor.note-frame .note-editing-area .note-codable{
+    background-color: $gray-content-hover;
+    color: $text-color;
+  }
 }
 
 .topic-submit-section{

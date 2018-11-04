@@ -1,16 +1,18 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Xunit;
 
 
 namespace Discussion.Web.Tests.IntegrationTests
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class HomePageSpecs
     {
-        private TestApplication _theApp;
-        public HomePageSpecs(TestApplication theApp) {
-            _theApp = theApp;
+        private TestDiscussionWebApp _app;
+        public HomePageSpecs(TestDiscussionWebApp app) {
+            _app = app;
         }
 
 
@@ -21,7 +23,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_home_page_correctly()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest(HomePagePath);
+            var request = _app.Server.CreateRequest(HomePagePath);
 
             // act
             var response = await request.GetAsync();
@@ -36,7 +38,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_about_page()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/about");
+            var request = _app.Server.CreateRequest("/about");
 
             // act
             var response = await request.GetAsync();
@@ -52,7 +54,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_error_as_error_response()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest(ErrorPagePath);
+            var request = _app.Server.CreateRequest(ErrorPagePath);
 
             // act
             var response = await request.GetAsync();

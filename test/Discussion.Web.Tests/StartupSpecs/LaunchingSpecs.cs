@@ -4,8 +4,9 @@ using Xunit;
 using System;
 using System.Linq;
 using System.Net.NetworkInformation;
-using static Discussion.Web.Tests.TestEnv;
+using static Discussion.Tests.Common.TestEnv;
 using System.Text.RegularExpressions;
+using Discussion.Tests.Common.AssertionExtensions;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {

@@ -16,12 +16,11 @@ import { SharedModule } from '@shared/shared.module';
 
 import { DelonModule } from '../app/delon.module';
 import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
 const resetTestingModule = TestBed.resetTestingModule,
-  preventAngularFromResetting = () =>
-    (TestBed.resetTestingModule = () => TestBed);
-const allowAngularToReset = () =>
-  (TestBed.resetTestingModule = resetTestingModule);
+  preventAngularFromResetting = () => (TestBed.resetTestingModule = () => TestBed);
+const allowAngularToReset = () => (TestBed.resetTestingModule = resetTestingModule);
 
 export const setUpTestBed = (moduleDef: TestModuleMetadata) => {
   beforeAll(done =>
@@ -44,10 +43,12 @@ export const setUpTestBed = (moduleDef: TestModuleMetadata) => {
       moduleDef.imports.push(HttpClientTestingModule);
       moduleDef.imports.push(RouterTestingModule);
       moduleDef.imports.push(HttpClientModule);
-      moduleDef.imports.push(DelonModule);
       moduleDef.imports.push(SharedModule);
-      // auth
+      moduleDef.imports.push(ReactiveFormsModule);
+      moduleDef.imports.push(FormsModule);
+
       moduleDef.imports.push(DelonAuthModule.forRoot());
+      moduleDef.imports.push(DelonModule.forRoot());
       // endregion
 
       // region: providers
@@ -64,7 +65,6 @@ export const setUpTestBed = (moduleDef: TestModuleMetadata) => {
         },
       );
       // endregion
-
       TestBed.configureTestingModule(moduleDef);
       await TestBed.compileComponents();
 
@@ -86,3 +86,4 @@ export const createComponent = <T>(type: Type<T>): T => TestBed.createComponent(
 
 export const mockedHttpBackend = (): HttpTestingController => TestBed.get(HttpTestingController);
 
+export const dummyValidToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6InNvbWVvbmUiLCJuYW1laWQiOjIwLCJzdWIiOiJzb21lb25lIiwianRpIjoiYWEwMWVjOTctZDRhMy00MDAwLWJjMDAtMTY2N2M0MWRkMDFjIiwiaWF0IjoxNTQxMjQwNjUxLCJuYmYiOjE1NDEyNDA2NTEsImV4cCI6NDY5NDg0MDY1MSwiaXNzIjoidGVzdGluZyIsImF1ZCI6InNwZWNzIn0.kYaMgMCz9ZICUeT2gp1YmRlHWwFbj34HuK53NIbPvno';

@@ -3,7 +3,7 @@ using FluentMigrator.Builders.Create.Table;
 
 namespace Discussion.Migrations
 {
-    [Migration(6)]
+    [Migration(7)]
     public class CreateEmailBindOptionsTable: CreateEntityTableMigration
     {
         public const string TABLE_NAME = "EmailBindOptions";

@@ -12,7 +12,6 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { UserLoginComponent } from './passport/login/login.component';
 import { UserRegisterComponent } from './passport/register/register.component';
 // single pages
-import { CallbackComponent } from './callback/callback.component';
 import { Exception403Component } from './exception/403.component';
 import { Exception404Component } from './exception/404.component';
 import { Exception500Component } from './exception/500.component';
@@ -28,22 +27,21 @@ const routes: Routes = [
     component: LayoutDefaultComponent,
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent, data: { title: '仪表盘', titleI18n: 'dashboard' } },
-      { path: 'topics', component: TopicListComponent, data: { title: '话题管理', titleI18n: 'topic-management' } },
+      { path: 'dashboard', component: DashboardComponent, data: { title: '管理面板' } },
+      { path: 'topics', component: TopicListComponent, data: { title: '话题管理'} },
     ]
   },
   {
     path: 'passport',
     component: LayoutPassportComponent,
     children: [
-      { path: 'login', component: UserLoginComponent, data: { title: '登录', titleI18n: 'pro-login' } },
-      { path: 'register', component: UserRegisterComponent, data: { title: '注册', titleI18n: 'pro-register' } },
+      { path: 'login', component: UserLoginComponent, data: { title: '登录管理面板'} },
+      { path: 'register', component: UserRegisterComponent, data: { title: '注册管理员'} },
     ]
   },
-  { path: 'callback/:type', component: CallbackComponent },
-  { path: '403', component: Exception403Component },
-  { path: '404', component: Exception404Component },
-  { path: '500', component: Exception500Component },
+  { path: '403', component: Exception403Component, data: { title: '没有操作权限'}},
+  { path: '404', component: Exception404Component, data: { title: '找不到资源'} },
+  { path: '500', component: Exception500Component, data: { title: '发生了错误'} },
   { path: '**', redirectTo: 'dashboard' }
 ];
 
@@ -55,7 +53,6 @@ const COMPONENTS = [
   UserLoginComponent,
   UserRegisterComponent,
 
-  CallbackComponent,
   Exception403Component,
   Exception404Component,
   Exception500Component,

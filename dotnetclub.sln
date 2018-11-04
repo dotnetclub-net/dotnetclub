@@ -18,16 +18,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Scratches", "_Scratches", 
 		build.cake = build.cake
 		build.ps1 = build.ps1
 		build.sh = build.sh
-		deploy-on-hyper.sh = deploy-on-hyper.sh
 		DockerFile = DockerFile
 		readme-en.md = readme-en.md
 		readme.md = readme.md
-		upgrade-from-existing.sh = upgrade-from-existing.sh
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discussion.Core", "src\Discussion.Core\Discussion.Core.csproj", "{D9E60D32-042F-4916-B006-F815E6323D12}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discussion.Admin", "src\Discussion.Admin\Discussion.Admin.csproj", "{851331E4-4427-47FC-8253-813898BF889E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discussion.Admin.Tests", "test\Discussion.Admin.Tests\Discussion.Admin.Tests.csproj", "{4AEFC2F7-1023-4917-92FB-13186254584C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discussion.Tests.Common", "test\Discussion.Tests.Common\Discussion.Tests.Common.csproj", "{5E41FD48-7E90-4A6F-A69D-D523B3F63744}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,12 +61,22 @@ Global
 		{851331E4-4427-47FC-8253-813898BF889E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{851331E4-4427-47FC-8253-813898BF889E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{851331E4-4427-47FC-8253-813898BF889E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AEFC2F7-1023-4917-92FB-13186254584C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AEFC2F7-1023-4917-92FB-13186254584C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AEFC2F7-1023-4917-92FB-13186254584C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AEFC2F7-1023-4917-92FB-13186254584C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E41FD48-7E90-4A6F-A69D-D523B3F63744}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E41FD48-7E90-4A6F-A69D-D523B3F63744}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E41FD48-7E90-4A6F-A69D-D523B3F63744}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E41FD48-7E90-4A6F-A69D-D523B3F63744}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6B1DCA02-EF62-42CA-8865-DA66600D84C1} = {9958F5A5-400C-428F-8DC8-B0EB9DE793FD}
+		{4AEFC2F7-1023-4917-92FB-13186254584C} = {9958F5A5-400C-428F-8DC8-B0EB9DE793FD}
+		{5E41FD48-7E90-4A6F-A69D-D523B3F63744} = {9958F5A5-400C-428F-8DC8-B0EB9DE793FD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {938B70F5-B75E-4D32-B581-40D7148A0D17}

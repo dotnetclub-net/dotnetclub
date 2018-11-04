@@ -2,23 +2,25 @@
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
+using Discussion.Core.Pagination;
+using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Services.Identity;
-using Discussion.Web.Services.Markdown;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class TopicControllerSpecs
     {
-        public TestApplication _myApp;
+        private readonly TestDiscussionWebApp _app;
 
-        public TopicControllerSpecs(TestApplication app)
+        public TopicControllerSpecs(TestDiscussionWebApp app)
         {
-            _myApp = app.Reset();
+            _app = app.Reset();
         }
 
         [Fact]
@@ -30,29 +32,28 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 new Topic {Title = "dummy topic 2", Type = TopicType.Discussion },
                 new Topic {Title = "dummy topic 3", Type = TopicType.Discussion },
             };
-            var repo = _myApp.GetService<IRepository<Topic>>();
+            var repo = _app.GetService<IRepository<Topic>>();
             foreach (var item in topicItems)
             {
                 repo.Save(item);
             }
 
-            var topicController = _myApp.CreateController<TopicController>();
+            var topicController = _app.CreateController<TopicController>();
 
             var topicListResult = topicController.List() as ViewResult;
-            var listViewModel = topicListResult.ViewData.Model as TopicListViewModel;
+            var listViewModel = topicListResult.ViewData.Model as Paged<Topic>;
 
             listViewModel.ShouldNotBeNull();
-            var topicList = listViewModel.Topics;
-            topicList.ShouldContain(t => t.Title == "dummy topic 1");
-            topicList.ShouldContain(t => t.Title == "dummy topic 2");
-            topicList.ShouldContain(t => t.Title == "dummy topic 3");
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 1");
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 2");
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 3");
         }
 
         [Fact]
         public void should_calc_topic_list_with_paging()
         {
-            var repo = _myApp.GetService<IRepository<Topic>>();
-            repo.All().ToList().ForEach(topic => repo.Delete(topic));
+            _app.DeleteAll<Topic>();
+            var repo = _app.GetService<IRepository<Topic>>();
             var all = 30;
             do
             {
@@ -64,18 +65,18 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 });
             } while (--all > 0);
 
-            var topicController = _myApp.CreateController<TopicController>();
+            var topicController = _app.CreateController<TopicController>();
 
             var topicListResult = topicController.List(2) as ViewResult;
-            var listViewModel = topicListResult.ViewData.Model as TopicListViewModel;
+            var listViewModel = topicListResult.ViewData.Model as Paged<Topic>;
 
             listViewModel.ShouldNotBeNull();
-            listViewModel.CurrentPage.ShouldEqual(2);
-            listViewModel.HasPreviousPage.ShouldEqual(true);
-            listViewModel.HasNextPage.ShouldEqual(false);
+            listViewModel.Paging.CurrentPage.ShouldEqual(2);
+            listViewModel.Paging.HasPreviousPage.ShouldEqual(true);
+            listViewModel.Paging.HasNextPage.ShouldEqual(false);
 
-            var topicList = listViewModel.Topics;
-            topicList.Count.ShouldEqual(10);
+            var topicList = listViewModel.Items;
+            topicList.Length.ShouldEqual(10);
             topicList[0].Title.ShouldEqual("dummy topic 21");
             topicList[9].Title.ShouldEqual("dummy topic 30");
         }
@@ -83,8 +84,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_create_topic()
         {
-            _myApp.MockUser();
-            var topicController = _myApp.CreateController<TopicController>();
+            _app.MockUser();
+            var topicController = _app.CreateController<TopicController>();
 
             var model = new TopicCreationModel()
             {
@@ -94,7 +95,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             };
             topicController.CreateTopic(model);
 
-            var repo = _myApp.GetService<IRepository<Topic>>();
+            var repo = _app.GetService<IRepository<Topic>>();
             var allTopics = repo.All().ToList();
 
             var createdTopic = allTopics.Find(topic => topic.Title == model.Title);
@@ -103,7 +104,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             createdTopic.Title.ShouldEqual(model.Title);
             createdTopic.Content.ShouldEqual(model.Content);
             createdTopic.Type.ShouldEqual(TopicType.Job);
-            createdTopic.CreatedBy.ShouldEqual(_myApp.GetDiscussionUser().Id);
+            createdTopic.CreatedBy.ShouldEqual(_app.GetDiscussionUser().Id);
 
             var createdAt = DateTime.UtcNow - createdTopic.CreatedAtUtc;
             Assert.True(createdAt.TotalMilliseconds >= 0);
@@ -117,19 +118,19 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_show_topic_and_update_view_count()
         {
-            _myApp.MockUser();
+            _app.MockUser();
             var topic = new Topic
             {
                 Title = "dummy topic 1",
                 ViewCount = 4,
                 Type = TopicType.Discussion,
-                CreatedBy = _myApp.User.ExtractUserId().Value
+                CreatedBy = _app.User.ExtractUserId().Value
             };
-            var repo = _myApp.GetService<IRepository<Topic>>();
+            var repo = _app.GetService<IRepository<Topic>>();
             repo.Save(topic);
-            _myApp.Reset();
+            _app.Reset();
 
-            var topicController = _myApp.CreateController<TopicController>();
+            var topicController = _app.CreateController<TopicController>();
             var result = topicController.Index(topic.Id) as ViewResult;
 
             result.ShouldNotBeNull();
@@ -146,23 +147,23 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_show_topic_with_reply_list()
         {
-            _myApp.MockUser();
+            _app.MockUser();
             // Arrange
-            var topicRepo = _myApp.GetService<IRepository<Topic>>();
-            var replyRepo = _myApp.GetService<IRepository<Reply>>();
+            var topicRepo = _app.GetService<IRepository<Topic>>();
+            var replyRepo = _app.GetService<IRepository<Reply>>();
 
-            var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion, CreatedBy = _myApp.User.ExtractUserId().Value };
+            var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion, CreatedBy = _app.User.ExtractUserId().Value };
             topicRepo.Save(topic);
 
             var replyContent = "reply content ";
-            var replyNew = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = replyContent + "2", TopicId = topic.Id, CreatedBy = _myApp.User.ExtractUserId().Value };
-            var replyOld = new Reply { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = replyContent + "1", TopicId = topic.Id, CreatedBy = _myApp.User.ExtractUserId().Value };
+            var replyNew = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = replyContent + "2", TopicId = topic.Id, CreatedBy = _app.User.ExtractUserId().Value };
+            var replyOld = new Reply { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = replyContent + "1", TopicId = topic.Id, CreatedBy = _app.User.ExtractUserId().Value };
             replyRepo.Save(replyNew);
             replyRepo.Save(replyOld);
-            _myApp.Reset();
+            _app.Reset();
 
             // Act
-            var topicController = _myApp.CreateController<TopicController>();
+            var topicController = _app.CreateController<TopicController>();
             var result = topicController.Index(topic.Id) as ViewResult;
 
             // Assert

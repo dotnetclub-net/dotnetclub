@@ -1,6 +1,8 @@
 ﻿using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Web.Services.Emailconfirmation;
+using Discussion.Core.Mvc;
+using Discussion.Core.ViewModels;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.DataProtection;
@@ -54,8 +56,9 @@ namespace Discussion.Web.Controllers
 
 
         [HttpPost]
-        [Route("/signin")]
-        public async Task<IActionResult> DoSignin([FromForm]SigninUserViewModel viewModel, [FromQuery]string returnUrl)
+
+        [Route("/signin")]        
+        public async Task<IActionResult> DoSignin([FromForm]UserViewModel viewModel, [FromQuery]string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -114,8 +117,9 @@ namespace Discussion.Web.Controllers
             return View();
         }
         [HttpPost]
-        [Route("/register")]
-        public async Task<IActionResult> DoRegister(SigninUserViewModel userViewModel)
+
+        [Route("/register")]  
+        public async Task<IActionResult> DoRegister(UserViewModel userViewModel)
         {
             if (!ModelState.IsValid)
             {

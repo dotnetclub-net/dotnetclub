@@ -18,6 +18,22 @@ Task("Default")
           }
         });
 
+Task("clean")
+  .Does(() =>{
+        var directoriesToDelete = new DirectoryPath[]{
+            Directory("./src/Discussion.Web/publish"),
+            Directory("./src/Discussion.Web/wwwroot/dist"),
+            Directory("./src/Discussion.Admin/ClientApp/dist")
+        }.Where(DirectoryExists).ToArray();
+
+        DeleteDirectories(directoriesToDelete, new DeleteDirectorySettings {
+            Recursive = true,
+            Force = true
+        });
+
+        DotNetCoreClean("./dotnetclub.sln");
+    });
+
 Task("build")
   .Does(() =>
     {
@@ -36,7 +52,6 @@ Task("build")
         });
         DoInDirectory("./src/Discussion.Web/wwwroot", () =>
         {
-            Execute("npm run clean");
             Execute("npm run dev");
             Execute("npm run prod");
         });
@@ -62,7 +77,16 @@ Task("test")
         DoInDirectory("./test/Discussion.Web.Tests/", () =>
         {
             if(isLinux && isCI){
-                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover");
+                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=\\\"[*]Discussion.Tests.Common.*\\\"");
+            }else{
+                DotNetCoreTest();
+            }
+        });
+
+        DoInDirectory("./test/Discussion.Admin.Tests/", () =>
+        {
+            if(isLinux && isCI){
+                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=\\\"[*]Discussion.Tests.Common.*\\\"");
             }else{
                 DotNetCoreTest();
             }
@@ -100,7 +124,6 @@ Task("package")
 
             CopyFile("./DockerFile", "./src/Discussion.Web/publish/DockerFile");
             
-            CopyFile("./upgrade-from-existing.sh", "./src/Discussion.Web/publish/upgrade-from-existing.sh ");
             CopyFile("src/Discussion.Migrations/bin/Release/netcoreapp2.1/Discussion.Migrations.deps.json", "./src/Discussion.Web/publish/Discussion.Migrations.deps.json");
             CopyFile("src/Discussion.Migrations/bin/Release/netcoreapp2.1/Discussion.Migrations.runtimeconfig.json", "./src/Discussion.Web/publish/Discussion.Migrations.runtimeconfig.json");
 
@@ -111,6 +134,7 @@ Task("package")
 
 
 Task("ci")
+   .IsDependentOn("clean")
    .IsDependentOn("build")
    .IsDependentOn("test")
    .IsDependentOn("package");

@@ -2,6 +2,9 @@ using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
+using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
@@ -10,12 +13,12 @@ using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class ReplyControllerSpecs
     {
-        private TestApplication _app;
+        private TestDiscussionWebApp _app;
 
-        public ReplyControllerSpecs(TestApplication app)
+        public ReplyControllerSpecs(TestDiscussionWebApp app)
         {
             _app = app.Reset();
         }
@@ -96,9 +99,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.Equal(400, statusCodeResult.StatusCode);
         }
 
-        internal static (Topic, int) CreateTopic(TestApplication testApplication)
+        internal static (Topic, int) CreateTopic(TestDiscussionWebApp testDiscussionWeb)
         {
-            var userId = testApplication.User.ExtractUserId().Value;
+            var userId = testDiscussionWeb.User.ExtractUserId().Value;
             var topic = new Topic
             {
                 Title = "test topic",
@@ -106,7 +109,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 CreatedBy = userId,
                 Type = TopicType.Discussion
             };
-            testApplication.GetService<IRepository<Topic>>().Save(topic);
+            testDiscussionWeb.GetService<IRepository<Topic>>().Save(topic);
             return (topic, userId);
         }
     }

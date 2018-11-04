@@ -1,17 +1,19 @@
 ﻿using System;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Repositories
 {
 
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class ArticleRepoSpecs
     {
         private readonly IServiceProvider _applicationServices;
-        public ArticleRepoSpecs(TestApplication app)
+        public ArticleRepoSpecs(TestDiscussionWebApp app)
         {
             _applicationServices = app.ApplicationServices;
         }

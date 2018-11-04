@@ -6,6 +6,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Utilities;
+using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -15,15 +18,15 @@ using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class AccountRelatedPageSpecs
     {
-        private readonly TestApplication _theApp;
+        private readonly TestDiscussionWebApp _app;
         private readonly AntiForgeryRequestTokens _antiForgeryTokens;
 
-        public AccountRelatedPageSpecs(TestApplication theApp) {
-            _theApp = theApp.Reset();
-            _antiForgeryTokens = _theApp.GetAntiForgeryTokens();
+        public AccountRelatedPageSpecs(TestDiscussionWebApp app) {
+            _app = app.Reset();
+            _antiForgeryTokens = _app.GetAntiForgeryTokens();
         }
 
 
@@ -31,7 +34,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_signin_page_correctly()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/signin");
+            var request = _app.Server.CreateRequest("/signin");
 
             // act
             var response = await request.GetAsync();
@@ -46,12 +49,12 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_be_able_to_signin_new_user()
         {
             // arrange
-            var username = Guid.NewGuid().ToString("N").Substring(4, 8);
+            var username = StringUtility.Random();
             var password = "11111a";
-            _theApp.CreateUser(username, password);
+            _app.CreateUser(username, password);
 
             // Act
-            var request = _theApp.Server.CreateRequest("/signin")
+            var request = _app.Server.CreateRequest("/signin")
                 .WithFormContent(new Dictionary<string, string>()
                 {
                     {"UserName", username}, 
@@ -71,10 +74,10 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task signed_in_users_should_be_able_to_view_pages_that_requires_authenticated_users()
         {
             // arrange
-            var username = Guid.NewGuid().ToString("N").Substring(4, 8);
+            var username = StringUtility.Random();
             var password = "11111a";
-            _theApp.CreateUser(username, password);
-            var signinResponse = await _theApp.RequestAntiForgeryForm("/signin",
+            _app.CreateUser(username, password);
+            var signinResponse = await _app.RequestAntiForgeryForm("/signin",
                                                 new Dictionary<string, string>
                                                 {
                                                     {"UserName", username},
@@ -82,7 +85,7 @@ namespace Discussion.Web.Tests.IntegrationTests
                                                 })
                                                 .PostAsync();
             // Act
-            var request = _theApp.Server.CreateRequest("/topics/create")
+            var request = _app.Server.CreateRequest("/topics/create")
                                         .WithCookiesFrom(signinResponse);
             
             var response = await request.GetAsync();
@@ -96,7 +99,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_register_page_correctly()
         {
             // arrange
-            var request = _theApp.Server.CreateRequest("/register");
+            var request = _app.Server.CreateRequest("/register");
 
             // act
             var response = await request.GetAsync();
@@ -110,11 +113,11 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_be_able_to_register_new_user()
         {
             // arrange
-            var username = Guid.NewGuid().ToString("N").Substring(4, 8);
+            var username = StringUtility.Random();
             var password = "11111a";
             
             // Act
-            var request = _theApp.Server.CreateRequest("/register")
+            var request = _app.Server.CreateRequest("/register")
                 .WithFormContent(new Dictionary<string, string>()
                 {
                     {"UserName", username},
@@ -126,7 +129,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.Redirect);
-            var isRegistered = _theApp.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
+            var isRegistered = _app.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
             isRegistered.ShouldEqual(true);
         }
      
@@ -134,8 +137,8 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_signin_newly_registered_user()
         {
             // arrange
-            var username = Guid.NewGuid().ToString("N").Substring(4, 8);
-            var registerResponse = await _theApp.Server.CreateRequest("/register")
+            var username = StringUtility.Random();
+            var registerResponse = await _app.Server.CreateRequest("/register")
                                 .WithFormContent(new Dictionary<string, string>()
                                     {
                                         {"UserName", username}, 
@@ -146,7 +149,7 @@ namespace Discussion.Web.Tests.IntegrationTests
                                 .PostAsync();
 
             // Act
-            var response = await _theApp.Server.CreateRequest("/topics/create")
+            var response = await _app.Server.CreateRequest("/topics/create")
                                                 .WithCookiesFrom(registerResponse)
                                                 .GetAsync();
             

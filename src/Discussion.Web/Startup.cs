@@ -1,8 +1,11 @@
-﻿using System.Text.Encodings.Web;
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -56,6 +59,7 @@ namespace Discussion.Web
             services.AddMvc(options =>
             {
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+                options.Filters.Add(new ApiResponseMvcFilter());
             });
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
         
@@ -91,8 +95,13 @@ namespace Discussion.Web
             else
             {
                 app.UseExceptionHandler("/error");
+                if(bool.TryParse(_appConfiguration["HSTS"] ?? "False", out var useHsts) && useHsts)
+                { 
+                    app.UseHsts();
+                }
             }
             
+            app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseMvc();

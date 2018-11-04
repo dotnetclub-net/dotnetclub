@@ -1,22 +1,26 @@
-﻿using Discussion.Web.ViewModels;
+﻿using Discussion.Core.Models;
+using Discussion.Core.ViewModels;
+using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
+using Discussion.Web.ViewModels;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.ViewModels
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class SigninUserModelSpecs
     {
-        private readonly TestApplication _myApp;
-        public SigninUserModelSpecs(TestApplication app)
+        private readonly TestDiscussionWebApp _app;
+        public SigninUserModelSpecs(TestDiscussionWebApp app)
         {
-            _myApp = app;
+            _app = app;
         }
         
         [Fact]
         public void should_validate_normal_username_and_password_values_as_valid()
         {
-            var modelState = _myApp.ValidateModel(
-                new SigninUserViewModel
+            var modelState = _app.ValidateModel(
+                new UserViewModel
                 {
                     UserName = "validusername",
                     Password = "Mypassword"
@@ -37,8 +41,8 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         [InlineData("007")]
         public void should_validate_valid_username_values_as_valid(string username)
         {
-            var modelState = _myApp.ValidateModel(
-                new SigninUserViewModel
+            var modelState = _app.ValidateModel(
+                new UserViewModel
                 {
                     UserName = username,
                     Password = "password1"
@@ -58,8 +62,8 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         [InlineData("in")]
         public void should_validate_invalid_username_values_as_invalid(string username)
         {
-            var modelState = _myApp.ValidateModel(
-                new SigninUserViewModel
+            var modelState = _app.ValidateModel(
+                new UserViewModel
                 {
                     UserName = username,
                     Password = "password1"
@@ -87,8 +91,8 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         [InlineData("11113?")]
         public void should_validate_valid_password_values_as_valid(string password)
         {
-            var modelState = _myApp.ValidateModel(
-                new SigninUserViewModel
+            var modelState = _app.ValidateModel(
+                new UserViewModel
                 {
                     UserName = "validuser",
                     Password = password
@@ -111,8 +115,8 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         [InlineData("*&@%~%!")]
         public void should_validate_invalid_password_values_as_invalid(string password)
         {
-            var modelState = _myApp.ValidateModel(
-                new SigninUserViewModel
+            var modelState = _app.ValidateModel(
+                new UserViewModel
                 {
                     UserName = "validuser",
                     Password = password

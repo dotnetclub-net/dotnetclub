@@ -1,16 +1,17 @@
+using Discussion.Tests.Common;
 using Discussion.Web.ViewModels;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.ViewModels
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class ReplyCreationModelSpecs
     {
-        private readonly TestApplication _myApp;
+        private readonly TestDiscussionWebApp _app;
 
-        public ReplyCreationModelSpecs(TestApplication app)
+        public ReplyCreationModelSpecs(TestDiscussionWebApp app)
         {
-            _myApp = app;
+            _app = app;
         }
 
 
@@ -20,7 +21,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         {
             var replyModel = new ReplyCreationModel();
             
-            var modelState = _myApp.ValidateModel(replyModel);
+            var modelState = _app.ValidateModel(replyModel);
             
             Assert.False(modelState.IsValid);
         }

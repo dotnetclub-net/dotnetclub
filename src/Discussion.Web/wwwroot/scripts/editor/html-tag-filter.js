@@ -189,12 +189,19 @@ function htmlFragmentOptions(){
         'em',
         'i',
         'strike',
+        'del',
         'ul',
         'ol',
         'li',
         'a',
         'img',
-        'pre'
+        'pre',
+        'table',
+        'thead',
+        'tbody',
+        'th',
+        'tr',
+        'td'
     ];
     var attributes = {
         'a': ['href', 'title', 'name'],

@@ -1,6 +1,7 @@
 using System;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;

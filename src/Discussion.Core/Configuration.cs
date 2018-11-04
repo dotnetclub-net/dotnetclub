@@ -17,12 +17,13 @@ namespace Discussion.Core
         {
             var basePath = Directory.GetCurrentDirectory();
             var hostSettingsBuilder = BuildHostConfiguration(basePath, addCommandLineArguments ? Environment.GetCommandLineArgs() : null);
+            var hostConfiguration = hostSettingsBuilder.Build();
 
             return hostBuilder
                 .UseContentRoot(basePath)
-                .UseConfiguration(hostSettingsBuilder.Build())
+                .UseConfiguration(hostConfiguration)
                 .UseIISIntegration()
-                .UseKestrel()
+                .UseKestrel(options => options.Configure(hostConfiguration.GetSection("Kestrel")))
                 .ConfigureAppConfiguration(BuildApplicationConfiguration)
                 .ConfigureLogging((hostingContext, logging) =>
                 {

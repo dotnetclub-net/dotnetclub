@@ -1,7 +1,7 @@
 <div class="alain-default__header-logo">
   <a [routerLink]="['/']" class="alain-default__header-logo-link">
-    <img class="alain-default__header-logo-expanded" src="./assets/logo-full.svg" alt="{{settings.app.name}}" style="max-height:40px;" />
-    <img class="alain-default__header-logo-collapsed" src="./assets/logo.svg" alt="{{settings.app.name}}" style="max-height:30px;" />
+    <img class="alain-default__header-logo-expanded" src="./assets/logo-full.png" alt="{{settings.app.name}}" style="max-height:40px;" />
+    <img class="alain-default__header-logo-collapsed" src="./assets/logo.png" alt="{{settings.app.name}}" style="max-height:30px;" />
   </a>
 </div>
 <div class="alain-default__nav-wrap">
@@ -21,10 +21,6 @@
   </ul>
   <header-search class="alain-default__search" [toggleChange]="searchToggleStatus"></header-search>
   <ul class="alain-default__nav">
-    <!-- Notify -->
-    <li>
-      <header-notify></header-notify>
-    </li>
     <!-- Settings -->
     <li class="hidden-mobile">
       <nz-dropdown nzTrigger="click" nzPlacement="bottomRight">

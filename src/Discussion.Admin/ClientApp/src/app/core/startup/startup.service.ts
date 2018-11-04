@@ -44,7 +44,7 @@ export class StartupService {
         group: true,
         children: [
           {
-            text: '仪表盘',
+            text: '管理面板',
             link: '/dashboard',
             icon: 'anticon anticon-line-chart'
           },
@@ -60,7 +60,7 @@ export class StartupService {
         group: true,
         children: [
           {
-            text: '仪表盘',
+            text: '管理面板',
             link: '/dashboard',
             icon: 'anticon anticon-line-chart'
           },

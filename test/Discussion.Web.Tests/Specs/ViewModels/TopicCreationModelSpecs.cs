@@ -1,19 +1,21 @@
-﻿using System;
-using Discussion.Core.Models;
+﻿using Discussion.Core.Models;
+using Discussion.Core.Utilities;
+using Discussion.Tests.Common;
+using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.ViewModels
 {
-    [Collection("AppSpecs")]
+    [Collection("WebSpecs")]
     public class CreateTopicModelSpecs
     {
-        private readonly TestApplication _myApp;
+        private readonly TestDiscussionWebApp _app;
 
-        public CreateTopicModelSpecs(TestApplication app)
+        public CreateTopicModelSpecs(TestDiscussionWebApp app)
         {
-            _myApp = app;
+            _app = app;
         }
 
         [Fact]
@@ -78,7 +80,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         private ModelStateDictionary ValidateTopic(string title, string content, TopicType? type = TopicType.Discussion)
         {
             var createModel = new TopicCreationModel { Title = title, Content = content, Type = type };
-            return _myApp.ValidateModel(createModel);
+            return _app.ValidateModel(createModel);
         }
 
         private static string CreateString(int length)
@@ -88,7 +90,7 @@ namespace Discussion.Web.Tests.Specs.ViewModels
                 return string.Empty;
             }
 
-            var letter = Guid.NewGuid().ToString("N")[0];
+            var letter = StringUtility.Random(1)[0];
             return new string(letter, length);
         }
     }

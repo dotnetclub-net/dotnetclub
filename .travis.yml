@@ -30,10 +30,14 @@ branches:
     - dev
     
 script:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ./build.sh --target=ci ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then set -e ; tag=`date -u +%Y%m%d%H%M` ; export imagetag="jijiechen/dotnetclub:$tag" ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./build-linux.sh --target=ci --imagetag="$imagetag" ; ./codecov -f "test/Discussion.Web.Tests/coverage.opencover.xml" -t $CODECOV_TOKEN ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$TRAVIS_BRANCH" == "master" ] && [ "$DOCKER_USERNAME" != "" ]; then docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push $imagetag ; fi
+  - tag=`date -u +%Y%m%d%H%M` ; export imagetag="jijiechen/dotnetclub:$tag"
+  - ./build-linux.sh --target=ci --imagetag="$imagetag"
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$DOCKER_USERNAME" != "" ]; then docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && docker push $imagetag ; fi
+
+after_success:
+  - ./codecov -f "./test/Discussion.Web.Tests/coverage.opencover.xml" -t $CODECOV_TOKEN
+  - ./codecov -f "./test/Discussion.Admin.Tests/coverage.opencover.xml" -t $CODECOV_TOKEN
+  - ./codecov -f "./src/Discussion.Admin/ClientApp/coverage/lcov.info" -t $CODECOV_TOKEN
 
 cache:
   yarn: true

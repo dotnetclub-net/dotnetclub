@@ -1,6 +1,7 @@
 
 using System;
 using System.IO;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
@@ -13,7 +14,7 @@ namespace Discussion.Core.Data
 {
     public static class ApplicationDataServices
     {
-        private const string ConfigKeyConnectionString = "sqliteConnectionString";
+        public const string ConfigKeyConnectionString = "sqliteConnectionString";
         
         public static void AddDataServices(this IServiceCollection services, IConfiguration appConfiguration, ILogger logger)
         {
@@ -23,14 +24,15 @@ namespace Discussion.Core.Data
                 logger.LogCritical($"没有配置数据库连接字符串。可以用 \"{ConfigKeyConnectionString}\" 来配置数据库连接字符串。");
                 appConfiguration[ConfigKeyConnectionString] = connectionString;
             }
-            
+
+            var useSqlite = PrepareSqlite(connectionString);
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlite(connectionString);
+                useSqlite(options);
             });
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
         }
-        
+
         public static void EnsureDatabase(this IApplicationBuilder app, Action<string> databaseInitializer, ILogger logger)
         {
             var services = app.ApplicationServices;
@@ -47,20 +49,32 @@ namespace Discussion.Core.Data
                     .Register(() => databaseInitializer(connectionString));     
             }
         }
-
-        
         
         private static string NormalizeConnectionString(string configuredConnectionString, out bool createTemporary)
         {
             string RandomDbName()
             {
-                return Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N").Substring(10, 8) + "-dnclub.db");
+                return Path.Combine(Path.GetTempPath(), $"{StringUtility.Random()}-dnclub.db");
             }
             
             createTemporary = string.IsNullOrWhiteSpace(configuredConnectionString);
             return createTemporary 
                 ? $"Data Source={RandomDbName()}" 
                 : configuredConnectionString;
+        }
+        
+        private static Action<DbContextOptionsBuilder> PrepareSqlite(string connectionString)
+        {
+            // If use in-memory mode, then persist the db connection across ApplicationDbContext instances
+            if (connectionString.Contains(":memory:"))
+            {
+                var connection = new SqliteConnection(connectionString);
+                return options => options.UseSqlite(connection); 
+            }
+            else
+            {
+                return options => options.UseSqlite(connectionString);
+            }
         }
     }
 }
