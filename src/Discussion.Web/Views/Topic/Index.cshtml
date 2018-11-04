@@ -132,7 +132,7 @@
 
                     $('#preview').html('正在加载预览...');
                     $.ajax({
-                        url: '/common/md2html?maxHeadingLevel=3',
+                        url: '/api/common/md2html?maxHeadingLevel=3',
                         method: 'POST',
                         data: { markdown: replyContent, __RequestVerificationToken: window.__RequestVerificationToken },
                         success: function(res) {

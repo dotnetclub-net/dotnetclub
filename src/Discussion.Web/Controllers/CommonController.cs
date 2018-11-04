@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Web.Controllers
 {
-    [Route("common")]
-    [ApiController]
+    [Route("api/common")]
     public class CommonController : ControllerBase
     {
         [HttpPost("md2html")]

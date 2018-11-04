@@ -21,7 +21,7 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
         [Fact]
         public async Task should_server_admin_home_page()
         {
-            var request = _app.Server.CreateRequest("/admin-home");
+            var request = _app.Server.CreateRequest("/api/admin-home");
 
             var response = await request.GetAsync();
 
@@ -32,7 +32,7 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
         [Fact]
         public async Task should_server_admin_error_page()
         {
-            var request = _app.Server.CreateRequest("/error");
+            var request = _app.Server.CreateRequest("/api/error");
 
             var response = await request.GetAsync();
 
@@ -47,7 +47,7 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
         [Fact]
         public async Task should_server_admin_object_result()
         {
-            var request = _app.Server.CreateRequest("/ping");
+            var request = _app.Server.CreateRequest("/api/ping");
 
             var response = await request.GetAsync();
 
@@ -65,7 +65,7 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
         [Fact]
         public async Task should_not_wrap_api_response_object_a_second_time()
         {
-            var request = _app.Server.CreateRequest("/api-object");
+            var request = _app.Server.CreateRequest("/api/api-object");
 
             var response = await request.GetAsync();
 

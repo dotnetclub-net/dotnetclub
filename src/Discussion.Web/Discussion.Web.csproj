@@ -20,7 +20,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.HttpsPolicy" Version="2.1.1" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers" Version="2.1.2" />

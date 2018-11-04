@@ -22,7 +22,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         public async Task should_serve_convert_md2html_api_correctly()
         {
             // arrange
-            var request = _app.RequestAntiForgeryForm("/common/md2html",
+            var request = _app.RequestAntiForgeryForm("/api/common/md2html",
                 new Dictionary<string, string>
                 {
                     {"markdown", "# 中文的 title"}

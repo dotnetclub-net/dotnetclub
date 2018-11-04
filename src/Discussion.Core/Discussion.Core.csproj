@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Server.IISIntegration" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.4" />

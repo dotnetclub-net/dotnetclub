@@ -1,26 +1,25 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Discussion.Core.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using static Discussion.Core.Mvc.ApiResponseMvcFilter;
 
-namespace Discussion.Admin.Supporting
+namespace Discussion.Core.Mvc
 {
-    public static class UnifiedApiResponseExtensions
+    public static class ApiResponseExtensions
     {
-        public static void UseUnifiedApiResponse(this IApplicationBuilder app)
+        public static void UseApiResponse(this IApplicationBuilder app)
         {
-            app.Use(WrapAllResponse);
+            app.Use(WrapForApiRequests);
             app.UseExceptionHandler(builder =>
             {
                 builder.Run(async context =>
                 {
-                    if (context.Response.HasStarted)
+                    if (context.Response.HasStarted || !IsApiRequest(context.Request))
                     {
                         return;
                     }
@@ -36,10 +35,9 @@ namespace Discussion.Admin.Supporting
         }
 
 
-        private static async Task WrapAllResponse(HttpContext httpContext, Func<Task> next)
+        private static async Task WrapForApiRequests(HttpContext httpContext, Func<Task> next)
         {
-            var isApiRequest = httpContext.Request.Path.ToString().ToLowerInvariant().StartsWith("/api/");
-            if (!isApiRequest)
+            if (!IsApiRequest(httpContext.Request))
             {
                 await next();
                 return;
@@ -103,14 +101,14 @@ namespace Discussion.Admin.Supporting
             httpContext.Response.ContentLength = bytes.Length;
             httpContext.Response.ContentType = "application/json";
             
-            await httpContext.Response.Body.WriteAsync(bytes);
+            await httpContext.Response.Body.WriteAsync(bytes, 0, bytes.Length);
         }
         
         private static string SerializeToJson(ApiResponse result)
         {
             var json = JsonConvert.SerializeObject(result, new JsonSerializerSettings
             {
-                ContractResolver = Startup.JsonContractResolver
+                ContractResolver = ApiResponse.CamelCaseContractResolver
             });
             return json;
         }

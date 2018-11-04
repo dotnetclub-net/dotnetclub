@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Serialization;
 
 [assembly:InternalsVisibleTo("Discussion.Admin.Tests")]
 namespace Discussion.Admin
@@ -22,7 +21,6 @@ namespace Discussion.Admin
         private readonly IConfiguration _appConfiguration;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly ILoggerFactory _loggerFactory;
-        public static readonly IContractResolver JsonContractResolver = new CamelCasePropertyNamesContractResolver();
 
         public Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory loggerFactory)
         {
@@ -45,10 +43,10 @@ namespace Discussion.Admin
         {
             services.AddJwtAuthentication(_appConfiguration);
             services.AddIdentityCore<AdminUser>();
-            services.AddMvc(options => { options.Filters.Add(typeof(ApiResponseResultFilter)); })
+            services.AddMvc(options => { options.Filters.Add(typeof(ApiResponseMvcFilter)); })
                 .AddJsonOptions(options =>
                 {
-                    options.SerializerSettings.ContractResolver = JsonContractResolver;
+                    options.SerializerSettings.ContractResolver = ApiResponse.CamelCaseContractResolver;
                     options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
@@ -65,7 +63,7 @@ namespace Discussion.Admin
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseUnifiedApiResponse();
+            app.UseApiResponse();
             app.UseAuthentication();
             app.UseMvc();
             app.UseSpa(spa =>

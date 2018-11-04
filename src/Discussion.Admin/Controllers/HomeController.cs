@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Admin.Controllers
 {
+    [Route("api")]
     public class HomeController : ControllerBase
     {
         [Route("admin-home")]
@@ -36,7 +37,7 @@ namespace Discussion.Admin.Controllers
             return ApiResponse.ActionResult(new { field = "foo" });
         }
         
-        [Route("api/require-auth")]
+        [Route("require-auth")]
         [Authorize]
         public ApiResponse RequireAuth()
         {

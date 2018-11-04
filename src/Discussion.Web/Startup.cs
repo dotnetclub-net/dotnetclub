@@ -55,7 +55,7 @@ namespace Discussion.Web
             services.AddMvc(options =>
             {
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
-                options.Filters.Add(new ApiResponseResultFilter());
+                options.Filters.Add(new ApiResponseMvcFilter());
             });
 
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());

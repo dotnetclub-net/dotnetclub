@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Newtonsoft.Json.Serialization;
 
 namespace Discussion.Core.Mvc
 {
     public class ApiResponse
     {
+        public static readonly IContractResolver CamelCaseContractResolver = new CamelCasePropertyNamesContractResolver();
+        
         private const char ErrorDelimiter = '\n';
         private const string ErrorMsgDelimiter = ";";
 
