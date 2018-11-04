@@ -1,4 +1,4 @@
-namespace Discussion.Admin.Models
+namespace Discussion.Admin.ViewModels
 {
     public class IssuedToken
     {

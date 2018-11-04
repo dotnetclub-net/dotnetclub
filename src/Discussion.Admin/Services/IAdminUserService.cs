@@ -1,4 +1,4 @@
-using Discussion.Admin.Models;
+using Discussion.Admin.ViewModels;
 using Discussion.Core.Models;
 
 namespace Discussion.Admin.Services
