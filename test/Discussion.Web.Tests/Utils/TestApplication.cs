@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http.Features.Authentication;
 using System.Security.Claims;
 using Discussion.Core;
 using Microsoft.AspNetCore.Hosting.Internal;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Discussion.Web.Tests
 {
@@ -41,7 +42,7 @@ namespace Discussion.Web.Tests
             ReplacableServiceProvider.Reset();
             return this;
         }
-
+        public IDataProtector dataProtector { get; private set; }
 
         public StubLoggerProvider LoggerProvider { get; private set; }
         public IHostingEnvironment HostingEnvironment { get; private set; }
@@ -102,6 +103,7 @@ namespace Discussion.Web.Tests
             testApp.Server = new TestServer(hostBuilder);
             testApp.ApplicationServices = testApp.Server.Host.Services;
             testApp.ServiceReplacer = new ReplacableServiceProvider(testApp.ApplicationServices);
+
             
             return testApp;
         }

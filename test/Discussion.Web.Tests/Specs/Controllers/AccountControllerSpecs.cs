@@ -8,6 +8,7 @@ using Discussion.Web.Controllers;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,11 +23,14 @@ namespace Discussion.Web.Tests.Specs.Controllers
     {
         private readonly TestApplication _myApp;
         private readonly IRepository<User> _userRepo;
+        private readonly IRepository<EmailBindOptions> _emailRepo;
+        private IDataProtector _protector;
 
         public AccountControllerSpecs(TestApplication app)
         {
             _myApp = app.Reset();
             _userRepo = _myApp.GetService<IRepository<User>>();
+            _emailRepo = _myApp.GetService<IRepository<EmailBindOptions>>();
         }
         
         [Fact]
@@ -277,7 +281,45 @@ namespace Discussion.Web.Tests.Specs.Controllers
             signoutResult.IsType<RedirectResult>();
             authService.Verify();
         }
+        [Fact]
+        public async Task should_bind_email_with_normalemail()
+        {
+            var accountCtrl = _myApp.CreateController<AccountController>();
+            const string password = "111111";
+            _myApp.CreateUser("jim", password, "Jim Green");
 
+            // Act
+            var userModel = new SigninUserViewModel
+            {
+                UserName = "jim",
+                Password = password
+            };
+            var sigininResult = await accountCtrl.DoSignin(userModel, null);
+            EmailSettingViewModel emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "313801700@qq.com" };
+            var result = await accountCtrl.DoSetting(emailSettingViewModel);
+            result.IsType<ViewResult>();
+            var viewResult = result as ViewResult;
+            viewResult.ViewName.ShouldEqual("Setting");
+        }
+        [Fact]
+        public async Task should_not_check_email_with_normalemail()
+        {
+            var accountCtrl = _myApp.CreateController<AccountController>();
+            const string password = "111111";
+            var user = _myApp.CreateUser("jim", password, "Jim Green");
+            const string email = "313801700@qq.com";
+            user.EmailAddress = email;
+            _userRepo.Update(user);
+            _emailRepo.Save(new EmailBindOptions
+            {
+                UserId = user.Id,
+                EmailAddress = "313801700@qq.com",
+                OldEmailAddress = "",
+                CallbackToken = "",
+                IsActivation = false,
+                CreatedAtUtc = DateTime.Now
+            });
+        }
 
     }
 }

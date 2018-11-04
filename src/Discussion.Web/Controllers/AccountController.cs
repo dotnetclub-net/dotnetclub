@@ -166,15 +166,9 @@ namespace Discussion.Web.Controllers
             var user = HttpContext.DiscussionUser();  
             //添加邮箱 不能绑定旧邮箱
             string oldEmailAddress = string.Empty;
-            if (!string.IsNullOrWhiteSpace(user.EmailAddress))
-            {
-                var eamilBindOption = _emailBindRepo.All().FirstOrDefault(t => t.EmailAddress.Equals(user.EmailAddress.ToLower()));
-                oldEmailAddress = eamilBindOption.OldEmailAddress;
-                if (oldEmailAddress != null && oldEmailAddress.Equals(emailSettingViewModel.EmailAddress))
-                    return View("Setting");
-                else
-                    oldEmailAddress = user.EmailAddress;
-            }
+            string newEmailAddress = emailSettingViewModel.EmailAddress;
+            if (!CheckEmailAddress(user.EmailAddress, newEmailAddress, ref oldEmailAddress))
+                return View("Setting");
             user.EmailAddress = emailSettingViewModel.EmailAddress;
             var result = _userManager.UpdateAsync(user);
             string initialToken = $"{user.Id.ToString()}|dotnetclub";
@@ -222,6 +216,19 @@ namespace Discussion.Web.Controllers
                 returnUrl = "/";
             }
             return Redirect(returnUrl);
+        }
+        private bool CheckEmailAddress(string userEmailAddress, string emailAddress, ref string oldEmailAddress)
+        {
+            if (!string.IsNullOrWhiteSpace(userEmailAddress))
+            {
+                var eamilBindOption = _emailBindRepo.All().FirstOrDefault(t => t.EmailAddress.Equals(userEmailAddress.ToLower()));
+                oldEmailAddress = eamilBindOption.OldEmailAddress;
+                if (oldEmailAddress != null && oldEmailAddress.Equals(emailAddress))
+                    return false;
+                else
+                    oldEmailAddress = userEmailAddress;
+            }
+            return true;
         }
     }
 }
