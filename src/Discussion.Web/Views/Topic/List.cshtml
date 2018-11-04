@@ -1,12 +1,11 @@
 ﻿@using Discussion.Core.Mvc
-@using Discussion.Web.Services.Identity
-@model TopicListViewModel
+@model Discussion.Core.Pagination.Paged<Discussion.Core.Models.Topic>
 
 @{
     ViewData["Title"] = "全部话题";
 
-    var prevDisabled = Model.HasPreviousPage ? "" : "disabled";
-    var nextDisabled = Model.HasNextPage ? "" : "disabled";
+    var prevDisabled = Model.Paging.HasPreviousPage ? "" : "disabled";
+    var nextDisabled = Model.Paging.HasNextPage ? "" : "disabled";
 }
 
 
@@ -24,7 +23,7 @@
         </div>
 
         <div class="panel-body no-padding">
-            @foreach (var topicItem in Model.Topics)
+            @foreach (var topicItem in Model.Items)
             {
                 <div class="topic-item">
                     <div class="topic-meta-primary pull-left">
@@ -43,7 +42,7 @@
                 </div>
             }
             
-            @if (Model.Topics.Count < 1)
+            @if (Model.Items.Length < 1)
             {
                 <div class="no-topics-notice">
                     没有主题
@@ -51,14 +50,14 @@
             }
         </div>
         <div class="panel-footer">
-            @if (Model.Topics.Count > 0)
+            @if (Model.Items.Length > 0)
             {
-                <a href="@Url.Action("List", "Topic", new {page = Model.CurrentPage - 1})"
+                <a href="@Url.Action("List", "Topic", new {page = Model.Paging.CurrentPage - 1})"
                    class="btn btn-default @prevDisabled">
                     &lt; 前一页
                 </a>
                 
-                <a href="@Url.Action("List", "Topic", new {page = Model.CurrentPage + 1})"
+                <a href="@Url.Action("List", "Topic", new {page = Model.Paging.CurrentPage + 1})"
                    class="btn btn-default @nextDisabled">
                     后一页 &gt;
                 </a>

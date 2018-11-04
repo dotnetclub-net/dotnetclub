@@ -3,10 +3,10 @@ using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Pagination;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
@@ -16,7 +16,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
     [Collection("WebSpecs")]
     public class TopicControllerSpecs
     {
-        public TestDiscussionWebApp _app;
+        private readonly TestDiscussionWebApp _app;
 
         public TopicControllerSpecs(TestDiscussionWebApp app)
         {
@@ -41,13 +41,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var topicController = _app.CreateController<TopicController>();
 
             var topicListResult = topicController.List() as ViewResult;
-            var listViewModel = topicListResult.ViewData.Model as TopicListViewModel;
+            var listViewModel = topicListResult.ViewData.Model as Paged<Topic>;
 
             listViewModel.ShouldNotBeNull();
-            var topicList = listViewModel.Topics;
-            topicList.ShouldContain(t => t.Title == "dummy topic 1");
-            topicList.ShouldContain(t => t.Title == "dummy topic 2");
-            topicList.ShouldContain(t => t.Title == "dummy topic 3");
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 1");
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 2");
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 3");
         }
 
         [Fact]
@@ -69,15 +68,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var topicController = _app.CreateController<TopicController>();
 
             var topicListResult = topicController.List(2) as ViewResult;
-            var listViewModel = topicListResult.ViewData.Model as TopicListViewModel;
+            var listViewModel = topicListResult.ViewData.Model as Paged<Topic>;
 
             listViewModel.ShouldNotBeNull();
-            listViewModel.CurrentPage.ShouldEqual(2);
-            listViewModel.HasPreviousPage.ShouldEqual(true);
-            listViewModel.HasNextPage.ShouldEqual(false);
+            listViewModel.Paging.CurrentPage.ShouldEqual(2);
+            listViewModel.Paging.HasPreviousPage.ShouldEqual(true);
+            listViewModel.Paging.HasNextPage.ShouldEqual(false);
 
-            var topicList = listViewModel.Topics;
-            topicList.Count.ShouldEqual(10);
+            var topicList = listViewModel.Items;
+            topicList.Length.ShouldEqual(10);
             topicList[0].Title.ShouldEqual("dummy topic 21");
             topicList[9].Title.ShouldEqual("dummy topic 30");
         }
