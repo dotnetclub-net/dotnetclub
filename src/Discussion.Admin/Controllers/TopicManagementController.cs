@@ -22,14 +22,10 @@ namespace Discussion.Admin.Controllers
         [Route("api/topics")]
         public Paged<TopicItemSummary> List(int? page = 1)
         {
-            var orderedTopics = _topicRepo.All().OrderByDescending(topic => topic.Id);
-            
-            return Paged<TopicItemSummary>
-                .ForQuery(
-                    orderedTopics,
-                    SummarizeTopic(), 
-                    TopicPageSize,
-                    page);
+            return _topicRepo.All()
+                            .OrderByDescending(topic => topic.Id)
+                            .Page(SummarizeTopic(), 
+                                  TopicPageSize, page);
         }
 
 

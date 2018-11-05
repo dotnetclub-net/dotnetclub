@@ -43,7 +43,7 @@ namespace Discussion.Admin.Tests.Specs.Controllers
 
             var list = controller.List();
             
-            Assert.Equal(3, list.Count);
+            Assert.Equal(3, list.TotalItemCount);
             Assert.Equal("title 3", list.Items[0].Title);
             Assert.Equal("title 2", list.Items[1].Title);
             Assert.Equal("title 1", list.Items[2].Title);

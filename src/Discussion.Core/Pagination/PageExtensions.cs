@@ -7,7 +7,7 @@ namespace Discussion.Core.Pagination
 {
     public class Paged<T>
     {
-        private Paged()
+        internal Paged()
         {
             
         }
@@ -16,37 +16,40 @@ namespace Discussion.Core.Pagination
         
         public Paging Paging { get; set; }
 
-        public int Count => Paging.ItemCount;
+        public int TotalItemCount => Paging.ItemCount;
 
- 
-        public static Paged<T> ForList(IEnumerable<T> queryableItems, int pageSize, int? pageNumber = null)
+    }
+    
+    public static class PageExtensions
+    {
+        public static Paged<T> Page<T>(this IEnumerable<T> queryableItems, int pageSize, int? pageNumber = null)
         {
-            return ForList(queryableItems, item => item, pageSize, pageNumber);
+            return Page(queryableItems, item => item, pageSize, pageNumber);
         }
   
-        public static Paged<T> ForList<TSource>(IEnumerable<TSource> queryableItems, Func<TSource, T> transformer, int pageSize, int? pageNumber = null)
+        public static Paged<TResult> Page<TSource, TResult>(this IEnumerable<TSource> queryableItems, Func<TSource, TResult> valueSelector, int pageSize, int? pageNumber = null)
         {
             var (paging, pagedQuery) = PageFromQuery(queryableItems.AsQueryable(), pageSize, pageNumber);
-            var items = pagedQuery.AsEnumerable().Select(transformer).ToArray();
+            var items = pagedQuery.AsEnumerable().Select(valueSelector).ToArray();
 
-            return new Paged<T>
+            return new Paged<TResult>
             {
                 Paging = paging,
                 Items = items
             };
-        }             
-        
-        public static Paged<T> ForQuery(IQueryable<T> queryableItems, int pageSize, int? pageNumber = null)
-        {
-            return ForQuery(queryableItems, item => item, pageSize, pageNumber);
         }
         
-        public static Paged<T> ForQuery<TSource>(IQueryable<TSource> queryableItems, Expression<Func<TSource, T>> transformer, int pageSize, int? pageNumber = null)
+        public static Paged<T> Page<T>(this IQueryable<T> queryableItems, int pageSize, int? pageNumber = null)
+        {
+            return Page(queryableItems, item => item, pageSize, pageNumber);
+        }
+        
+        public static Paged<TResult> Page<TSource, TResult>(this IQueryable<TSource> queryableItems, Expression<Func<TSource, TResult>> valueSelector, int pageSize, int? pageNumber = null)
         {
             var (paging, pagedQuery) = PageFromQuery(queryableItems, pageSize, pageNumber);
-            var items = pagedQuery.Select(transformer).ToArray();
+            var items = pagedQuery.Select(valueSelector).ToArray();
 
-            return new Paged<T>
+            return new Paged<TResult>
             {
                 Paging = paging,
                 Items = items
@@ -62,6 +65,5 @@ namespace Discussion.Core.Pagination
             var pagedQuery = queryableItems.Skip(skip).Take(paging.PageSize);
             return (paging, pagedQuery);
         }
-
     }
 }

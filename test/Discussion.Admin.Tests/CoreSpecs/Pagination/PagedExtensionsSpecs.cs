@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -27,7 +26,7 @@ namespace Discussion.Admin.Tests.CoreSpecs.Pagination
                                 .Select(number => $"item {number}")
                                 .ToArray();
 
-            var pagedList = Paged<string>.ForList(items, PageSize, 2);
+            var pagedList = items.Page(PageSize, 2);
             
             VerifyPaging(pagedList, 2);
             pagedList.Items
@@ -42,8 +41,7 @@ namespace Discussion.Admin.Tests.CoreSpecs.Pagination
                                 .Select(number => $"item {number}")
                                 .ToArray();
 
-            var pagedList = Paged<int>.ForList(items, 
-                                        item => int.Parse(item.Substring("item".Length + 1)),
+            var pagedList = items.Page(item => int.Parse(item.Substring("item".Length + 1)),
                                         PageSize, 10);
             
             VerifyPaging(pagedList, 10);
@@ -61,7 +59,7 @@ namespace Discussion.Admin.Tests.CoreSpecs.Pagination
             
             
             var sortedArticles = _adminApp.GetService<IRepository<Article>>().All().OrderBy(a => a.Id);
-            var pagedList = Paged<Article>.ForList(sortedArticles, PageSize, 2);
+            var pagedList = sortedArticles.Page(PageSize, 2);
             
             VerifyPaging(pagedList, 2);
             pagedList.Items
@@ -77,10 +75,9 @@ namespace Discussion.Admin.Tests.CoreSpecs.Pagination
             Create30Articles();
             
             var sortedArticles = _adminApp.GetService<IRepository<Article>>().All().OrderBy(a => a.Id);
-            var pagedList = Paged<int>.ForQuery(sortedArticles, 
+            var pagedList = sortedArticles.Page(
                 article => int.Parse(article.Title.Substring("queryable".Length + 1)),
                 PageSize, 1);
-
 
             VerifyPaging(pagedList, 1);
             pagedList.Items
@@ -103,7 +100,7 @@ namespace Discussion.Admin.Tests.CoreSpecs.Pagination
 
         private static void VerifyPaging<T>(Paged<T> pagedList, int currentPage)
         {
-            pagedList.Count.ShouldEqual(30);
+            pagedList.TotalItemCount.ShouldEqual(30);
             pagedList.Items.Length.ShouldEqual(PageSize);
             pagedList.Paging.CurrentPage.ShouldEqual(currentPage);
         }
