@@ -9,9 +9,9 @@ using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -26,11 +26,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
     {
         private readonly TestDiscussionWebApp _theApp;
         private readonly IRepository<User> _userRepo;
+        private readonly IRepository<EmailBindOptions> _emailRepo;
+        private IDataProtector _protector;
 
         public AccountControllerSpecs(TestDiscussionWebApp app)
         {
             _theApp = app.Reset();
             _userRepo = _theApp.GetService<IRepository<User>>();
+            _emailRepo = _theApp.GetService<IRepository<EmailBindOptions>>();
+
         }
         
         [Fact]
@@ -281,7 +285,26 @@ namespace Discussion.Web.Tests.Specs.Controllers
             signoutResult.IsType<RedirectResult>();
             authService.Verify();
         }
+        [Fact]
+        public async Task should_bind_email_with_normalemail()
+        {
+            var accountCtrl = _theApp.CreateController<AccountController>();
+            const string password = "111111";
+            _theApp.CreateUser("jim", password, "Jim Green");
 
+            // Act
+            var userModel = new UserViewModel
+            {
+                UserName = "jim",
+                Password = password
+            };
+            var sigininResult = await accountCtrl.DoSignin(userModel, null);
+            EmailSettingViewModel emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "313801700@qq.com" };
+            var result = await accountCtrl.DoSetting(emailSettingViewModel);
+            result.IsType<ViewResult>();
+            var viewResult = result as ViewResult;
+            viewResult.ViewName.ShouldEqual("Setting");
+        }
 
     }
 }

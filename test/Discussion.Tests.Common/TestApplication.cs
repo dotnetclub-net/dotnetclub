@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Discussion.Tests.Common
 {
@@ -30,7 +31,7 @@ namespace Discussion.Tests.Common
             User = _originalUser;
             ReplacableServiceProvider.Reset();
         }
-
+        public IDataProtector dataProtector { get; private set; }
 
         public StubLoggerProvider LoggerProvider { get; private set; }
         public IHostingEnvironment HostingEnvironment { get; private set; }
@@ -97,6 +98,7 @@ namespace Discussion.Tests.Common
             testApp.Server = new TestServer(hostBuilder);
             testApp.ApplicationServices = testApp.Server.Host.Services;
             testApp.ServiceReplacer = new ReplacableServiceProvider(testApp.ApplicationServices);
+
             
             return testApp;
         }

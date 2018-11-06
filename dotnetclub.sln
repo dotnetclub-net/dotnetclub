@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Scratches", "_Scratches", 
 		readme.md = readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discussion.Core", "src\Discussion.Core\Discussion.Core.csproj", "{D9E60D32-042F-4916-B006-F815E6323D12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discussion.Core", "src\Discussion.Core\Discussion.Core.csproj", "{D9E60D32-042F-4916-B006-F815E6323D12}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discussion.Admin", "src\Discussion.Admin\Discussion.Admin.csproj", "{851331E4-4427-47FC-8253-813898BF889E}"
 EndProject
@@ -37,6 +37,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{96F55E5A-6A66-4244-B108-38C42E3A6196}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96F55E5A-6A66-4244-B108-38C42E3A6196}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96F55E5A-6A66-4244-B108-38C42E3A6196}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96F55E5A-6A66-4244-B108-38C42E3A6196}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2C14F77A-A763-49AC-9751-07C10AD5E201}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2C14F77A-A763-49AC-9751-07C10AD5E201}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C14F77A-A763-49AC-9751-07C10AD5E201}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -73,9 +77,6 @@ Global
 		{6B1DCA02-EF62-42CA-8865-DA66600D84C1} = {9958F5A5-400C-428F-8DC8-B0EB9DE793FD}
 		{4AEFC2F7-1023-4917-92FB-13186254584C} = {9958F5A5-400C-428F-8DC8-B0EB9DE793FD}
 		{5E41FD48-7E90-4A6F-A69D-D523B3F63744} = {9958F5A5-400C-428F-8DC8-B0EB9DE793FD}
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {636BCE3B-E83E-4CCF-9BA2-0386E439D9B8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {938B70F5-B75E-4D32-B581-40D7148A0D17}
