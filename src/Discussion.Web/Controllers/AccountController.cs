@@ -194,9 +194,11 @@ namespace Discussion.Web.Controllers
                 protocol: Request.Scheme);
             var sendBody = EmailExtensions.SplicedMailTemplate(HtmlEncoder.Default.Encode(callBack));
             await _emailSender.SendEmailAsync(emailSettingViewModel.EmailAddress, "dotnetclub用户确认", sendBody);
-            return RedirectTo("/setting");
+            return RedirectToAction("Setting");
         }
-        [Route("/[controller]/[action]")]
+        
+        
+        [Route("confirm-email")]
         public async Task<ActionResult> ConfirmEmail(string code)
         {
             if ( code == null)

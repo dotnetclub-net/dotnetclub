@@ -80,9 +80,8 @@ namespace Discussion.Web
 
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddDataProtection()
-                //.PersistKeysToFileSystem(new DirectoryInfo(@"\\server\share\directory\"))
                 .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
-                .SetApplicationName("Discussion.Web");
+                .SetApplicationName(_hostingEnvironment.ApplicationName);
             services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
         }
 

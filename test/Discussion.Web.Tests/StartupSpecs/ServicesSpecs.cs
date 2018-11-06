@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
@@ -72,6 +74,16 @@ namespace Discussion.Web.Tests.StartupSpecs
             hostingEnv.SetupGet(e => e.ContentRootPath).Returns(TestEnv.WebProjectPath());
 
             var appConfig = new Mock<IConfiguration>();
+
+            var msgSenderConfig = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>()
+                {
+                    {"AuthMessageSenderOptions:SendServer", "mail.example.org"},
+                    {"AuthMessageSenderOptions:EncryptionKey", Guid.NewGuid().ToString()},
+                });
+            var section = new ConfigurationSection(new ConfigurationRoot(msgSenderConfig.Build().Providers.ToList()), "");
+            
+            appConfig.Setup(e => e.GetSection("AuthMessageSenderOptions")).Returns(section);
             appConfig.SetupGet(e => e[It.IsAny<string>()]).Returns((string)null);
             configureSettings(appConfig);
 

@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using Discussion.Admin.Supporting;
 using Discussion.Tests.Common;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Discussion.Web.Tests

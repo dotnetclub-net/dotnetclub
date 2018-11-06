@@ -10,11 +10,13 @@ using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.ViewModels;
+using FluentMigrator;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -285,25 +287,23 @@ namespace Discussion.Web.Tests.Specs.Controllers
             signoutResult.IsType<RedirectResult>();
             authService.Verify();
         }
+        
         [Fact]
-        public async Task should_bind_email_with_normalemail()
+        public async Task should_bind_email_with_normal_email_address()
         {
+            var urlHelper = new Mock<IUrlHelper>();
+            urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>())).Returns("confirm-email");
+            _theApp.MockUser();
+            
             var accountCtrl = _theApp.CreateController<AccountController>();
-            const string password = "111111";
-            _theApp.CreateUser("jim", password, "Jim Green");
-
-            // Act
-            var userModel = new UserViewModel
-            {
-                UserName = "jim",
-                Password = password
-            };
-            var sigininResult = await accountCtrl.DoSignin(userModel, null);
-            EmailSettingViewModel emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "313801700@qq.com" };
+            accountCtrl.Url = urlHelper.Object;
+            
+            var emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "someone@qq.com" };
             var result = await accountCtrl.DoSetting(emailSettingViewModel);
-            result.IsType<ViewResult>();
-            var viewResult = result as ViewResult;
-            viewResult.ViewName.ShouldEqual("Setting");
+            
+            var redirectResult = result as RedirectToActionResult;
+            redirectResult.ShouldNotBeNull();
+            redirectResult.ActionName.ShouldEqual("Setting");
         }
 
     }
