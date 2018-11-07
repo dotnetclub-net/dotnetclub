@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Discussion.Web.Services.Emailconfirmation
+namespace Discussion.Web.Services.EmailConfirmation
 {
     public static class EmailExtensions
     {
@@ -46,11 +46,11 @@ namespace Discussion.Web.Services.Emailconfirmation
             string userId = tokens[0];
             string tokentag = tokens[1];
             if(!tokentag.Equals(DotnetTokenTag)||!userId.Equals(user.Id.ToString()))
-                throw new NotFiniteNumberException("tokentag is wrong");
-            user.IsActivation = true;
+                throw new NotFiniteNumberException("token tag is wrong");
+            user.IsActivated = true;
             var userResult = await userManager.UpdateAsync(user);
             var tokenOption = emailRepository.All().FirstOrDefault(t => t.CallbackToken.Equals(token));
-            tokenOption.IsActivation = true;
+            tokenOption.IsActivated = true;
             emailRepository.Update(tokenOption);
             if (userResult.Succeeded)
                 confirmResult = true;

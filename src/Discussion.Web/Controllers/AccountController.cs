@@ -1,9 +1,8 @@
 ﻿using Discussion.Core.Data;
 using Discussion.Core.Models;
-using Discussion.Web.Services.Emailconfirmation;
+using Discussion.Web.Services.EmailConfirmation;
 using Discussion.Core.Mvc;
 using Discussion.Core.ViewModels;
-using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +13,7 @@ using System;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Discussion.Web.Controllers
 {
@@ -24,8 +24,8 @@ namespace Discussion.Web.Controllers
         private readonly IRepository<EmailBindOptions> _emailBindRepo;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
-        private IDataProtector _protector;
-        private AuthMessageSenderOptions _authMessageSenderOptions;
+        private readonly IDataProtector _protector;
+
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
@@ -41,7 +41,6 @@ namespace Discussion.Web.Controllers
             _emailSender = emailSender;
             _emailBindRepo = emailBindRepo;
             _protector = provider.CreateProtector(authMessageSenderOptions.Value.EncryptionKey);
-            _authMessageSenderOptions = authMessageSenderOptions.Value;
         }
 
         [Route("/signin")]
@@ -56,7 +55,6 @@ namespace Discussion.Web.Controllers
 
 
         [HttpPost]
-
         [Route("/signin")]        
         public async Task<IActionResult> DoSignin([FromForm]UserViewModel viewModel, [FromQuery]string returnUrl)
         {
@@ -116,8 +114,8 @@ namespace Discussion.Web.Controllers
 
             return View();
         }
+        
         [HttpPost]
-
         [Route("/register")]  
         public async Task<IActionResult> DoRegister(UserViewModel userViewModel)
         {
@@ -149,17 +147,15 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
 
+        [Authorize]
         [Route("/setting")]
         public IActionResult Setting()
         {
-            if (!HttpContext.IsAuthenticated())
-            {
-                return RedirectTo("/");
-            }
-            var user = HttpContext.DiscussionUser();
-            return View(user);
+            return View(HttpContext.DiscussionUser());
         }
+        
         [HttpPost]
+        [Authorize]
         [Route("/setting")]
         public async Task<IActionResult> DoSetting(EmailSettingViewModel emailSettingViewModel)
         {
@@ -167,26 +163,31 @@ namespace Discussion.Web.Controllers
             {
                 return View("Setting");
             }
+            
             var user = HttpContext.DiscussionUser();  
-            //添加邮箱 不能绑定旧邮箱
-            string oldEmailAddress = string.Empty;
-            string newEmailAddress = emailSettingViewModel.EmailAddress;
-            if (!CheckEmailAddress(user.EmailAddress, newEmailAddress, ref oldEmailAddress))
+            var newEmailAddress = emailSettingViewModel.EmailAddress;
+            if (!IsEmailAddressNeverUsed(user.EmailAddress, newEmailAddress, out var usedEmailAddress))
+            {
+                ModelState.AddModelError("EmailAddress", "请不要使用曾绑定过的邮箱");
                 return View("Setting");
+            }
+
             user.EmailAddress = emailSettingViewModel.EmailAddress;
-            var result = _userManager.UpdateAsync(user);
-            string initialToken = $"{user.Id.ToString()}|dotnetclub";
-            string sendToken = _protector.Protect(initialToken);
+            await _userManager.UpdateAsync(user);
+            
+            
+            var validationToken = $"{user.Id.ToString()}|dotnetclub";
             _emailBindRepo.Save(new EmailBindOptions
             {
                 UserId = user.Id,
                 EmailAddress = emailSettingViewModel.EmailAddress,
-                OldEmailAddress = oldEmailAddress,
-                CallbackToken = initialToken,
-                IsActivation = false,
+                OldEmailAddress = usedEmailAddress,
+                CallbackToken = validationToken,
+                IsActivated = false,
                 CreatedAtUtc = DateTime.Now
             });
-            //发送邮件
+
+            var sendToken = _protector.Protect(validationToken);
             var callBack = Url.Action(
                 action: "ConfirmEmail",
                 controller: "Account",
@@ -194,27 +195,26 @@ namespace Discussion.Web.Controllers
                 protocol: Request.Scheme);
             var sendBody = EmailExtensions.SplicedMailTemplate(HtmlEncoder.Default.Encode(callBack));
             await _emailSender.SendEmailAsync(emailSettingViewModel.EmailAddress, "dotnetclub用户确认", sendBody);
+            
             return RedirectToAction("Setting");
         }
-        
         
         [Route("confirm-email")]
         public async Task<ActionResult> ConfirmEmail(string code)
         {
-            if ( code == null)
+            var protectedToken = ExtractProtectedToken(code);
+            if (string.IsNullOrEmpty(protectedToken))
             {
-                return View("Error");
+                return BadRequest();
             }
-            var sendToken = _protector.Unprotect(code);
-            if (string.IsNullOrEmpty(sendToken))
-            {
-                return View("Error"); 
-            }
-            var userId = sendToken.Substring(0, sendToken.IndexOf('|'));
+            
+            var userId = protectedToken.Substring(0, protectedToken.IndexOf('|'));
             var user = await _userManager.FindByIdAsync(userId);        
-            var result = await _userManager.ConfirmEmailByProtectorAsync(_emailBindRepo, user, sendToken);
+            
+            await _userManager.ConfirmEmailByProtectorAsync(_emailBindRepo, user, protectedToken);
             return View(); 
         }
+
         private IActionResult RedirectTo(string returnUrl)
         {
             if (string.IsNullOrEmpty(returnUrl))
@@ -223,17 +223,29 @@ namespace Discussion.Web.Controllers
             }
             return Redirect(returnUrl);
         }
-        private bool CheckEmailAddress(string userEmailAddress, string emailAddress, ref string oldEmailAddress)
+
+
+        private string ExtractProtectedToken(string code)
         {
-            if (!string.IsNullOrWhiteSpace(userEmailAddress))
-            {
-                var eamilBindOption = _emailBindRepo.All().FirstOrDefault(t => t.EmailAddress.Equals(userEmailAddress.ToLower()));
-                oldEmailAddress = eamilBindOption.OldEmailAddress;
-                if (oldEmailAddress != null && oldEmailAddress.Equals(emailAddress))
-                    return false;
-                else
-                    oldEmailAddress = userEmailAddress;
-            }
+            return code == null ? null : _protector.Unprotect(code);
+        }
+
+        private bool IsEmailAddressNeverUsed(string userEmail, string newEmailAddress, out string usedEmailAddress)
+        {
+            usedEmailAddress = null;
+            if (string.IsNullOrWhiteSpace(userEmail))
+                return true;
+            
+            var emailBindRecord = _emailBindRepo
+                .All()
+                .SingleOrDefault(t => t.EmailAddress.ToLower() == userEmail.ToLower());
+            usedEmailAddress = emailBindRecord?.OldEmailAddress;
+            
+            if (usedEmailAddress != null 
+                && usedEmailAddress.Equals(newEmailAddress, StringComparison.OrdinalIgnoreCase))
+                return false;
+            else
+                usedEmailAddress = userEmail;
             return true;
         }
     }

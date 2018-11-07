@@ -112,18 +112,20 @@ namespace Discussion.Web.Services.Identity
 
         public Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.IsActivation);
+            return Task.FromResult(user.IsActivated);
         }
 
         public Task SetEmailConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
         {
-            user.IsActivation = confirmed;
+            user.IsActivated = confirmed;
             return Task.FromResult(0);
         }
 
         public Task<User> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            var user = _useRepository.All().Where(t => t.EmailAddress.Equals(normalizedEmail)).FirstOrDefault();
+            var user = _useRepository.All()
+                                    .SingleOrDefault(t => 
+                                        t.EmailAddress.ToLower() == normalizedEmail.ToLower());
             return Task.FromResult(user);
         }
 

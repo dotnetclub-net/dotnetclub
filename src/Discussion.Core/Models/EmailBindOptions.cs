@@ -10,6 +10,6 @@ namespace Discussion.Core.Models
         public string EmailAddress { get; set; }
         public string OldEmailAddress { get; set; }
         public string CallbackToken { get; set; }
-        public bool IsActivation { get; set; }
+        public bool IsActivated { get; set; }
     }
 }

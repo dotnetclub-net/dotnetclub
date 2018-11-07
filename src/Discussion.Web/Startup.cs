@@ -15,7 +15,7 @@ using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Discussion.Web.Services.Emailconfirmation;
+using Discussion.Web.Services.EmailConfirmation;
 using Microsoft.AspNetCore.DataProtection;
 using System.IO;
 using System;

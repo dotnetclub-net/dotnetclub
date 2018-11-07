@@ -8,7 +8,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Discussion.Web.Services.Emailconfirmation
+namespace Discussion.Web.Services.EmailConfirmation
 {
     public class EmailSender : IEmailSender
     {

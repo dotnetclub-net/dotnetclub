@@ -19,7 +19,7 @@ namespace Discussion.Migrations
                 .WithColumn("EmailAddress").AsString(50)
                 .WithColumn("OldEmailAddress").AsString(50)
                 .WithColumn("CallbackToken").AsString(300)
-                .WithColumn("IsActivation").AsBoolean();
+                .WithColumn("IsActivated").AsBoolean();
         }
 
     }
