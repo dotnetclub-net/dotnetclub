@@ -15,6 +15,10 @@ using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Discussion.Web.Services.Emailconfirmation;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
+using System;
 
 namespace Discussion.Web
 {
@@ -57,9 +61,8 @@ namespace Discussion.Web
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
                 options.Filters.Add(new ApiResponseMvcFilter());
             });
-
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
-
+        
             services.AddAuthorization();
             services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
             services.Configure<IdentityOptions>(options =>
@@ -71,9 +74,14 @@ namespace Discussion.Web
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
-                
 //                options.User.RequireUniqueEmail = true;
             });
+
+            services.AddTransient<IEmailSender, EmailSender>();
+            services.AddDataProtection()
+                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
+                .SetApplicationName(_hostingEnvironment.ApplicationName);
+            services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
         }
 
         public void Configure(IApplicationBuilder app)
@@ -95,7 +103,6 @@ namespace Discussion.Web
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseMvc();
-
             var logger = _loggerFactory.CreateLogger<Startup>();
             app.EnsureDatabase(connStr =>
             {

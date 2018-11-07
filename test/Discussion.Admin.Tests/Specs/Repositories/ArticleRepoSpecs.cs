@@ -2,6 +2,7 @@
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -15,6 +16,7 @@ namespace Discussion.Admin.Tests.Specs.Repositories
         public ArticleRepoSpecs(TestDiscussionAdminApp app)
         {
             services = app.ApplicationServices;
+            app.DeleteAll<Article>();
         }
 
 

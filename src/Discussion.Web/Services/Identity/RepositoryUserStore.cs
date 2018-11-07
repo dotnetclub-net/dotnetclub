@@ -8,15 +8,15 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Discussion.Web.Services.Identity
 {
-    public class RepositoryUserStore: IUserPasswordStore<User>
+    public class RepositoryUserStore : IUserPasswordStore<User>, IUserEmailStore<User>
     {
         private readonly IRepository<User> _useRepository;
         public RepositoryUserStore(IRepository<User> useRepository)
         {
             _useRepository = useRepository;
         }
-        
-        
+
+
         public Task<string> GetUserIdAsync(User user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.Id.ToString());
@@ -92,10 +92,50 @@ namespace Discussion.Web.Services.Identity
         {
             return Task.FromResult(!string.IsNullOrEmpty(user.HashedPassword));
         }
-        
+
         public void Dispose()
         {
 
+        }
+
+        public Task SetEmailAsync(User user, string email, CancellationToken cancellationToken)
+        {
+            user.EmailAddress = email;
+            _useRepository.Update(user);
+            return Task.CompletedTask;
+        }
+
+        public Task<string> GetEmailAsync(User user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.EmailAddress);
+        }
+
+        public Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.IsActivation);
+        }
+
+        public Task SetEmailConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
+        {
+            user.IsActivation = confirmed;
+            return Task.FromResult(0);
+        }
+
+        public Task<User> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        {
+            var user = _useRepository.All().Where(t => t.EmailAddress.Equals(normalizedEmail)).FirstOrDefault();
+            return Task.FromResult(user);
+        }
+
+        public Task<string> GetNormalizedEmailAsync(User user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.EmailAddress);
+        }
+
+        public Task SetNormalizedEmailAsync(User user, string normalizedEmail, CancellationToken cancellationToken)
+        {
+            user.EmailAddress = normalizedEmail;
+            return Task.FromResult(0);
         }
     }
 
