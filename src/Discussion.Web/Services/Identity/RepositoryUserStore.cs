@@ -112,12 +112,12 @@ namespace Discussion.Web.Services.Identity
 
         public Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.IsActivated);
+            return Task.FromResult(user.EmailAddressConfirmed);
         }
 
         public Task SetEmailConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
         {
-            user.IsActivated = confirmed;
+            user.EmailAddressConfirmed = confirmed;
             return Task.FromResult(0);
         }
 

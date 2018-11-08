@@ -288,23 +288,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             authService.Verify();
         }
         
-        [Fact]
-        public async Task should_bind_email_with_normal_email_address()
-        {
-            var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>())).Returns("confirm-email");
-            _theApp.MockUser();
-            
-            var accountCtrl = _theApp.CreateController<AccountController>();
-            accountCtrl.Url = urlHelper.Object;
-            
-            var emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "someone@qq.com" };
-            var result = await accountCtrl.DoSetting(emailSettingViewModel);
-            
-            var redirectResult = result as RedirectToActionResult;
-            redirectResult.ShouldNotBeNull();
-            redirectResult.ActionName.ShouldEqual("Setting");
-        }
 
     }
 }

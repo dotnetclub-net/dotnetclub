@@ -11,7 +11,6 @@ namespace Discussion.Web.Services.EmailConfirmation
 {
     public static class EmailExtensions
     {
-        private const string DotnetTokenTag = "dotnetclub";
         public static string SplicedMailTemplate(string callBack)
         {
             StringBuilder body = new StringBuilder();
@@ -34,27 +33,6 @@ namespace Discussion.Web.Services.EmailConfirmation
             body.Append("</div> </div> </body> </html>");
             return body.ToString();
         }
-        public static async Task<bool> ConfirmEmailByProtectorAsync<TUser>(this UserManager<TUser> userManager, IRepository<EmailBindOptions> emailRepository, TUser user, string token)  //这里传入的Manager和Repository 应该通过DI方式注入进来
-            where TUser:class,IUser
-        {
-            bool confirmResult = false;
-            if(user == null || string.IsNullOrEmpty(token))
-                throw new ArgumentException(nameof(user));
-            string[] tokens = token.Split('|');
-            if(tokens.Length != 2)
-                throw new FormatException("token format error");
-            string userId = tokens[0];
-            string tokentag = tokens[1];
-            if(!tokentag.Equals(DotnetTokenTag)||!userId.Equals(user.Id.ToString()))
-                throw new NotFiniteNumberException("token tag is wrong");
-            user.IsActivated = true;
-            var userResult = await userManager.UpdateAsync(user);
-            var tokenOption = emailRepository.All().FirstOrDefault(t => t.CallbackToken.Equals(token));
-            tokenOption.IsActivated = true;
-            emailRepository.Update(tokenOption);
-            if (userResult.Succeeded)
-                confirmResult = true;
-            return confirmResult;
-        }
+
     }
 }
