@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
@@ -17,8 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.EmailConfirmation;
 using Microsoft.AspNetCore.DataProtection;
-using System.IO;
-using System;
 
 namespace Discussion.Web
 {
@@ -74,14 +71,14 @@ namespace Discussion.Web
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
-//                options.User.RequireUniqueEmail = true;
+                options.User.RequireUniqueEmail = true;
             });
 
-            services.AddTransient<IEmailSender, EmailSender>();
-            services.AddDataProtection()
-                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
-                .SetApplicationName(_hostingEnvironment.ApplicationName);
             services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
+            services.AddTransient<IEmailSender, EmailSender>();
+//            services.AddDataProtection()
+//                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
+//                .SetApplicationName(_hostingEnvironment.ApplicationName);
         }
 
         public void Configure(IApplicationBuilder app)

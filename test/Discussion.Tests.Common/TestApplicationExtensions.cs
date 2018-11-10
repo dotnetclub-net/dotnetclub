@@ -59,6 +59,7 @@ namespace Discussion.Tests.Common
             var userRepo = app.GetService<IRepository<User>>();
             var passwordHasher = app.GetService<IPasswordHasher<User>>();
 
+            app.DeleteAll<User>();
             var user = new User
             {
                 CreatedAtUtc = DateTime.UtcNow.AddDays(-1),

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Discussion.Core.Models
+﻿namespace Discussion.Core.Models
 {
     public class EmailBindOptions: Entity
     {

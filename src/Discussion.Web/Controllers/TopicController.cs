@@ -32,7 +32,7 @@ namespace Discussion.Web.Controllers
         [Route("/topics")]
         public ActionResult List([FromQuery]int? page = null)
         {
-            Paged<Topic> pagedTopics = _topicRepo.All()
+            var pagedTopics = _topicRepo.All()
                                         .OrderByDescending(topic => topic.CreatedAtUtc)
                                         .Page(PageSize, page);
 

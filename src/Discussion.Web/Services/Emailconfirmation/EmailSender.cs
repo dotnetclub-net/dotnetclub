@@ -22,10 +22,12 @@ namespace Discussion.Web.Services.EmailConfirmation
             mailFrom = authMessageSenderOptions.Value.SendGridUser;
             mailPwd = authMessageSenderOptions.Value.SendGridKey;
         }
+        
         public Task SendEmailAsync(string emailTo, string subject, string message)
         {
             return Execute(emailTo,subject, message);
         }
+        
         public Task Execute(string emailTo, string subject,string message)
         {
             // 邮件服务设置

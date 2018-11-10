@@ -12,7 +12,6 @@ using Discussion.Web.Controllers;
 using Discussion.Web.ViewModels;
 using FluentMigrator;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -28,15 +27,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
     {
         private readonly TestDiscussionWebApp _theApp;
         private readonly IRepository<User> _userRepo;
-        private readonly IRepository<EmailBindOptions> _emailRepo;
-        private IDataProtector _protector;
-
         public AccountControllerSpecs(TestDiscussionWebApp app)
         {
             _theApp = app.Reset();
             _userRepo = _theApp.GetService<IRepository<User>>();
-            _emailRepo = _theApp.GetService<IRepository<EmailBindOptions>>();
-
         }
         
         [Fact]
