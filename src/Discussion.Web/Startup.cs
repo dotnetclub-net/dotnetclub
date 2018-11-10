@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.EmailConfirmation;
+using Discussion.Web.Services.EmailConfirmation.Impl;
 using Microsoft.AspNetCore.DataProtection;
 
 namespace Discussion.Web
@@ -51,6 +52,7 @@ namespace Discussion.Web
                     .AddRoleStore<NullRoleStore>()
                     .AddClaimsPrincipalFactory<DiscussionUserClaimsPrincipalFactory>()
                     .AddDefaultTokenProviders();
+            services.AddScoped<UserManager<User>, EmailAddressAwareUserManager<User>>();
 
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
             services.AddMvc(options =>
@@ -71,10 +73,11 @@ namespace Discussion.Web
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
-                options.User.RequireUniqueEmail = true;
+                options.User.RequireUniqueEmail = false; // 不但会检查 Email 的唯一性，还会要求 Email 必填
             });
 
             services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
+            services.AddTransient<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddTransient<IEmailSender, EmailSender>();
 //            services.AddDataProtection()
 //                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))

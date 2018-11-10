@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 
 namespace Discussion.Web.ViewModels
 {
@@ -14,32 +16,33 @@ namespace Discussion.Web.ViewModels
         public string EncodeAsUrlQueryString()
         {
             var callbackCode = $"userid={UserId}&token={WebUtility.UrlEncode(Token)}";
-            return WebUtility.UrlEncode(Convert.ToBase64String(Encoding.ASCII.GetBytes(callbackCode)));
+
+            return Convert.ToBase64String(Encoding.ASCII.GetBytes(callbackCode));
         }
 
 
-        public static UserEmailToken ExtractFromUrlQueryString(string queryStringValue)
+        public static UserEmailToken ExtractFromUrlQueryString(string queryStringToken)
         {
-            int userId = 0;
-            string token = null;
-
-            var query = QueryHelpers.ParseQuery(queryStringValue);
-            var parsedSucceeded = query.TryGetValue("userid", out var userIdStr);
-            parsedSucceeded = parsedSucceeded && int.TryParse(userIdStr, out userId);
+            Dictionary<string, StringValues> query = null;
 
             try
             {
-                parsedSucceeded = parsedSucceeded && query.TryGetValue("token", out var tokenString);
-                token = Encoding.ASCII.GetString(Convert.FromBase64String(tokenString));
-                parsedSucceeded = parsedSucceeded && !string.IsNullOrEmpty(token);
+                var queryString = Encoding.ASCII.GetString(Convert.FromBase64String(queryStringToken));
+                query = QueryHelpers.ParseQuery(queryString);
             }
             catch
             {
-                parsedSucceeded = false;
+                return null;
             }
 
+            var userId = 0;
+            var parsedSucceeded = query.TryGetValue("userid", out var userIdStr);
+            parsedSucceeded = parsedSucceeded && int.TryParse(userIdStr, out userId);
+            parsedSucceeded = parsedSucceeded && query.TryGetValue("token", out var tokenString);
+            parsedSucceeded = parsedSucceeded && !string.IsNullOrEmpty(tokenString);
+
             return parsedSucceeded
-                ? new UserEmailToken {UserId = userId, Token = token}
+                ? new UserEmailToken { UserId = userId, Token = WebUtility.UrlDecode(tokenString).Replace(" ", "+") }
                 : null;
         }
     }

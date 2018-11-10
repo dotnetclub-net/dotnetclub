@@ -3,15 +3,23 @@
 @{
     ViewData["Title"] = "ConfirmEmail";
 }
-<h2>邮件地址已确认</h2>
-<div>
-    <p>
-        感谢你确认邮件地址。
-    </p>
-    @if (!User.IsAuthenticated())
-    {
+
+@if (ViewContext.ModelState.IsValid)
+{
+    <h2>邮件地址已确认</h2>
+    <div>
         <p>
-            请 @Html.ActionLink("点击此处登录", "Signin", "Account", null, new { @class = "signin-link" })
+            感谢你确认邮件地址。
         </p>
-    }
-</div>
+        @if (!User.IsAuthenticated())
+        {
+            <p>
+                请 @Html.ActionLink("点击此处登录", "Signin", "Account", null, new {@class = "signin-link"})
+            </p>
+        }
+    </div>
+}
+else
+{
+    Html.ValidationSummary();
+}

@@ -1,19 +1,13 @@
-﻿using Discussion.Core.Data;
-using Discussion.Core.Models;
-using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Discussion.Web.Services.EmailConfirmation
+namespace Discussion.Web.Services.EmailConfirmation.Impl
 {
-    public static class EmailExtensions
+    public class DefaultConfirmationEmailBuilder: IConfirmationEmailBuilder
     {
-        public static string SplicedMailTemplate(string callBack)
+        public string BuildEmailBody(string callbackUrl)
         {
-            StringBuilder body = new StringBuilder();
+            var body = new StringBuilder();
+            
             body.Append("<!DOCTYPE html>");
             body.Append("<html><head>");
             body.Append(@"<meta http-equiv='Content-Type' content='text/html;charset = UTF-8'>");
@@ -26,13 +20,13 @@ namespace Discussion.Web.Services.EmailConfirmation
             body.Append("</h1>");
             body.Append("<div style='padding:30px;'>");
             body.Append("<p> 感谢您绑定dotnetclub邮箱，点击下面按钮以验证您的邮箱 </p>");
-            body.Append($@"<a href='{callBack}'{"style='display:inline-block;padding:10px 15px;background:#67C23A;border-radius:5px;color:#fff;text-decoration:none;'"}'>验证电子邮箱</a>");
+            body.Append($@"<a href='{callbackUrl}'{"style='display:inline-block;padding:10px 15px;background:#67C23A;border-radius:5px;color:#fff;text-decoration:none;'"}'>验证电子邮箱</a>");
             body.Append("<p>如果你无法通过上面按钮验证电子邮箱，请点击下面的链接或者把它复制到浏览器地址栏。</p>");
-            body.Append($"<a href='#'>{callBack}</a>");
+            body.Append($"<a href='#'>{callbackUrl}</a>");
             body.Append("<p style='font-size:12px;'>感谢您的使用！<br/>dotnetclub</p>");
             body.Append("</div> </div> </body> </html>");
+          
             return body.ToString();
         }
-
     }
 }

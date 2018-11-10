@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Claims;
 using Discussion.Admin.Services;
@@ -53,13 +54,21 @@ namespace Discussion.Tests.Common
             var repo = app.GetService<IRepository<T>>();
             repo.All().ToList().ForEach(topic => repo.Delete(topic));
         }
+
+        public static void ReloadEntity<T>(this TestApplication app, params T[] entities) where T: Entity
+        {
+            var applicationDbContext = app.GetService<ApplicationDbContext>();
+            entities.ToList().ForEach(entity =>
+            {
+                applicationDbContext.Entry(entity).Reload();
+            });
+        }
         
         public static void MockUser(this TestApplication app)
         {
             var userRepo = app.GetService<IRepository<User>>();
             var passwordHasher = app.GetService<IPasswordHasher<User>>();
 
-            app.DeleteAll<User>();
             var user = new User
             {
                 CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
@@ -130,7 +139,13 @@ namespace Discussion.Tests.Common
             
             var task = userManager.CreateAsync(user, actualPassword);
             task.ConfigureAwait(false);
-            task.Wait();
+
+            var createResult = task.Result;
+            if (!createResult.Succeeded)
+            {
+                var errorMessage = string.Join(";", createResult.Errors.Select(err => err.Code));
+                throw new Exception("不能创建用户：" + errorMessage);
+            }
 
             return user;
         }

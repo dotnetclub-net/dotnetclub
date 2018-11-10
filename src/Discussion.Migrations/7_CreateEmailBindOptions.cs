@@ -12,6 +12,7 @@ namespace Discussion.Migrations
         {
             return TABLE_NAME;
         }
+        
         protected override void CreateEntityColumns(ICreateTableWithColumnSyntax entityTable)
         {
             entityTable
