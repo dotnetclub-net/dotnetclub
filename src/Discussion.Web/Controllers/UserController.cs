@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
@@ -64,9 +65,14 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("send-confirmation-mail")]
-        public async Task<ApiResponse> SendEmailConfirmation(EmailSettingViewModel emailSettingViewModel)
+        public async Task<ApiResponse> SendEmailConfirmation()
         {
             var user = HttpContext.DiscussionUser();
+            if (user.EmailAddressConfirmed)
+            {
+                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+            }
+            
             var tokenString = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var tokenInEmail = new UserEmailToken {UserId = user.Id, Token = tokenString};
 
@@ -77,7 +83,7 @@ namespace Discussion.Web.Controllers
                 protocol: Request.Scheme);
             
             var sendBody = EmailExtensions.SplicedMailTemplate(callbackUrl);
-            await _emailSender.SendEmailAsync(emailSettingViewModel.EmailAddress, "dotnet club 用户确认", sendBody);
+            await _emailSender.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮箱地址确认", sendBody);
             return  ApiResponse.NoContent();
         }
 
