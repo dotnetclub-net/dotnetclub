@@ -85,7 +85,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.ReadAllContent().ShouldContain("退出登录");
+            response.ReadAllContent().ShouldContain("注销");
         }
 
         [Fact]
@@ -148,7 +148,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.ReadAllContent().ShouldContain("退出登录");
+            response.ReadAllContent().ShouldContain("注销");
         }
 
         // todo: should login before settings

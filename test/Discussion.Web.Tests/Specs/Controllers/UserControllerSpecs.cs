@@ -46,12 +46,31 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var result = await userCtrl.DoSettings(settingViewModel);
 
             
-            VerifyIsRedirectResult(result);
+            ShouldBeRedirectResult(result);
             
             _theApp.ReloadEntity(user);
             Assert.Equal(settingViewModel.DisplayName, user.DisplayName);
             Assert.Null(user.EmailAddress);
             Assert.False(user.EmailAddressConfirmed);
+        }
+        
+        [Fact]
+        public async Task should_use_username_as_display_name_if_update_display_name_to_null()
+        {
+            var user = _theApp.MockUser();
+            user.DisplayName = StringUtility.Random();
+            _userRepo.Update(user);
+            var settingViewModel = new UserSettingsViewModel();
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            
+            var result = await userCtrl.DoSettings(settingViewModel);
+
+            
+            ShouldBeRedirectResult(result);
+            
+            _theApp.ReloadEntity(user);
+            Assert.Equal(user.UserName, user.DisplayName);
         }
 
         [Fact]
@@ -70,9 +89,30 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             
             _theApp.ReloadEntity(user);
-            VerifyIsRedirectResult(result, "ChangePassword");
+            ShouldBeRedirectResult(result, "ChangePassword");
             var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
             Assert.True(passwordChanged);
+        }
+        
+        [Fact]
+        public async Task should_not_update_password_with_invalid_old_password()
+        {
+            var user = _theApp.MockUser();
+            var viewModel = new ChangePasswordViewModel
+            {
+                OldPassword = "111111A",
+                NewPassword = "11111A"
+            };
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            
+            var result = await userCtrl.DoChangePassword(viewModel);
+
+            
+            _theApp.ReloadEntity(user);
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "ChangePassword", string.Empty);
+            var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
+            Assert.False(passwordChanged);
         }
         
         
@@ -85,7 +125,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             
             var (result, _) = await SubmitSettingsWithEmail("someone@changed.com");
 
-            VerifyIsRedirectResult(result);
+            ShouldBeRedirectResult(result);
 
             _theApp.ReloadEntity(user);
             Assert.Equal("someone@changed.com", user.EmailAddress);
@@ -114,7 +154,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var (result, _) = await SubmitSettingsWithEmail("email@taken.com");
             
-            VerifyIsRedirectResult(result);
+            ShouldBeRedirectResult(result);
 
             _theApp.ReloadEntity(appUser);
             Assert.Equal("email@taken.com", appUser.EmailAddress);
@@ -242,20 +282,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
             return (result, userCtrl);
         }
         
-        private static void VerifyIsRedirectResult(IActionResult result, string actionName = "Settings")
+        private static void ShouldBeRedirectResult(IActionResult result, string actionName = "Settings")
         {
             var redirectResult = result as RedirectToActionResult;
             redirectResult.ShouldNotBeNull();
             redirectResult.ActionName.ShouldEqual(actionName);
         }
 
-        private static void ShouldBeViewResultWithErrors(IActionResult result, ModelStateDictionary modelState)
+        private static void ShouldBeViewResultWithErrors(IActionResult result, ModelStateDictionary modelState, 
+            string viewName = "Settings", string errorKey = nameof(UserSettingsViewModel.EmailAddress))
         {
             var viewResult = result as ViewResult;
             viewResult.ShouldNotBeNull();
-            viewResult.ViewName.ShouldEqual("Settings");
+            viewResult.ViewName.ShouldEqual(viewName);
+            Assert.NotNull(viewResult.Model);
             Assert.False(modelState.IsValid);
-            Assert.True(modelState.Keys.Contains(nameof(UserSettingsViewModel.EmailAddress)));
+            Assert.True(modelState.Keys.Contains(errorKey));
         }
 
         private void CreateUser(string email, bool confirmed)

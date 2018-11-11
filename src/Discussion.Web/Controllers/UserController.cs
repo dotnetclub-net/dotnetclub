@@ -42,13 +42,13 @@ namespace Discussion.Web.Controllers
         [Route("settings")]
         public async Task<IActionResult> DoSettings(UserSettingsViewModel userSettingsViewModel)
         {
+            var user = HttpContext.DiscussionUser();
             var emailFieldName = nameof(UserSettingsViewModel.EmailAddress);
             if (!ModelState.IsValid)
             {
-                return View("Settings");
+                return View("Settings", user);
             }
 
-            var user = HttpContext.DiscussionUser();
             user.DisplayName = userSettingsViewModel.DisplayName;
             if (string.IsNullOrWhiteSpace(user.DisplayName))
             {
@@ -67,7 +67,7 @@ namespace Discussion.Web.Controllers
             if (emailTaken)
             {
                 ModelState.AddModelError(emailFieldName, "邮件地址已由其他用户使用");
-                return View("Settings");
+                return View("Settings", user);
             }
             
             var identityResult = await _userManager.SetEmailAsync(user, newEmail);
@@ -75,7 +75,7 @@ namespace Discussion.Web.Controllers
             {
                 var msg = string.Join(";", identityResult.Errors.Select(e => e.Description));
                 ModelState.AddModelError(emailFieldName, msg);
-                return View("Settings");
+                return View("Settings", user);
             }
             
             return RedirectToAction("Settings");
@@ -110,9 +110,9 @@ namespace Discussion.Web.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> ConfirmEmail(string token)
         {
-            var hasErrors = false;
             var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
-            if (tokenInEmail != null)
+            var hasErrors = tokenInEmail == null;
+            if (!hasErrors)
             {
                 var user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
                 var identityResult = await _userManager.ConfirmEmailAsync(user, tokenInEmail.Token);
@@ -145,7 +145,7 @@ namespace Discussion.Web.Controllers
             var getActionName = "ChangePassword";
             if (!ModelState.IsValid)
             {
-                return View(getActionName);
+                return View(getActionName, viewModel);
             }
             
             var user = HttpContext.DiscussionUser();
@@ -154,7 +154,7 @@ namespace Discussion.Web.Controllers
             {
                 ModelState.Clear();
                 ModelState.AddModelError(string.Empty, changeResult.Errors.ToList().First().Description);
-                return View(getActionName);
+                return View(getActionName, viewModel);
             }
 
             return RedirectToAction(getActionName);
@@ -170,6 +170,7 @@ namespace Discussion.Web.Controllers
             return _userRepo.All()
                 .Any(u => u.EmailAddressConfirmed
                           && u.Id != userId
+                          && u.EmailAddress != null
                           && u.EmailAddress.ToLower() == newEmail.ToLower());
         }
     }

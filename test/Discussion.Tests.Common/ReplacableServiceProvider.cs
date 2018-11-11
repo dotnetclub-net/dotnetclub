@@ -49,7 +49,7 @@ namespace Discussion.Tests.Common
 
         public void Dispose()
         {
-            Reset();
+            
         }
 
         public IServiceProvider ServiceProvider => this;
