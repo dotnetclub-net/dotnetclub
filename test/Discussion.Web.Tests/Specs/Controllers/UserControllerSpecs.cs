@@ -9,6 +9,7 @@ using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services.EmailConfirmation;
 using Discussion.Web.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -53,6 +54,28 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.False(user.EmailAddressConfirmed);
         }
 
+        [Fact]
+        public async Task should_update_password()
+        {
+            var user = _theApp.MockUser();
+            var viewModel = new ChangePasswordViewModel
+            {
+                OldPassword = "111111",
+                NewPassword = "11111A"
+            };
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            
+            var result = await userCtrl.DoChangePassword(viewModel);
+
+            
+            _theApp.ReloadEntity(user);
+            VerifyIsRedirectResult(result, "ChangePassword");
+            var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
+            Assert.True(passwordChanged);
+        }
+        
+        
         #region Email Settings
 
         [Fact]
@@ -219,11 +242,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
             return (result, userCtrl);
         }
         
-        private static void VerifyIsRedirectResult(IActionResult result)
+        private static void VerifyIsRedirectResult(IActionResult result, string actionName = "Settings")
         {
             var redirectResult = result as RedirectToActionResult;
             redirectResult.ShouldNotBeNull();
-            redirectResult.ActionName.ShouldEqual("Settings");
+            redirectResult.ActionName.ShouldEqual(actionName);
         }
 
         private static void ShouldBeViewResultWithErrors(IActionResult result, ModelStateDictionary modelState)

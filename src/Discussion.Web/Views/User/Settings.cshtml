@@ -21,7 +21,7 @@
                 显示名称
             </label>
             <div>
-                @Html.TextBoxFor(model => model.DisplayName, new {@class = "form-control", minlength = 3, maxlength = 20})
+                @Html.TextBoxFor(model => model.DisplayName, new {autofocus=true, @class = "form-control", minlength = 3, maxlength = 20})
             </div>
         </fieldset>
         <fieldset class="form-group">

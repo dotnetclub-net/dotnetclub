@@ -132,6 +132,34 @@ namespace Discussion.Web.Controllers
             return View(); 
         }
 
+        [Route("change-password")]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Route("change-password")]
+        public async Task<IActionResult> DoChangePassword(ChangePasswordViewModel viewModel)
+        {
+            var getActionName = "ChangePassword";
+            if (!ModelState.IsValid)
+            {
+                return View(getActionName);
+            }
+            
+            var user = HttpContext.DiscussionUser();
+            var changeResult = await _userManager.ChangePasswordAsync(user, viewModel.OldPassword, viewModel.NewPassword);
+            if (!changeResult.Succeeded)
+            {
+                ModelState.Clear();
+                ModelState.AddModelError(string.Empty, changeResult.Errors.ToList().First().Description);
+                return View(getActionName);
+            }
+
+            return RedirectToAction(getActionName);
+        }
+
         private bool IsEmailTaken(int userId, string newEmail)
         {
             if (string.IsNullOrWhiteSpace(newEmail))
