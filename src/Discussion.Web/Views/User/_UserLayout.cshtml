@@ -1,14 +1,37 @@
-@model TModel
+@{
+    Layout = "../Shared/_Layout.cshtml";
+    ViewData["Title"] = "个人中心";
+}
 
-<!DOCTYPE html>
+@section Head{
+    @RenderSection("Head", required: false)
+}
 
-<html>
-<head>
-    <title>title</title>
-</head>
-<body>
-<div>
-      
+<div class="row">
+    <div class="hidden-xs hidden-sm col-md-4 col-lg-4 pull-right">
+        <div class="panel">
+            <div class="panel-heading">个人中心</div>
+            <div class="panel-body">
+                <ul>
+                    <li>@Html.ActionLink("基本信息", "Settings", "User")</li>
+                    <li>修改密码</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-12 hidden-md hidden-lg no-padding">
+        <div class="panel">
+            <div class="panel-heading">
+                @Html.ActionLink("基本信息", "Settings", "User")
+                <a>修改密码</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8 no-padding pull-left">
+        @RenderBody()
+    </div>
 </div>
-</body>
-</html>
+
+@section Tail{
+    @RenderSection("Tail", required: false)
+}
