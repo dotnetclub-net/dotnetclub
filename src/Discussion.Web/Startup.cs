@@ -78,7 +78,7 @@ namespace Discussion.Web
 
             services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
             services.AddTransient<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
-            services.AddTransient<IEmailSender, EmailSender>();
+            services.AddTransient<IEmailSender, SendGridEmailSender>();
 //            services.AddDataProtection()
 //                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
 //                .SetApplicationName(_hostingEnvironment.ApplicationName);

@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
-using Discussion.Web.Services.EmailConfirmation;
-using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Xunit;
 
@@ -48,11 +46,8 @@ namespace Discussion.Web.Tests.Specs.Services
             var invalidToken = "hello" + tokenString;
             var confirmResult = await _userManager.ConfirmEmailAsync(user, invalidToken);
 
-            var errors = confirmResult.Errors.ToList();
             _app.ReloadEntity(user);
-            Assert.False(confirmResult.Succeeded);
-            Assert.False(user.EmailAddressConfirmed);
-            Assert.Equal("InvalidToken", errors[0].Code);
+            VerifyFailedToConfirm(confirmResult, user);
         }
 
         [Fact]
@@ -64,14 +59,10 @@ namespace Discussion.Web.Tests.Specs.Services
             
             var confirmResult = await _userManager.ConfirmEmailAsync(user2, user1TokenString);
 
-            var errors = confirmResult.Errors.ToList();
             _app.ReloadEntity(user1, user2);
-            Assert.False(confirmResult.Succeeded);
-            Assert.False(user1.EmailAddressConfirmed);
-            Assert.False(user1.EmailAddressConfirmed);
-            Assert.Equal("InvalidToken", errors[0].Code);
+            VerifyFailedToConfirm(confirmResult, user1);
         }
-        
+
         [Fact]
         public async Task should_not_confirm_user_email_with_non_matching_email_address()
         {
@@ -84,13 +75,19 @@ namespace Discussion.Web.Tests.Specs.Services
             _app.ReloadEntity(user);
             var confirmResult = await _userManager.ConfirmEmailAsync(user, tokenString);
 
-            var errors = confirmResult.Errors.ToList();
             _app.ReloadEntity(user);
+            VerifyFailedToConfirm(confirmResult, user);
+        }
+
+        
+        private static void VerifyFailedToConfirm(IdentityResult confirmResult, User user)
+        {
+            var errors = confirmResult.Errors.ToList();
             Assert.False(confirmResult.Succeeded);
             Assert.False(user.EmailAddressConfirmed);
             Assert.Equal("InvalidToken", errors[0].Code);
         }
- 
+
 
         private User CreateNewUser(string emailAddress = "someone@someplace.com")
         {

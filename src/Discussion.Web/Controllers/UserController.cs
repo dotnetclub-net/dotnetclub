@@ -103,7 +103,6 @@ namespace Discussion.Web.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> ConfirmEmail(string token)
         {
-            const string errorMessage = "无法确认邮箱地址";
             var hasErrors = false;
             var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
             if (tokenInEmail != null)
@@ -121,7 +120,7 @@ namespace Discussion.Web.Controllers
 
             if (hasErrors)
             {
-                ModelState.AddModelError("token", errorMessage);
+                ModelState.AddModelError("token", "无法确认邮件地址");
             }
             return View(); 
         }

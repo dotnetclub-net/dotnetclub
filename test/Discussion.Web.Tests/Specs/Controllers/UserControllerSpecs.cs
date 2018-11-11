@@ -3,13 +3,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
-using Discussion.Core.Mvc;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -30,52 +30,32 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _theApp.DeleteAll<User>();
         }
 
+        #region Email Settings
+        
         [Fact]
         public async Task should_bind_email_with_normal_email_address()
         {
-            _theApp.MockUser();
-            var user = _theApp.User.ToDiscussionUser(_userRepo);
-            user.EmailAddress = "one@before-change.com";
-            user.EmailAddressConfirmed = true;
-            _userRepo.Update(user);
+            var user = UseUpdatedAppUser("one@before-change.com", confirmed: true);
             
-            var userCtrl = _theApp.CreateController<UserController>();
-            var emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "someone@changed.com" };
-            var result = await userCtrl.DoSettings(emailSettingViewModel);
-            
-            var redirectResult = result as RedirectToActionResult;
-            redirectResult.ShouldNotBeNull();
-            redirectResult.ActionName.ShouldEqual("Settings");
+            var (result, _) = await SubmitSettingsWithEmail("someone@changed.com");
 
-            _theApp.GetService<ApplicationDbContext>().Entry(user).Reload();
+            VerifyIsRedirectResult(result);
+
+            _theApp.ReloadEntity(user);
             Assert.Equal("someone@changed.com", user.EmailAddress);
             Assert.False(user.EmailAddressConfirmed);
         }
-        
+
         [Fact]
         public async Task should_not_bind_email_with_invalid_email_address()
         {
-            _theApp.MockUser();
-            var user = _theApp.User.ToDiscussionUser(_userRepo);
-            user.EmailAddress = "one@before-change.com";
-            user.EmailAddressConfirmed = true;
-            _userRepo.Update(user);
-            
-            var userCtrl = _theApp.CreateController<UserController>();
-            var emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "someone#cha.com" };
-            userCtrl.ObjectValidator.Validate(userCtrl.ControllerContext,
-                null,
-                null,
-                emailSettingViewModel);
-            var result = await userCtrl.DoSettings(emailSettingViewModel);
-            
-            var redirectResult = result as ViewResult;
-            redirectResult.ShouldNotBeNull();
-            redirectResult.ViewName.ShouldEqual("Settings");
-            Assert.False(userCtrl.ModelState.IsValid);
-            Assert.True(userCtrl.ModelState.Keys.Contains(nameof(EmailSettingViewModel.EmailAddress)));
+            var user = UseUpdatedAppUser("one@before-change.com", confirmed: true);
 
-            _theApp.GetService<ApplicationDbContext>().Entry(user).Reload();
+
+            var (result, userCtrl) = await SubmitSettingsWithEmail("someone#cha.com");
+            
+            _theApp.ReloadEntity(user);
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState);
             Assert.Equal("one@before-change.com", user.EmailAddress);
             Assert.True(user.EmailAddressConfirmed);
         }
@@ -83,30 +63,14 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_bind_email_with_email_address_if_not_confirmed_by_another_user()
         {
-            _theApp.MockUser();
-            var appUser = _theApp.User.ToDiscussionUser(_userRepo);
-            appUser.EmailAddress = "one@before-change.com";
-            appUser.EmailAddressConfirmed = true;
-            _userRepo.Update(appUser);
-            _userRepo.Save(new User
-            {
-                CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
-                UserName = "SomeUser",
-                DisplayName = "SomeUser",
-                EmailAddress = "email@taken.com",
-                EmailAddressConfirmed = false,
-                HashedPassword = "hashed-password"
-            });
-            
-            var userCtrl = _theApp.CreateController<UserController>();
-            var emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "email@taken.com" };
-            var result = await userCtrl.DoSettings(emailSettingViewModel);
-            
-            var redirectResult = result as RedirectToActionResult;
-            redirectResult.ShouldNotBeNull();
-            redirectResult.ActionName.ShouldEqual("Settings");
+            var appUser = UseUpdatedAppUser("one@before-change.com", confirmed: true);
+            CreateUser("email@taken.com", confirmed: false);
 
-            _theApp.GetService<ApplicationDbContext>().Entry(appUser).Reload();
+            var (result, _) = await SubmitSettingsWithEmail("email@taken.com");
+            
+            VerifyIsRedirectResult(result);
+
+            _theApp.ReloadEntity(appUser);
             Assert.Equal("email@taken.com", appUser.EmailAddress);
             Assert.Equal(false, appUser.EmailAddressConfirmed);
         }
@@ -114,119 +78,78 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_not_bind_email_with_email_address_already_confirmed_by_another_user()
         {
-            _userRepo.Save(new User
-            {
-                CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
-                UserName = "SomeUser",
-                DisplayName = "SomeUser",
-                EmailAddress = "email@taken.com",
-                EmailAddressConfirmed = true,
-                HashedPassword = "hashed-password"
-            });
-            _theApp.MockUser();
-            var appUser = _theApp.User.ToDiscussionUser(_userRepo);
-            appUser.EmailAddress = "one@before-change.com";
-            appUser.EmailAddressConfirmed = false;
-            _userRepo.Update(appUser);
+            var appUser = UseUpdatedAppUser("one@before-change.com", confirmed: false);
+            CreateUser("email@taken.com", confirmed: true);
 
-            var userCtrl = _theApp.CreateController<UserController>();
-            var emailSettingViewModel = new EmailSettingViewModel { EmailAddress = "email@taken.com" };
-            var result = await userCtrl.DoSettings(emailSettingViewModel);
+            var (result, userCtrl) = await SubmitSettingsWithEmail("email@taken.com");
             
-            var redirectResult = result as ViewResult;
-            redirectResult.ShouldNotBeNull();
-            redirectResult.ViewName.ShouldEqual("Settings");
-            Assert.False(userCtrl.ModelState.IsValid);
-            Assert.True(userCtrl.ModelState.Keys.Contains(nameof(EmailSettingViewModel.EmailAddress)));
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState);
 
-            _theApp.GetService<ApplicationDbContext>().Entry(appUser).Reload();
+            _theApp.ReloadEntity(appUser);
             Assert.Equal("one@before-change.com", appUser.EmailAddress);
             Assert.False(appUser.EmailAddressConfirmed);
         }
 
+        #endregion
+
+        #region Email Confirmation
+        
         [Fact]
         public async Task should_send_email_confirmation_email()
         {
-            _theApp.MockUser();
-            var user = _theApp.User.ToDiscussionUser(_userRepo);
-            user.EmailAddress = "one@changing.com";
-            user.EmailAddressConfirmed = false;
-            _userRepo.Update(user);
-
-            var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>())).Returns("confirm-email");
-            var mailSender = new Mock<IEmailSender>();
-            mailSender.Setup(sender =>sender.SendEmailAsync("one@changing.com", "dotnet club 用户邮件地址确认", It.IsAny<string>()))
-                        .Returns(Task.CompletedTask)
-                        .Verifiable();
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+            var mailSender = MockMailSender();
+            var user = UseUpdatedAppUser("one@changing.com", confirmed: false);
+            
             
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = urlHelper.Object;
+            userCtrl.Url = CreateMockUrlHelper();
             var result = await userCtrl.SendEmailConfirmation();
             
             Assert.True(result.HasSucceeded);
             mailSender.Verify();
 
-            _theApp.GetService<ApplicationDbContext>().Entry(user).Reload();
+            _theApp.ReloadEntity(user);
             Assert.Equal("one@changing.com", user.EmailAddress);
             Assert.False(user.EmailAddressConfirmed);
         }
- 
+
         [Fact]
         public async Task should_not_send_email_confirmation_email_if_already_confirmed()
         {
-            _theApp.MockUser();
-            var user = _theApp.User.ToDiscussionUser(_userRepo);
-            user.EmailAddress = "one@changing.com";
-            user.EmailAddressConfirmed = true;
-            _userRepo.Update(user);
-
-            var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>())).Returns("confirm-email");
-            var mailSender = new Mock<IEmailSender>();
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+            var mailSender = MockMailSender(willBeCalled: false);
+            var user = UseUpdatedAppUser("one@changing.com", confirmed: true);
+            
             
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = urlHelper.Object;
+            userCtrl.Url = CreateMockUrlHelper();
             var result = await userCtrl.SendEmailConfirmation();
             
-            Assert.False(result.HasSucceeded);
+            
+            _theApp.ReloadEntity(user);
+            
             mailSender.VerifyNoOtherCalls();
-
-            _theApp.GetService<ApplicationDbContext>().Entry(user).Reload();
+            Assert.False(result.HasSucceeded);
             Assert.Equal("one@changing.com", user.EmailAddress);
             Assert.True(user.EmailAddressConfirmed);
         }
- 
+
         [Fact]
         public async Task should_confirm_email()
         {
-            _theApp.MockUser();
-            var user = _theApp.User.ToDiscussionUser(_userRepo);
-            user.EmailAddress = "one@changing.com";
-            user.EmailAddressConfirmed = false;
-            _userRepo.Update(user);
-
-            dynamic routeValues = null; 
-            var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>()))
-                .Callback((UrlActionContext ctx) => { routeValues = ctx.Values; })
-                .Returns("confirm-email");
-            var mailSender = new Mock<IEmailSender>();
-            mailSender.Setup(sender =>sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+            MockMailSender();
+            var user = UseUpdatedAppUser("one@changing.com", confirmed: false);
             
+            
+            dynamic routeValues = null;
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = urlHelper.Object;
+            userCtrl.Url = CreateMockUrlHelper(ctx => { routeValues = ctx.Values; });
             await userCtrl.SendEmailConfirmation();
 
 
             string token = routeValues.token;
             var result = await userCtrl.ConfirmEmail(token);
             
-            _theApp.GetService<ApplicationDbContext>().Entry(user).Reload();
+            _theApp.ReloadEntity(user);
             Assert.Equal("one@changing.com", user.EmailAddress);
             Assert.True(user.EmailAddressConfirmed);
             
@@ -235,48 +158,111 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.True(userCtrl.ModelState.IsValid);
             Assert.True(string.IsNullOrEmpty(viewResult.ViewName));
         }
-        
+
         [Fact]
         public async Task should_not_confirm_email_when_already_confirmed_by_another_user()
         {
+            MockMailSender();
+            var user = UseUpdatedAppUser("email@taken.com", confirmed: false);
+            
             dynamic routeValues = null; 
-            var urlHelper = new Mock<IUrlHelper>();
-            urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>()))
-                .Callback((UrlActionContext ctx) => { routeValues = ctx.Values; })
-                .Returns("confirm-email");
-            var mailSender = new Mock<IEmailSender>();
-            mailSender.Setup(sender =>sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
-           
-            _theApp.MockUser();
-            var user = _theApp.User.ToDiscussionUser(_userRepo);
-            user.EmailAddress = "email@taken.com";
-            user.EmailAddressConfirmed = false;
-            _userRepo.Update(user);            
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = urlHelper.Object;
+            userCtrl.Url = CreateMockUrlHelper(ctx => { routeValues = ctx.Values; });
             await userCtrl.SendEmailConfirmation();
             string token = routeValues.token;
 
 
-            _userRepo.Save(new User
-            {
-                CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
-                UserName = "SomeUser",
-                DisplayName = "SomeUser",
-                EmailAddress = "email@taken.com",
-                EmailAddressConfirmed = true,
-                HashedPassword = "hashed-password"
-            });
+            CreateUser("email@taken.com", confirmed: true);
             await userCtrl.ConfirmEmail(token);
             
-            _theApp.GetService<ApplicationDbContext>().Entry(user).Reload();
+            _theApp.ReloadEntity(user);
             Assert.Equal("email@taken.com", user.EmailAddress);
             Assert.False(user.EmailAddressConfirmed);
             Assert.False(userCtrl.ModelState.IsValid);
         }
 
         // QUESTION: should not confirm with used token?
+        
+        #endregion
+
+        #region Helpers
+
+        private async Task<(IActionResult, UserController)> SubmitSettingsWithEmail(string emailAddress)
+        {
+            var userCtrl = _theApp.CreateController<UserController>();
+            var emailSettingViewModel = new EmailSettingViewModel { EmailAddress = emailAddress};
+            userCtrl.TryValidateModel(emailSettingViewModel);
+            var result = await userCtrl.DoSettings(emailSettingViewModel);
+            return (result, userCtrl);
+        }
+        
+        private static void VerifyIsRedirectResult(IActionResult result)
+        {
+            var redirectResult = result as RedirectToActionResult;
+            redirectResult.ShouldNotBeNull();
+            redirectResult.ActionName.ShouldEqual("Settings");
+        }
+
+        private static void ShouldBeViewResultWithErrors(IActionResult result, ModelStateDictionary modelState)
+        {
+            var viewResult = result as ViewResult;
+            viewResult.ShouldNotBeNull();
+            viewResult.ViewName.ShouldEqual("Settings");
+            Assert.False(modelState.IsValid);
+            Assert.True(modelState.Keys.Contains(nameof(EmailSettingViewModel.EmailAddress)));
+        }
+
+        private void CreateUser(string email, bool confirmed)
+        {
+            _userRepo.Save(new User
+            {
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
+                UserName = "SomeUser",
+                DisplayName = "SomeUser",
+                EmailAddress = email,
+                EmailAddressConfirmed = confirmed,
+                HashedPassword = "hashed-password"
+            });
+        }
+
+        private User UseUpdatedAppUser(string newEmail, bool confirmed)
+        {
+            var user = _theApp.MockUser(); 
+            user.EmailAddress = newEmail;
+            user.EmailAddressConfirmed = confirmed;
+            _userRepo.Update(user);
+            return user;
+        }
+        
+        private static IUrlHelper CreateMockUrlHelper(Action<UrlActionContext> callback = null)
+        {
+            var urlHelper = new Mock<IUrlHelper>();
+            var setup = urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>()));
+            if (callback != null)
+            {
+                setup.Callback(callback).Returns("confirm-email");
+            }
+            else
+            {
+                setup.Returns("confirm-email");
+            }
+            return urlHelper.Object;
+        }
+
+        private Mock<IEmailSender> MockMailSender(bool willBeCalled = true)
+        {
+            var mailSender = new Mock<IEmailSender>();
+            if (willBeCalled)
+            {
+                mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), "dotnet club 用户邮件地址确认", It.IsAny<string>()))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+            }
+
+            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+            return mailSender;
+        }
+
+        #endregion
     }
 }

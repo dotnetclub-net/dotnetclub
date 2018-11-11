@@ -5,13 +5,13 @@ using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Services.EmailConfirmation.Impl
 {
-    public class EmailSender : IEmailSender
+    public class SendGridEmailSender : IEmailSender
     {
         private readonly string smtpServer;
         private readonly string mailFrom;
         private readonly string mailPwd;
         private AuthMessageSenderOptions _authMessageSenderOptions;
-        public EmailSender(IOptions<AuthMessageSenderOptions> authMessageSenderOptions)
+        public SendGridEmailSender(IOptions<AuthMessageSenderOptions> authMessageSenderOptions)
         {
             smtpServer = authMessageSenderOptions.Value.SendServer;
             mailFrom = authMessageSenderOptions.Value.SendGridUser;

@@ -64,7 +64,7 @@ namespace Discussion.Tests.Common
             });
         }
         
-        public static void MockUser(this TestApplication app)
+        public static User MockUser(this TestApplication app)
         {
             var userRepo = app.GetService<IRepository<User>>();
             var passwordHasher = app.GetService<IPasswordHasher<User>>();
@@ -87,9 +87,10 @@ namespace Discussion.Tests.Common
             };
             var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
             app.User = new ClaimsPrincipal(identity);
+            return user;
         }
         
-        public static void MockAdminUser(this TestApplication app)
+        public static AdminUser MockAdminUser(this TestApplication app)
         {
             var adminUserRepo = app.GetService<IRepository<AdminUser>>();
             var adminUserService = app.GetService<IAdminUserService>();
@@ -108,6 +109,7 @@ namespace Discussion.Tests.Common
                                   .First()
                                   .ValidateToken(token.TokenString, options.TokenValidationParameters, out _);
             app.User = identity;
+            return adminUser;
         }
         
         public static ModelStateDictionary ValidateModel(this TestApplication app, object model)

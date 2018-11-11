@@ -134,11 +134,7 @@ namespace Discussion.Admin.Tests.Specs.Controllers
 
             
             var accountController = _adminApp.CreateController<AccountController>();
-            accountController.ObjectValidator.Validate(
-                accountController.ControllerContext,
-                null,
-                null,
-                newAdminUser);
+            accountController.TryValidateModel(newAdminUser);
             var apiResponse = accountController.Register(newAdminUser);
             
             
