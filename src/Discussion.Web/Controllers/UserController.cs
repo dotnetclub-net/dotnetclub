@@ -40,17 +40,24 @@ namespace Discussion.Web.Controllers
         
         [HttpPost]
         [Route("settings")]
-        public async Task<IActionResult> DoSettings(EmailSettingViewModel emailSettingViewModel)
+        public async Task<IActionResult> DoSettings(UserSettingsViewModel userSettingsViewModel)
         {
-            var emailFieldName = nameof(EmailSettingViewModel.EmailAddress);
+            var emailFieldName = nameof(UserSettingsViewModel.EmailAddress);
             if (!ModelState.IsValid)
             {
                 return View("Settings");
             }
 
             var user = HttpContext.DiscussionUser();
-            var existingEmail = user.EmailAddress?.Trim() ?? string.Empty;
-            var newEmail = emailSettingViewModel.EmailAddress?.Trim() ?? string.Empty;
+            user.DisplayName = userSettingsViewModel.DisplayName;
+            if (string.IsNullOrWhiteSpace(user.DisplayName))
+            {
+                user.DisplayName = user.UserName;
+            }
+            _userRepo.Update(user);
+            
+            var existingEmail = user.EmailAddress?.Trim();
+            var newEmail = userSettingsViewModel.EmailAddress?.Trim();
             if (existingEmail.IgnoreCaseEqual(newEmail))
             {
                 return RedirectToAction("Settings");
@@ -127,6 +134,11 @@ namespace Discussion.Web.Controllers
 
         private bool IsEmailTaken(int userId, string newEmail)
         {
+            if (string.IsNullOrWhiteSpace(newEmail))
+            {
+                return false;
+            }
+            
             return _userRepo.All()
                 .Any(u => u.EmailAddressConfirmed
                           && u.Id != userId

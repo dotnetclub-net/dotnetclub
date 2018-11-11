@@ -39,6 +39,11 @@ body.with-generic-nav {
 	color:white;
 	margin-top: 15px;
 	
+	.user-settings-link {
+		display: inline-block;
+		margin-left: 10px;
+	}
+	
 	.signout-form {
 		display: inline;
 		

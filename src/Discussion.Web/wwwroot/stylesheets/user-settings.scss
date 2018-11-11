@@ -18,26 +18,27 @@
   input[name=EmailAddress]{
     float:left;
   }
-  
-  .confirmation{
+
+  i.glyphicon{
+    margin-left: -21px;
+    top: 14px;
     float:left;
-    margin-left: -23px;
+  }
+  
+  i.glyphicon-warning-sign{
+    color:$brand-warning
+  }
+  i.glyphicon-ok{
+    color:$brand-success
+  }
+  
+  .confirm-palette{
+    float: left;
     margin-top: 10px;
+    margin-left: 5px;
     
     &.sent{
       margin-left: -6px;
-    }
-    
-    i.glyphicon-warning-sign{
-      color:$brand-warning
-    }
-    i.glyphicon-ok{
-      color:$brand-success
-    }
-    
-    .confirm-palette{
-      display: inline-block;
-      margin-left: 15px;
     }
     
     [data-status]{

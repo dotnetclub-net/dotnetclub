@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
@@ -30,8 +31,30 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _theApp.DeleteAll<User>();
         }
 
+        [Fact]
+        public async Task should_update_display_name()
+        {
+            var user = _theApp.MockUser();
+            var settingViewModel = new UserSettingsViewModel
+            {
+                DisplayName = StringUtility.Random()
+            };
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            
+            var result = await userCtrl.DoSettings(settingViewModel);
+
+            
+            VerifyIsRedirectResult(result);
+            
+            _theApp.ReloadEntity(user);
+            Assert.Equal(settingViewModel.DisplayName, user.DisplayName);
+            Assert.Null(user.EmailAddress);
+            Assert.False(user.EmailAddressConfirmed);
+        }
+
         #region Email Settings
-        
+
         [Fact]
         public async Task should_bind_email_with_normal_email_address()
         {
@@ -190,7 +213,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         private async Task<(IActionResult, UserController)> SubmitSettingsWithEmail(string emailAddress)
         {
             var userCtrl = _theApp.CreateController<UserController>();
-            var emailSettingViewModel = new EmailSettingViewModel { EmailAddress = emailAddress};
+            var emailSettingViewModel = new UserSettingsViewModel { EmailAddress = emailAddress};
             userCtrl.TryValidateModel(emailSettingViewModel);
             var result = await userCtrl.DoSettings(emailSettingViewModel);
             return (result, userCtrl);
@@ -209,7 +232,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             viewResult.ShouldNotBeNull();
             viewResult.ViewName.ShouldEqual("Settings");
             Assert.False(modelState.IsValid);
-            Assert.True(modelState.Keys.Contains(nameof(EmailSettingViewModel.EmailAddress)));
+            Assert.True(modelState.Keys.Contains(nameof(UserSettingsViewModel.EmailAddress)));
         }
 
         private void CreateUser(string email, bool confirmed)
