@@ -49,8 +49,8 @@ namespace Discussion.Web.Controllers
             }
 
             var user = HttpContext.DiscussionUser();
-            var existingEmail = user.EmailAddress?.Trim();
-            var newEmail = emailSettingViewModel.EmailAddress?.Trim();
+            var existingEmail = user.EmailAddress?.Trim() ?? string.Empty;
+            var newEmail = emailSettingViewModel.EmailAddress?.Trim() ?? string.Empty;
             if (existingEmail.IgnoreCaseEqual(newEmail))
             {
                 return RedirectToAction("Settings");

@@ -6,7 +6,7 @@
 
 
 .no-padding{
-	padding: 0;
+	padding: 0 !important;
 }
 
 
@@ -22,6 +22,10 @@ body.with-generic-nav {
 
 .panel {
 	margin-bottom: 13px;
+}
+
+.panel-body{
+	padding: 10px;
 }
 
 .panel .panel-heading {
@@ -63,5 +67,15 @@ body.with-generic-nav {
 	
 	.report-link{
 		color:$brand-lightest
+	}
+}
+
+
+a.link{
+	cursor: pointer;
+	text-decoration: none;
+	
+	&:hover,&:active{
+		text-decoration: underline;
 	}
 }

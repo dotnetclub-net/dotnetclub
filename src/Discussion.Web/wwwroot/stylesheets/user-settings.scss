@@ -1,0 +1,51 @@
+@import "symbols";
+
+.panel-user-settings {
+  padding-bottom: 30px;
+  
+  h3{
+    margin-bottom: 30px;
+    border-bottom: 1px solid $gray-body-background;
+    padding-bottom: 10px;
+  }
+  
+  .form-control{
+    width: 60%;
+  }
+  
+  
+  
+  input[name=EmailAddress]{
+    float:left;
+  }
+  
+  .confirmation{
+    float:left;
+    margin-left: -23px;
+    margin-top: 10px;
+    
+    &.sent{
+      margin-left: -6px;
+    }
+    
+    i.glyphicon-warning-sign{
+      color:$brand-warning
+    }
+    i.glyphicon-ok{
+      color:$brand-success
+    }
+    
+    .confirm-palette{
+      display: inline-block;
+      margin-left: 15px;
+    }
+    
+    [data-status]{
+      display: none;
+    }
+  }
+  
+  button[type=submit]{
+    margin-top:20px;
+  }
+}

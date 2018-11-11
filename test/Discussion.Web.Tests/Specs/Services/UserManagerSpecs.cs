@@ -10,13 +10,13 @@ using Xunit;
 namespace Discussion.Web.Tests.Specs.Services
 {
     [Collection("WebSpecs")]
-    public class EmailConfirmationServiceSpecs
+    public class UserManagerSpecs
     {
         private readonly IRepository<User> _userRepo;
         private readonly UserManager<User> _userManager;
         private TestDiscussionWebApp _app;
 
-        public EmailConfirmationServiceSpecs(TestDiscussionWebApp app)
+        public UserManagerSpecs(TestDiscussionWebApp app)
         {
             _app = app;
             _userManager = app.GetService<UserManager<User>>();

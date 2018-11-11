@@ -18,12 +18,7 @@ namespace Discussion.Web.Services.EmailConfirmation.Impl
             mailPwd = authMessageSenderOptions.Value.SendGridKey;
         }
         
-        public Task SendEmailAsync(string emailTo, string subject, string message)
-        {
-            return Execute(emailTo,subject, message);
-        }
-        
-        public Task Execute(string emailTo, string subject,string message)
+        public async Task SendEmailAsync(string emailTo, string subject, string message)
         {
             // 邮件服务设置
             SmtpClient smtpClient = new SmtpClient(smtpServer, 25);
@@ -40,7 +35,7 @@ namespace Discussion.Web.Services.EmailConfirmation.Impl
             mailMessage.BodyEncoding = Encoding.UTF8;
             mailMessage.IsBodyHtml = true;
             mailMessage.Priority = MailPriority.Low;
-            return Task.Run(() => {
+            await Task.Run(() => {
                 smtpClient.Send(mailMessage);
             });
         }

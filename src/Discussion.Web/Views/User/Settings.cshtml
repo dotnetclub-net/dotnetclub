@@ -1,57 +1,149 @@
 ﻿@using Discussion.Core.Models
 @model User
 @{
-    ViewData["Title"] = "Setting";
+    ViewData["Title"] = "基本信息";
 }
-<h2>Setting</h2>
+
 <div class="row">
-    <div class="col-md-8">
-        <form asp-action="DoSettings" method="post" name="myform" onsubmit="showtime(30)">
+    <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8 no-padding">
+        <div class="panel panel-body panel-user-settings">
+            <h3>基本信息</h3>
+            <form asp-action="DoSettings" method="post" name="myform" onsubmit="showtime(30)">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="UserName"></label>
-                @if (string.IsNullOrEmpty(Model.EmailAddress))
-                {
-                    <label asp-for="EmailAddress">尚未填写邮件地址</label>
-                }
-                else
-                {
-                    <label asp-for="EmailAddress">@Model.EmailAddress</label>
-                    if(!Model.EmailAddressConfirmed)
-                     {
-                         <span>邮件地址未确认</span>
-                     }
-                }
+            <fieldset class="form-group">
+                <label>
+                    用户名
+                </label>
+                <div>@Model.UserName</div>
+            </fieldset>
+            <fieldset class="form-group">
+                <label asp-for="DisplayName">
+                    显示名称
+                </label>
+                <div>
+                    @Html.TextBoxFor(model => model.DisplayName, new {@class="form-control", minlength=3, maxlength=20})
+                </div>
+            </fieldset>
+            <fieldset class="form-group">
+                <label asp-for="EmailAddress">
+                    邮件地址
+                </label>
+                <div>
+                    @Html.TextBoxFor(model => model.EmailAddress, new {type="email", @class="form-control", minlength=3, maxlength=40})
+                    @if (!string.IsNullOrEmpty(Model.EmailAddress))
+                    {
+                        <div class="confirmation">
+                            <i data-status="send" title="@(Model.EmailAddressConfirmed ? "已验证" : "未验证")"
+                               class="confirmation-operation glyphicon @(Model.EmailAddressConfirmed ? "glyphicon-ok" : "glyphicon-warning-sign")"></i>
+                            @if (!Model.EmailAddressConfirmed)
+                            {
+                                <div class="confirm-palette">
+                                    <a data-status="send" class="confirmation-operation link">现在验证</a>
+                                    <a data-status="re-send" class="confirmation-operation link">再次发送验证邮件</a>
+                                    <span data-status="sending" class="confirmation-operation">正在发送验证邮件</span>
+                                    <span data-status="sent" class="confirmation-operation">
+                                        验证邮件已发出，<span data-status="sent-1">请查收邮件完成验证</span><span data-status="sent-2" class="countdown"></span><span data-status="sent-2"> 秒后可再次发送</span>
+                                    </span>
+                                    <span data-status="error" class="confirmation-operation">无法发送验证邮件，请稍后再试</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </fieldset>
+                
+            <button type="submit" class="btn btn-default">保存</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-xs-0 col-sm-0 col-md-4 col-lg-4">
+        <div class="panel">
+            <div class="panel-heading">个人中心</div>
+            <div class="panel-body">
+                <ul>
+                    <li>基本信息</li>
+                    <li>修改密码</li>
+                </ul>
             </div>
-            <div class="form-group">
-                <label asp-for="EmailAddress">邮件地址</label>
-                <input asp-for="EmailAddress" class="form-control" />
-                <span asp-validation-for="EmailAddress" class="text-danger"></span>
-            </div>
-            <button type="submit" class="btn btn-default" name="phone">发送验证邮件</button>
-        </form>
+        </div>
     </div>
 </div>
+
+
+
+
+
+
 @section Tail{
-    <script src="~/lib/jquery/dist/jquery.js"></script>
     <script>
-        var secs = 30;
-        function showtime(t) {
-            document.myform.phone.disabled = true;
-            for (i = 1; i <= t; i++) {
-                window.setTimeout("update_p(" + i + "," + t + ")", i * 1000);
+        var settingsPostUrl = '@Url.Action("SendEmailConfirmation", "User")';
+        $(function() {
+            $('input[name=EmailAddress]').keyup(function() {
+                var changed = !this.value || this.value !== '@Model.EmailAddress';
+                if (changed) {
+                    $('.confirmation').hide();
+                } else {
+                    $('.confirmation').show();
+                }
+            });
+
+
+            // "send", "re-send", "error", "sending", "sent"
+            var currentStatus = null;
+            function updateOperations(status) {
+                currentStatus = status;
+                $('.confirmation-operation').hide();
+                $('.confirmation-operation[data-status=' + currentStatus + ']').show();
+
+                if (status === 'sent') {
+                    $('span[data-status=sent-2]').hide();
+                    $('span[data-status=sent-1]').show();
+                    setTimeout(function() {
+                            $('span[data-status=sent-1]').hide();
+                            $('span[data-status=sent-2]').show();
+                            countdown(30);
+                        },
+                        3500);
+                }
+                
+                function countdown(cur) {
+                    if (cur === 0) {
+                        updateOperations('re-send');
+                    } else {
+                        $('span[data-status=sent-2].countdown').text(cur);
+                        setTimeout(function() {
+                            countdown(--cur);
+                        }, 1000);
+                    }
+                }
             }
 
-        }
-        function update_p(num, t) {
-            if (num == t) {
-                document.myform.phone.innerText = " 重新发送验证邮件 ";
-                document.myform.phone.disabled = false;
+            function send() {
+                $('.confirmation').addClass('sent');
+                updateOperations('sending');
+
+                $.ajax({
+                    url: settingsPostUrl,
+                    method: 'POST',
+                    data: { __RequestVerificationToken: window.__RequestVerificationToken },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (!data.hasSucceeded) {
+                            updateOperations('error');
+                        } else {
+                            updateOperations('sent');
+                        }
+                    },
+                    error: function() {
+                        updateOperations('error');
+                    }
+                });
             }
-            else {
-                printnr = t - num;
-                document.myform.phone.innerText = " (" + printnr + ")秒后可重新发送";
-            }
-        }
+
+            updateOperations('send');
+            $('a.link.confirmation-operation').click(send);
+        });
+
+
     </script>
 }

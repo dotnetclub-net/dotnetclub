@@ -1,12 +1,13 @@
 ﻿@using Discussion.Core.Mvc
 
 @{
-    ViewData["Title"] = "ConfirmEmail";
+    var message = ViewContext.ModelState.IsValid ? "邮件地址已确认" : "无法确认邮件地址";
+    ViewData["Title"] = message;
 }
 
 @if (ViewContext.ModelState.IsValid)
 {
-    <h2>邮件地址已确认</h2>
+    <h3>@message</h3>
     <div>
         <p>
             感谢你确认邮件地址。
@@ -17,9 +18,13 @@
                 请 @Html.ActionLink("点击此处登录", "Signin", "Account", null, new {@class = "signin-link"})
             </p>
         }
+        else
+        {
+            <script>setTimeout(function(){ window.location.replace('/') }, 10 * 1000) </script>
+        }
     </div>
 }
 else
 {
-    <p>无法确认邮件地址</p>
+    <h3>@message</h3>
 }
