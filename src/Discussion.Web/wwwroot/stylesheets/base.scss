@@ -6,7 +6,7 @@
 
 
 .no-padding{
-	padding: 0;
+	padding: 0 !important;
 }
 
 
@@ -24,6 +24,10 @@ body.with-generic-nav {
 	margin-bottom: 13px;
 }
 
+.panel-body{
+	padding: 10px;
+}
+
 .panel .panel-heading {
 	background-color: $gray-content-hover;
 	padding: 10px;
@@ -34,6 +38,11 @@ body.with-generic-nav {
 .header-user {
 	color:white;
 	margin-top: 15px;
+	
+	.user-settings-link {
+		display: inline-block;
+		margin-left: 10px;
+	}
 	
 	.signout-form {
 		display: inline;
@@ -64,4 +73,18 @@ body.with-generic-nav {
 	.report-link{
 		color:$brand-lightest
 	}
+}
+
+
+a.link{
+	cursor: pointer;
+	text-decoration: none;
+	
+	&:hover,&:active{
+		text-decoration: underline;
+	}
+}
+
+.form-control{
+	width: 60%;
 }

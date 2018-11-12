@@ -110,8 +110,7 @@ namespace Discussion.Admin.Tests.StartupSpecs
 
             var builder = new ConfigurationBuilder();
             builder.AddInMemoryCollection(jwtOptions);
-            var conf = new ConfigurationSection(new ConfigurationRoot(builder.Build().Providers.ToList()), "");
-            return conf;
+            return new ConfigurationSection(new ConfigurationRoot(builder.Build().Providers.ToList()), "");
         }
     }
 }

@@ -23,5 +23,21 @@ namespace Discussion.Core.Utilities
 
             return sb.ToString();
         }
+        
+        
+        public static bool IgnoreCaseEqual(this string one, string theOther)
+        {
+            if (one == null && theOther == null)
+            {
+                return true;
+            }
+            
+            if (one == null || theOther == null)
+            {
+                return false;
+            }
+            
+            return one.Equals(theOther, StringComparison.CurrentCultureIgnoreCase);
+        }
     }
 }

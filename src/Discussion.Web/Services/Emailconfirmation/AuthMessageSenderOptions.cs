@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Discussion.Web.Services.Emailconfirmation
+namespace Discussion.Web.Services.EmailConfirmation
 {
     public class AuthMessageSenderOptions
     {

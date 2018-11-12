@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Claims;
 using Discussion.Admin.Services;
@@ -53,8 +54,17 @@ namespace Discussion.Tests.Common
             var repo = app.GetService<IRepository<T>>();
             repo.All().ToList().ForEach(topic => repo.Delete(topic));
         }
+
+        public static void ReloadEntity<T>(this TestApplication app, params T[] entities) where T: Entity
+        {
+            var applicationDbContext = app.GetService<ApplicationDbContext>();
+            entities.ToList().ForEach(entity =>
+            {
+                applicationDbContext.Entry(entity).Reload();
+            });
+        }
         
-        public static void MockUser(this TestApplication app)
+        public static User MockUser(this TestApplication app)
         {
             var userRepo = app.GetService<IRepository<User>>();
             var passwordHasher = app.GetService<IPasswordHasher<User>>();
@@ -77,9 +87,10 @@ namespace Discussion.Tests.Common
             };
             var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
             app.User = new ClaimsPrincipal(identity);
+            return user;
         }
         
-        public static void MockAdminUser(this TestApplication app)
+        public static AdminUser MockAdminUser(this TestApplication app)
         {
             var adminUserRepo = app.GetService<IRepository<AdminUser>>();
             var adminUserService = app.GetService<IAdminUserService>();
@@ -98,6 +109,7 @@ namespace Discussion.Tests.Common
                                   .First()
                                   .ValidateToken(token.TokenString, options.TokenValidationParameters, out _);
             app.User = identity;
+            return adminUser;
         }
         
         public static ModelStateDictionary ValidateModel(this TestApplication app, object model)
@@ -129,7 +141,13 @@ namespace Discussion.Tests.Common
             
             var task = userManager.CreateAsync(user, actualPassword);
             task.ConfigureAwait(false);
-            task.Wait();
+
+            var createResult = task.Result;
+            if (!createResult.Succeeded)
+            {
+                var errorMessage = string.Join(";", createResult.Errors.Select(err => err.Code));
+                throw new Exception("不能创建用户：" + errorMessage);
+            }
 
             return user;
         }

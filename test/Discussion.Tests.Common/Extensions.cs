@@ -24,7 +24,6 @@ namespace Discussion.Tests.Common
         {
             return controller.HttpContext.RequestServices.GetService<T>();
         }
-
         
         public static string ReadAllContent(this HttpResponseMessage response)
         {

@@ -12,6 +12,7 @@ namespace Discussion.Migrations
         {
             return TABLE_NAME;
         }
+        
         protected override void CreateEntityColumns(ICreateTableWithColumnSyntax entityTable)
         {
             entityTable
@@ -19,7 +20,7 @@ namespace Discussion.Migrations
                 .WithColumn("EmailAddress").AsString(50)
                 .WithColumn("OldEmailAddress").AsString(50)
                 .WithColumn("CallbackToken").AsString(300)
-                .WithColumn("IsActivation").AsBoolean();
+                .WithColumn("IsActivated").AsBoolean();
         }
 
     }

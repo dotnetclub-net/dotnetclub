@@ -1,0 +1,37 @@
+@{
+    Layout = "../Shared/_Layout.cshtml";
+    ViewData["Title"] = "个人中心";
+}
+
+@section Head{
+    @RenderSection("Head", required: false)
+}
+
+<div class="row">
+    <div class="hidden-xs hidden-sm col-md-4 col-lg-4 pull-right">
+        <div class="panel">
+            <div class="panel-heading">个人中心</div>
+            <div class="panel-body">
+                <ul>
+                    <li>@Html.ActionLink("基本信息", "Settings", "User")</li>
+                    <li>@Html.ActionLink("修改密码", "ChangePassword", "User")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-12 hidden-md hidden-lg no-padding">
+        <div class="panel">
+            <div class="panel-heading">
+                @Html.ActionLink("基本信息", "Settings", "User")
+                @Html.ActionLink("修改密码", "ChangePassword", "User")
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8 no-padding pull-left">
+        @RenderBody()
+    </div>
+</div>
+
+@section Tail{
+    @RenderSection("Tail", required: false)
+}

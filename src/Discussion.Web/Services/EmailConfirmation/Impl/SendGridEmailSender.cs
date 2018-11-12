@@ -1,32 +1,24 @@
-﻿using Microsoft.Extensions.Options;
-using SendGrid;
-using SendGrid.Helpers.Mail;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
+﻿using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
-namespace Discussion.Web.Services.Emailconfirmation
+namespace Discussion.Web.Services.EmailConfirmation.Impl
 {
-    public class EmailSender : IEmailSender
+    public class SendGridEmailSender : IEmailSender
     {
         private readonly string smtpServer;
         private readonly string mailFrom;
         private readonly string mailPwd;
         private AuthMessageSenderOptions _authMessageSenderOptions;
-        public EmailSender(IOptions<AuthMessageSenderOptions> authMessageSenderOptions)
+        public SendGridEmailSender(IOptions<AuthMessageSenderOptions> authMessageSenderOptions)
         {
             smtpServer = authMessageSenderOptions.Value.SendServer;
             mailFrom = authMessageSenderOptions.Value.SendGridUser;
             mailPwd = authMessageSenderOptions.Value.SendGridKey;
         }
-        public Task SendEmailAsync(string emailTo, string subject, string message)
-        {
-            return Execute(emailTo,subject, message);
-        }
-        public Task Execute(string emailTo, string subject,string message)
+        
+        public async Task SendEmailAsync(string emailTo, string subject, string message)
         {
             // 邮件服务设置
             SmtpClient smtpClient = new SmtpClient(smtpServer, 25);
@@ -43,7 +35,7 @@ namespace Discussion.Web.Services.Emailconfirmation
             mailMessage.BodyEncoding = Encoding.UTF8;
             mailMessage.IsBodyHtml = true;
             mailMessage.Priority = MailPriority.Low;
-            return Task.Run(() => {
+            await Task.Run(() => {
                 smtpClient.Send(mailMessage);
             });
         }

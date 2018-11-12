@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Discussion.Web.Tests.IntegrationTests
@@ -92,7 +85,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.ReadAllContent().ShouldContain("退出登录");
+            response.ReadAllContent().ShouldContain("注销");
         }
 
         [Fact]
@@ -155,9 +148,10 @@ namespace Discussion.Web.Tests.IntegrationTests
             
             // assert
             response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            response.ReadAllContent().ShouldContain("退出登录");
+            response.ReadAllContent().ShouldContain("注销");
         }
 
-
+        // todo: should login before settings
+        // todo: should be able to bind email without login
     }
 }

@@ -1,8 +1,6 @@
-﻿using Discussion.Core.Models;
-using Discussion.Core.ViewModels;
+﻿using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
-using Discussion.Web.ViewModels;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.ViewModels

@@ -56,9 +56,10 @@
                 <div class="header-user pull-right">
                     @if (Context.IsAuthenticated())
                     {
-                        <span class="username">欢迎你，@Context.User.Identity.Name</span>
+                        <span class="username">欢迎你，@Context.DiscussionUser().DisplayName</span>
+                        @Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })
                         <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
-                            <button>退出登录</button>
+                            <button>注销</button>
                         </form>
                     }
                     else
@@ -76,7 +77,7 @@
     @RenderSection("PreContent", required: false)
 
     <div class="container body-content">
-        @RenderBody()        
+        @RenderBody()
     </div>
 
     @RenderSection("PostContent", required: false)

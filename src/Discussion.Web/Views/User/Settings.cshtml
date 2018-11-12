@@ -1,0 +1,129 @@
+﻿@using Discussion.Core.Models
+@model User
+@{
+    Layout = "_UserLayout.cshtml";
+    ViewData["Title"] = "基本信息";
+}
+
+
+<div class="panel panel-body panel-user-settings">
+    <h3>基本信息</h3>
+    <form asp-action="DoSettings" method="post">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <fieldset class="form-group">
+            <label>
+                用户名
+            </label>
+            <div>@Model.UserName</div>
+        </fieldset>
+        <fieldset class="form-group">
+            <label asp-for="DisplayName">
+                显示名称
+            </label>
+            <div>
+                @Html.TextBoxFor(model => model.DisplayName, new {autofocus=true, @class = "form-control", minlength = 3, maxlength = 20})
+            </div>
+        </fieldset>
+        <fieldset class="form-group">
+            <label asp-for="EmailAddress">
+                邮件地址
+            </label>
+            <div>
+                @Html.TextBoxFor(model => model.EmailAddress, new {type = "email", @class = "form-control", minlength = 3, maxlength = 40})
+                @if (!string.IsNullOrEmpty(Model.EmailAddress))
+                {
+                    <i rel="confirmation" data-status="send" title="@(Model.EmailAddressConfirmed ? "已验证" : "未验证")"
+                       class="confirmation-operation glyphicon @(Model.EmailAddressConfirmed ? "glyphicon-ok" : "glyphicon-warning-sign")"></i>
+                    if (!Model.EmailAddressConfirmed)
+                    {
+                        <div rel="confirmation" class="confirm-palette">
+                            <a data-status="send" class="confirmation-operation link">现在验证</a>
+                            <a data-status="re-send" class="confirmation-operation link">再次发送验证邮件</a>
+                            <span data-status="sending" class="confirmation-operation">正在发送验证邮件</span>
+                            <span data-status="sent" class="confirmation-operation">
+                                验证邮件已发出，<span data-status="sent-1">请查收邮件完成验证</span><span data-status="sent-2" class="countdown"></span><span data-status="sent-2"> 秒后可再次发送</span>
+                            </span>
+                            <span data-status="error" class="confirmation-operation">无法发送验证邮件，请稍后再试</span>
+                        </div>
+                    }
+                }
+            </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-default">保存</button>
+    </form>
+</div>
+
+@section Tail{
+    <script>
+        var settingsPostUrl = '@Url.Action("SendEmailConfirmation", "User")';
+        $(function() {
+            $('input[name=EmailAddress]').keyup(function() {
+                var changed = !this.value || this.value !== '@Model.EmailAddress';
+                if (changed) {
+                    $('[rel=confirmation]').hide();
+                } else {
+                    $('[rel=confirmation]').show();
+                }
+            });
+
+
+            // "send", "re-send", "error", "sending", "sent"
+            var currentStatus = null;
+            function updateOperations(status) {
+                currentStatus = status;
+                $('.confirmation-operation').hide();
+                $('.confirmation-operation[data-status=' + currentStatus + ']').show();
+
+                if (status === 'sent') {
+                    $('span[data-status=sent-2]').hide();
+                    $('span[data-status=sent-1]').show();
+                    setTimeout(function() {
+                            $('span[data-status=sent-1]').hide();
+                            $('span[data-status=sent-2]').show();
+                            countdown(30);
+                        },
+                        3500);
+                }
+                
+                function countdown(cur) {
+                    if (cur === 0) {
+                        updateOperations('re-send');
+                    } else {
+                        $('span[data-status=sent-2].countdown').text(cur);
+                        setTimeout(function() {
+                            countdown(--cur);
+                        }, 1000);
+                    }
+                }
+            }
+
+            function send() {
+                $('.confirmation').addClass('sent');
+                updateOperations('sending');
+
+                $.ajax({
+                    url: settingsPostUrl,
+                    method: 'POST',
+                    data: { __RequestVerificationToken: window.__RequestVerificationToken },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (!data.hasSucceeded) {
+                            updateOperations('error');
+                        } else {
+                            updateOperations('sent');
+                        }
+                    },
+                    error: function() {
+                        updateOperations('error');
+                    }
+                });
+            }
+
+            updateOperations('send');
+            $('a.link.confirmation-operation').click(send);
+        });
+
+
+    </script>
+}

@@ -30,8 +30,6 @@ namespace Discussion.Web.Services.Identity
         public Task SetUserNameAsync(User user, string userName, CancellationToken cancellationToken)
         {
             user.UserName = userName;
-            _useRepository.Update(user);
-
             return Task.CompletedTask;
         }
 
@@ -78,8 +76,6 @@ namespace Discussion.Web.Services.Identity
         public Task SetPasswordHashAsync(User user, string passwordHash, CancellationToken cancellationToken)
         {
             user.HashedPassword = passwordHash;
-            _useRepository.Update(user);
-
             return Task.CompletedTask;
         }
 
@@ -101,7 +97,6 @@ namespace Discussion.Web.Services.Identity
         public Task SetEmailAsync(User user, string email, CancellationToken cancellationToken)
         {
             user.EmailAddress = email;
-            _useRepository.Update(user);
             return Task.CompletedTask;
         }
 
@@ -112,18 +107,23 @@ namespace Discussion.Web.Services.Identity
 
         public Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.IsActivation);
+            return Task.FromResult(user.EmailAddressConfirmed);
         }
 
         public Task SetEmailConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
         {
-            user.IsActivation = confirmed;
-            return Task.FromResult(0);
+            user.EmailAddressConfirmed = confirmed;
+            return Task.CompletedTask;
         }
 
         public Task<User> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            var user = _useRepository.All().Where(t => t.EmailAddress.Equals(normalizedEmail)).FirstOrDefault();
+            var lower = normalizedEmail.ToLower();
+            var user = _useRepository.All()
+                .SingleOrDefault(t =>
+                    t.EmailAddressConfirmed
+                    && t.EmailAddress.ToLower() == lower);
+            
             return Task.FromResult(user);
         }
 
@@ -134,8 +134,7 @@ namespace Discussion.Web.Services.Identity
 
         public Task SetNormalizedEmailAsync(User user, string normalizedEmail, CancellationToken cancellationToken)
         {
-            user.EmailAddress = normalizedEmail;
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
@@ -15,10 +14,9 @@ using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Discussion.Web.Services.Emailconfirmation;
+using Discussion.Web.Services.EmailConfirmation;
+using Discussion.Web.Services.EmailConfirmation.Impl;
 using Microsoft.AspNetCore.DataProtection;
-using System.IO;
-using System;
 
 namespace Discussion.Web
 {
@@ -54,6 +52,7 @@ namespace Discussion.Web
                     .AddRoleStore<NullRoleStore>()
                     .AddClaimsPrincipalFactory<DiscussionUserClaimsPrincipalFactory>()
                     .AddDefaultTokenProviders();
+            services.AddScoped<UserManager<User>, EmailAddressAwareUserManager<User>>();
 
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
             services.AddMvc(options =>
@@ -74,15 +73,24 @@ namespace Discussion.Web
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
-//                options.User.RequireUniqueEmail = true;
+                options.User.RequireUniqueEmail = false; // 不但会检查 Email 的唯一性，还会要求 Email 必填
             });
 
-            services.AddTransient<IEmailSender, EmailSender>();
-            services.AddDataProtection()
-                //.PersistKeysToFileSystem(new DirectoryInfo(@"\\server\share\directory\"))
-                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
-                .SetApplicationName("Discussion.Web");
             services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
+            services.AddTransient<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
+
+            if (_hostingEnvironment.IsDevelopment())
+            {
+                services.AddTransient<IEmailSender, DevEmailSender>();
+            }
+            else
+            {
+                services.AddTransient<IEmailSender, SendGridEmailSender>();
+            }
+
+//            services.AddDataProtection()
+//                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
+//                .SetApplicationName(_hostingEnvironment.ApplicationName);
         }
 
         public void Configure(IApplicationBuilder app)
