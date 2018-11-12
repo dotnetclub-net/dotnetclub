@@ -1,11 +1,11 @@
-﻿using System;
-using System.Text.Encodings.Web;
+﻿using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
+using Discussion.Web.Resources;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.EmailConfirmation;
 using Discussion.Web.Services.EmailConfirmation.Impl;
-using Microsoft.AspNetCore.DataProtection;
 
 namespace Discussion.Web
 {
@@ -51,12 +50,14 @@ namespace Discussion.Web
                     .AddUserStore<RepositoryUserStore>()
                     .AddRoleStore<NullRoleStore>()
                     .AddClaimsPrincipalFactory<DiscussionUserClaimsPrincipalFactory>()
+                    .AddErrorDescriber<ResourceBasedIdentityErrorDescriber>()
                     .AddDefaultTokenProviders();
             services.AddScoped<UserManager<User>, EmailAddressAwareUserManager<User>>();
 
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
             services.AddMvc(options =>
             {
+                options.ModelBindingMessageProvider.UseTranslatedResources();
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
                 options.Filters.Add(new ApiResponseMvcFilter());
             });
@@ -87,10 +88,6 @@ namespace Discussion.Web
             {
                 services.AddTransient<IEmailSender, SendGridEmailSender>();
             }
-
-//            services.AddDataProtection()
-//                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
-//                .SetApplicationName(_hostingEnvironment.ApplicationName);
         }
 
         public void Configure(IApplicationBuilder app)
