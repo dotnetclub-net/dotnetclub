@@ -2,7 +2,6 @@
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Data;
-using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
 using Discussion.Web.Resources;
@@ -11,11 +10,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Discussion.Web.Services.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.EmailConfirmation;
-using Discussion.Web.Services.EmailConfirmation.Impl;
 
 namespace Discussion.Web
 {
@@ -46,48 +43,18 @@ namespace Discussion.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
-            services.AddIdentity<User, Role>()
-                    .AddUserStore<RepositoryUserStore>()
-                    .AddRoleStore<NullRoleStore>()
-                    .AddClaimsPrincipalFactory<DiscussionUserClaimsPrincipalFactory>()
-                    .AddErrorDescriber<ResourceBasedIdentityErrorDescriber>()
-                    .AddDefaultTokenProviders();
-            services.AddScoped<UserManager<User>, EmailAddressAwareUserManager<User>>();
-
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
+
             services.AddMvc(options =>
             {
                 options.ModelBindingMessageProvider.UseTranslatedResources();
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
                 options.Filters.Add(new ApiResponseMvcFilter());
             });
+            
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
-        
-            services.AddAuthorization();
-            services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
-            services.Configure<IdentityOptions>(options =>
-            {
-                // 我们在 SigninUserViewModel 中的 PasswordRules 类中进行验证
-                options.Password.RequiredLength = 6;
-                options.Password.RequiredUniqueChars = 0;
-                options.Password.RequireDigit = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireUppercase = false;
-                options.User.RequireUniqueEmail = false; // 不但会检查 Email 的唯一性，还会要求 Email 必填
-            });
-
-            services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
-            services.AddTransient<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
-
-            if (_hostingEnvironment.IsDevelopment())
-            {
-                services.AddTransient<IEmailSender, DevEmailSender>();
-            }
-            else
-            {
-                services.AddTransient<IEmailSender, SendGridEmailSender>();
-            }
+            services.AddIdentityServices();
+            services.AddEmailSendingServices(_appConfiguration);
         }
 
         public void Configure(IApplicationBuilder app)

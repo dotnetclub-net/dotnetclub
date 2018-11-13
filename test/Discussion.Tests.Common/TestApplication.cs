@@ -77,7 +77,7 @@ namespace Discussion.Tests.Common
                 });
             });
 
-            var connectionStringEVKey = $"DOTNETCLUB_{ApplicationDataServices.ConfigKeyConnectionString}";
+            var connectionStringEVKey = $"DOTNETCLUB_{ServiceExtensions.ConfigKeyConnectionString}";
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(connectionStringEVKey)))
             {
                 Environment.SetEnvironmentVariable(connectionStringEVKey, " ");

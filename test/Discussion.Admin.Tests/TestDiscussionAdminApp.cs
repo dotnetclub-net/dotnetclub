@@ -33,7 +33,7 @@ namespace Discussion.Admin.Tests
         
         private void InitAdminApp()
         {
-            var connectionStringEVKey = $"DOTNETCLUB_{ApplicationDataServices.ConfigKeyConnectionString}";
+            var connectionStringEVKey = $"DOTNETCLUB_{ServiceExtensions.ConfigKeyConnectionString}";
             Environment.SetEnvironmentVariable(connectionStringEVKey, "Data Source=:memory:");
 
             this.Init<Startup>(hostBuilder =>

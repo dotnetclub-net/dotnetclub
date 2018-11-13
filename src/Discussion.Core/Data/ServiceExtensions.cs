@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Discussion.Core.Data
 {
-    public static class ApplicationDataServices
+    public static class ServiceExtensions
     {
         public const string ConfigKeyConnectionString = "sqliteConnectionString";
         
