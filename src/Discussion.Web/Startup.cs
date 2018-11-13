@@ -1,7 +1,9 @@
-﻿using System.Text.Encodings.Web;
+﻿using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Data;
+using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
 using Discussion.Web.Resources;
@@ -55,6 +57,7 @@ namespace Discussion.Web
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
             services.AddIdentityServices();
             services.AddEmailSendingServices(_appConfiguration);
+            services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
         }
 
         public void Configure(IApplicationBuilder app)
