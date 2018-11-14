@@ -1,7 +1,7 @@
 dotnetClub.net
 ----------------------
 
-**Welcome to the dotnetClub.net project. [点此查看中文说明](https://github.com/jijiechen/dotnetclub/blob/dev/readme.md)。**
+**Welcome to the dotnetClub.net project. [点此查看中文说明](https://github.com/jijiechen/dotnetclub/blob/dev/Readme.md)。**
 
 This project is source code for a discussion website, it demonstrates how ASP.NET Core can be used to make a user generated web application. The online instance of this project is hosted at [dotnetclub.net](http://dotnetclub.net) which is exactly a real community for discussing .NET Core technical topics.
 
