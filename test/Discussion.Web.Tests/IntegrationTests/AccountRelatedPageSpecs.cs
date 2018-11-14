@@ -48,7 +48,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // Act
             var request = _app.Server.CreateRequest("/signin")
-                .WithFormContent(new Dictionary<string, string>()
+                .WithForm(new Dictionary<string, string>()
                 {
                     {"UserName", username}, 
                     {"Password", password},
@@ -111,7 +111,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             
             // Act
             var request = _app.Server.CreateRequest("/register")
-                .WithFormContent(new Dictionary<string, string>()
+                .WithForm(new Dictionary<string, string>()
                 {
                     {"UserName", username},
                     {"Password", password},
@@ -132,7 +132,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             // arrange
             var username = StringUtility.Random();
             var registerResponse = await _app.Server.CreateRequest("/register")
-                                .WithFormContent(new Dictionary<string, string>()
+                                .WithForm(new Dictionary<string, string>()
                                     {
                                         {"UserName", username}, 
                                         {"Password", "11111a"},

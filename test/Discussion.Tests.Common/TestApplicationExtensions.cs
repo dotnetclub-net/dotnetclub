@@ -90,6 +90,12 @@ namespace Discussion.Tests.Common
             return user;
         }
         
+        public static User NoUser(this TestApplication app)
+        {
+            app.ResetUser();
+            return null;
+        }
+        
         public static AdminUser MockAdminUser(this TestApplication app)
         {
             var adminUserRepo = app.GetService<IRepository<AdminUser>>();

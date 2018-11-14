@@ -28,7 +28,7 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
             var request = _app.Server.CreateRequest("/api/account/register");
 
             var response = await request
-                                    .WithJsonContent(new {userName = StringUtility.Random(), password = "password1"})
+                                    .WithJson(new {userName = StringUtility.Random(), password = "password1"})
                                     .PostAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -45,7 +45,7 @@ namespace Discussion.Admin.Tests.IntegrationSpecs
             var request = _app.Server.CreateRequest("/api/account/signin");
 
             var response = await request
-                                    .WithJsonContent(new {userName = StringUtility.Random(), password = "password1"})
+                                    .WithJson(new {userName = StringUtility.Random(), password = "password1"})
                                     .PostAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

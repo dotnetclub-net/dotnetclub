@@ -32,6 +32,11 @@ namespace Discussion.Tests.Common
             ReplacableServiceProvider.Reset();
         }
 
+        internal void ResetUser()
+        {
+            User = _originalUser;
+        }
+
         public StubLoggerProvider LoggerProvider { get; private set; }
         public IHostingEnvironment HostingEnvironment { get; private set; }
 
