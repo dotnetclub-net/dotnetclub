@@ -31,7 +31,6 @@ namespace Discussion.Tests.Common
             User = _originalUser;
             ReplacableServiceProvider.Reset();
         }
-        public IDataProtector dataProtector { get; private set; }
 
         public StubLoggerProvider LoggerProvider { get; private set; }
         public IHostingEnvironment HostingEnvironment { get; private set; }

@@ -15,6 +15,7 @@ using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.EmailConfirmation;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace Discussion.Web
 {
@@ -57,6 +58,7 @@ namespace Discussion.Web
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
             services.AddIdentityServices();
             services.AddEmailSendingServices(_appConfiguration);
+            services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
         }
 

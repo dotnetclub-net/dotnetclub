@@ -6,9 +6,10 @@ namespace Discussion.Migrations
     [Migration(10)]
     public class CreateFileRecordTable: CreateEntityTableMigration
     {
+        internal const string TABLE_NAME = "FileRecord";
         protected override string TableName()
         {
-            return "FileRecord";
+            return TABLE_NAME;
         }
 
         protected override void CreateEntityColumns(ICreateTableWithColumnSyntax entityTable)

@@ -6,7 +6,7 @@ namespace Discussion.Migrations
     [Migration(6)]
     public class CreateAdminUserTable: CreateEntityTableMigration
     {
-        public const string TABLE_NAME = "AdminUser";
+        private const string TABLE_NAME = "AdminUser";
 
         protected override string TableName()
         {
