@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Discussion.Web.Tests.IntegrationTests
     {
         private TestDiscussionWebApp _app;
         public CommonRelatedApiSpecs(TestDiscussionWebApp app) {
-            _app = app;
+            _app = app.Reset();
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace Discussion.Web.Tests.IntegrationTests
 
             // assert
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-            Assert.True(response.Headers.Location.IsFile.ToString().Contains("signin"));
+            Assert.True(response.Headers.Location.ToString().Contains("signin"));
             
         }
         

@@ -79,7 +79,7 @@ namespace Discussion.Web.Controllers
             {
                 fileUrl = await storageFile.GetPublicUrlAsync(TimeSpan.MaxValue);
             }
-            catch (NotImplementedException)
+            catch (Exception ex) when (ex is NotImplementedException || ex is NotSupportedException)
             {
                 fileUrl = Url.Action("DownloadFile", "Common", new {id = fileRecord.Id}, Request.Scheme);
             }
