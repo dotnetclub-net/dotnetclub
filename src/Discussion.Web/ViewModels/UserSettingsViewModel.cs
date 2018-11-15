@@ -8,5 +8,6 @@ namespace Discussion.Web.ViewModels
         public string EmailAddress { get; set; }
 
         public string DisplayName { get; set; }
+        public int AvatarFileId { get; set; }
     }
 }

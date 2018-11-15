@@ -49,6 +49,7 @@ namespace Discussion.Web.Controllers
                 return View("Settings", user);
             }
 
+            user.AvatarFileId = userSettingsViewModel.AvatarFileId;
             user.DisplayName = userSettingsViewModel.DisplayName;
             if (string.IsNullOrWhiteSpace(user.DisplayName))
             {
