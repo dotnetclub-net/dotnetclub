@@ -13,7 +13,7 @@ namespace Discussion.Web.Services.EmailConfirmation
             var configSection = appConfiguration.GetSection(nameof(EmailSendingOptions));
             if (configSection != null && !string.IsNullOrEmpty(configSection[nameof(EmailSendingOptions.ServerHost)]))
             {
-                services.Configure<EmailSendingOptions>(appConfiguration);
+                services.Configure<EmailSendingOptions>(configSection);
                 services.AddTransient<IEmailSender, SmtpEmailSender>();
             }
             else

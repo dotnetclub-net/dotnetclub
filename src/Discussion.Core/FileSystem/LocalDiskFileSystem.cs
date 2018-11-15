@@ -82,6 +82,8 @@ namespace Discussion.Core.FileSystem
             return PathSeparator;
         }
 
+        public bool SupportGeneratingPublicUrl => false;
+
 
         private string MapStorage(string path) {
             string mappedPath = string.IsNullOrEmpty(path) ? _storagePath : Path.Combine(_storagePath, path);

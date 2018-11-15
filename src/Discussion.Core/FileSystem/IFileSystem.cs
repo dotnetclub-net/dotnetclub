@@ -16,5 +16,7 @@ namespace Discussion.Core.FileSystem
         Task<IFile> CreateFileAsync(string path);
 
         string GetDirectorySeparatorChar();
+        
+        bool SupportGeneratingPublicUrl { get; }
     }
 }

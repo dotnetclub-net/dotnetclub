@@ -74,15 +74,13 @@ namespace Discussion.Web.Controllers
                 Category = category
             };
             _fileRepo.Save(fileRecord);
-            string fileUrl;
-            try
-            {
-                fileUrl = await storageFile.GetPublicUrlAsync(TimeSpan.MaxValue);
-            }
-            catch (Exception ex) when (ex is NotImplementedException || ex is NotSupportedException)
-            {
-                fileUrl = Url.Action("DownloadFile", "Common", new {id = fileRecord.Id}, Request.Scheme);
-            }
+            
+
+            // ReSharper disable Mvc.ActionNotResolved
+            // ReSharper disable Mvc.ControllerNotResolved
+            var fileUrl = _fileSystem.SupportGeneratingPublicUrl 
+                ? await storageFile.GetPublicUrlAsync(TimeSpan.MaxValue)
+                : Url.Action("DownloadFile", "Common", new {id = fileRecord.Id}, Request.Scheme);
 
             return ApiResponse.ActionResult(new
             {

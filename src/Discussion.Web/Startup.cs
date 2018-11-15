@@ -7,6 +7,7 @@ using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
 using Discussion.Web.Resources;
+using Discussion.Web.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +16,9 @@ using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.EmailConfirmation;
+using Discussion.Web.Services.Impl;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 
 namespace Discussion.Web
@@ -60,6 +64,13 @@ namespace Discussion.Web
             services.AddEmailSendingServices(_appConfiguration);
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
+                .AddScoped<IUserAvatarService>(sp =>
+            {
+                var actionAccessor = sp.GetService<IActionContextAccessor>();
+                var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
+                return new UserAvatarService(urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext));
+            });
         }
 
         public void Configure(IApplicationBuilder app)
