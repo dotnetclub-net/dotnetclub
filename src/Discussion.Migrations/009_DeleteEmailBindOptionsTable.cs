@@ -1,3 +1,4 @@
+using System;
 using FluentMigrator;
 
 namespace Discussion.Migrations
@@ -12,7 +13,7 @@ namespace Discussion.Migrations
 
         public override void Down()
         {
-            
+            throw new NotImplementedException();
         }
     }
 }

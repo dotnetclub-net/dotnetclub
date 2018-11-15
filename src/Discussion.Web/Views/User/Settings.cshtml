@@ -1,4 +1,5 @@
 ﻿@using Discussion.Core.Models
+@inject Discussion.Web.Services.IUserAvatarService AvatarService
 @model User
 @{
     Layout = "_UserLayout.cshtml";
@@ -15,6 +16,18 @@
                 用户名
             </label>
             <div>@Model.UserName</div>
+        </fieldset>
+        <fieldset>
+            <div class="user-avatar-wrapper">
+                <div class="inner-square">
+                    <img src="@AvatarService.GetUserAvatarUrl(Model)" title="点击更改头像" class="user-avatar"/>
+                </div>
+                <span>点击更改头像，请使用 240x240 方形图片</span>
+            </div>
+            <div>
+                @Html.HiddenFor(model => model.AvatarFileId)
+                <input type="file" class="avatar-upload" id="avatar-file-upload" accept="image/*"/>
+            </div>
         </fieldset>
         <fieldset class="form-group">
             <label asp-for="DisplayName">
@@ -49,7 +62,6 @@
                 }
             </div>
         </fieldset>
-
         <button type="submit" class="btn btn-default">保存</button>
     </form>
 </div>
@@ -57,6 +69,7 @@
 @section Tail{
     <script>
         var settingsPostUrl = '@Url.Action("SendEmailConfirmation", "User")';
+        var uploadAvatarUrl = '@Url.Action("UploadFile", "Common", new {category = "avatar"})';
         $(function() {
             $('input[name=EmailAddress]').keyup(function() {
                 var changed = !this.value || this.value !== '@Model.EmailAddress';
@@ -122,6 +135,37 @@
 
             updateOperations('send');
             $('a.link.confirmation-operation').click(send);
+            
+            
+            
+            function uploadAvatar() {
+                if (!this.files.length) {
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('file', this.files[0]); 
+                formData.append('__RequestVerificationToken', window.__RequestVerificationToken); 
+                $.ajax({
+                    url: uploadAvatarUrl,
+                    data: formData,
+                    type: 'POST',
+                    contentType: false,
+                    processData: false,
+                    success: function(data) {
+                        if (data.hasSucceeded) {
+                            $('.user-avatar').attr('src', data.result.publicUrl);
+                            $('#@(nameof(Model.AvatarFileId))').val(data.result.fileId);
+                        }
+                    }
+                });
+            }
+
+
+            $('.user-avatar').click(function() {
+                $('#avatar-file-upload').click();
+            });
+            $('#avatar-file-upload').change(uploadAvatar);
         });
 
 

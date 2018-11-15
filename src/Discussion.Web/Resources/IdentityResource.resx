@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <!-- 
+      Microsoft ResX Schema 
+      
+      Version 2.0
+      
+      The primary goals of this format is to allow a simple XML format 
+      that is mostly human readable. The generation and parsing of the 
+      various data types are done through the TypeConverter classes 
+      associated with the data types.
+      
+      Example:
+      
+      ... ado.net/XML headers & schema ...
+      <resheader name="resmimetype">text/microsoft-resx</resheader>
+      <resheader name="version">2.0</resheader>
+      <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+      <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+      <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+      <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+      <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+          <value>[base64 mime encoded serialized .NET Framework object]</value>
+      </data>
+      <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+          <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+          <comment>This is a comment</comment>
+      </data>
+                  
+      There are any number of "resheader" rows that contain simple 
+      name/value pairs.
+      
+      Each data row contains a name, and value. The row also contains a 
+      type or mimetype. Type corresponds to a .NET class that support 
+      text/value conversion through the TypeConverter architecture. 
+      Classes that don't support this are serialized and stored with the 
+      mimetype set.
+      
+      The mimetype is used for serialized objects, and tells the 
+      ResXResourceReader how to depersist the object. This is currently not 
+      extensible. For a given mimetype the value must be set accordingly:
+      
+      Note - application/x-microsoft.net.object.binary.base64 is the format 
+      that the ResXResourceWriter will generate, however the reader can 
+      read any of the formats listed below.
+      
+      mimetype: application/x-microsoft.net.object.binary.base64
+      value   : The object must be serialized with 
+              : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+              : and then encoded with base64 encoding.
+      
+      mimetype: application/x-microsoft.net.object.soap.base64
+      value   : The object must be serialized with 
+              : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+              : and then encoded with base64 encoding.
+      mimetype: application/x-microsoft.net.object.bytearray.base64
+      value   : The object must be serialized into a byte array 
+              : using a System.ComponentModel.TypeConverter
+              : and then encoded with base64 encoding.
+      -->
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+        <xsd:element name="root" msdata:IsDataSet="true">
+            <xsd:complexType>
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string" />
+                            <xsd:attribute name="type" type="xsd:string" />
+                            <xsd:attribute name="mimetype" type="xsd:string" />
+                            <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string" />
+                            <xsd:attribute name="name" type="xsd:string" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                            <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" />
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="ConcurrencyFailure" xml:space="preserve">
+	<value>乐观并发冲突，对象已被更改</value>
+    </data>
+    <data name="DefaultError" xml:space="preserve">
+        <value>发生了未知的错误</value>
+    </data>
+    <data name="DuplicateEmail" xml:space="preserve">
+        <value>邮件地址 '{0}' 已由其他用户使用</value>
+    </data>
+    <data name="DuplicateRoleName" xml:space="preserve">
+        <value>角色 '{0}' 已存在</value>
+    </data>
+    <data name="DuplicateUserName" xml:space="preserve">
+        <value>用户名 '{0}' 已由其他用户使用</value>
+    </data>
+    <data name="InvalidEmail" xml:space="preserve">
+        <value>邮件地址 '{0}' 不正确</value>
+    </data>
+    <data name="InvalidManagerType" xml:space="preserve">
+        <value>{0} 类型必须从 {1}&lt;{2}&gt; 继承</value>
+    </data>
+    <data name="InvalidPasswordHasherCompatibilityMode" xml:space="preserve">
+        <value>提供的 PasswordHasherCompatibilityMode 值不正确</value>
+    </data>
+    <data name="InvalidPasswordHasherIterationCount" xml:space="preserve">
+        <value>迭代次数必须是正整数</value>
+    </data>
+    <data name="InvalidRoleName" xml:space="preserve">
+        <value>角色名称 '{0}' 不正确</value>
+    </data>
+    <data name="InvalidToken" xml:space="preserve">
+        <value>验证令牌不正确</value>
+    </data>
+    <data name="InvalidUserName" xml:space="preserve">
+        <value>用户名 '{0}' 不正确，只能包含字母和数字</value>
+    </data>
+    <data name="LoginAlreadyAssociated" xml:space="preserve">
+        <value>具有此登录名的用户已存在</value>
+    </data>
+    <data name="MustCallAddIdentity" xml:space="preserve">
+        <value>AddIdentity 需要在 IServiceCollection 对象上调用</value>
+    </data>
+    <data name="NoPersonalDataProtector" xml:space="preserve">
+        <value>未注册 IPersonalDataProtector 服务，当 ProtectPersonalData = true 时，它是必要的</value>
+    </data>
+    <data name="NoRoleType" xml:space="preserve">
+        <value>未指定 RoleType，请尝试使用 AddRoles&lt;TRole&gt;()</value>
+    </data>
+    <data name="NoTokenProvider" xml:space="preserve">
+        <value>未注册以 '{1}' 为名称的 IUserTwoFactorTokenProvider&lt;{0}&gt; 服务</value>
+    </data>
+    <data name="NullSecurityStamp" xml:space="preserve">
+        <value>用户的安全标签(security stamp)不能为空</value>
+    </data>
+    <data name="PasswordMismatch" xml:space="preserve">
+        <value>密码不正确</value>
+    </data>
+    <data name="PasswordRequiresDigit" xml:space="preserve">
+        <value>密码至少要包含一个数字 ('0'-'9')</value>
+    </data>
+    <data name="PasswordRequiresLower" xml:space="preserve">
+        <value>密码至少要包含一个小写字母 ('a'-'z')</value>
+    </data>
+    <data name="PasswordRequiresNonAlphanumeric" xml:space="preserve">
+        <value>密码至少要包含一个字母</value>
+    </data>
+    <data name="PasswordRequiresUniqueChars" xml:space="preserve">
+        <value>密码至少要包含 {0} 个不同的字符</value>
+    </data>
+    <data name="PasswordRequiresUpper" xml:space="preserve">
+        <value>密码至少要包含一个大写字母 ('A'-'Z')</value>
+    </data>
+    <data name="PasswordTooShort" xml:space="preserve">
+        <value>密码至少要包含 {0} 个字符</value>
+    </data>
+    <data name="RecoveryCodeRedemptionFailed" xml:space="preserve">
+        <value>无法使用恢复码</value>
+    </data>
+    <data name="RoleNotFound" xml:space="preserve">
+        <value>角色 {0} 不存在</value>
+    </data>
+    <data name="StoreNotIProtectedUserStore" xml:space="preserve">
+        <value>存储程序没实现 IProtectedUserStore&lt;TUser&gt; 当 ProtectPersonalData = true 时，这是必要的</value>
+    </data>
+    <data name="StoreNotIQueryableRoleStore" xml:space="preserve">
+        <value>存储程序没实现 IQueryableRoleStore&lt;TRole&gt;</value>
+    </data>
+    <data name="StoreNotIQueryableUserStore" xml:space="preserve">
+        <value>存储程序没实现 IQueryableUserStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIRoleClaimStore" xml:space="preserve">
+        <value>存储程序没实现 IRoleClaimStore&lt;TRole&gt;</value>
+    </data>
+    <data name="StoreNotIUserAuthenticationTokenStore" xml:space="preserve">
+        <value>存储程序没实现 IUserAuthenticationTokenStore&lt;User&gt;</value>
+    </data>
+    <data name="StoreNotIUserAuthenticatorKeyStore" xml:space="preserve">
+        <value>存储程序没实现 IUserAuthenticatorKeyStore&lt;User&gt;</value>
+    </data>
+    <data name="StoreNotIUserClaimStore" xml:space="preserve">
+        <value>存储程序没实现 IUserClaimStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserConfirmationStore" xml:space="preserve">
+        <value>存储程序没实现 IUserConfirmationStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserEmailStore" xml:space="preserve">
+        <value>存储程序没实现 IUserEmailStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserLockoutStore" xml:space="preserve">
+        <value>存储程序没实现 IUserLockoutStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserLoginStore" xml:space="preserve">
+        <value>存储程序没实现 IUserLoginStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserPasswordStore" xml:space="preserve">
+        <value>存储程序没实现 IUserPasswordStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserPhoneNumberStore" xml:space="preserve">
+        <value>存储程序没实现 IUserPhoneNumberStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserRoleStore" xml:space="preserve">
+        <value>存储程序没实现 IUserRoleStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserSecurityStampStore" xml:space="preserve">
+        <value>存储程序没实现 IUserSecurityStampStore&lt;TUser&gt;</value>
+    </data>
+    <data name="StoreNotIUserTwoFactorRecoveryCodeStore" xml:space="preserve">
+        <value>存储程序没实现 IUserTwoFactorRecoveryCodeStore&lt;TUsergt;</value>
+    </data>
+    <data name="StoreNotIUserTwoFactorStore" xml:space="preserve">
+        <value>存储程序没实现 IUserTwoFactorStore&lt;TUser&gt;</value>
+    </data>
+    <data name="UserAlreadyHasPassword" xml:space="preserve">
+        <value>用户已设置密码</value>
+    </data>
+    <data name="UserAlreadyInRole" xml:space="preserve">
+        <value>用户已属于 '{0}' 角色</value>
+    </data>
+    <data name="UserLockedOut" xml:space="preserve">
+        <value>用户已被锁定</value>
+    </data>
+    <data name="UserLockoutNotEnabled" xml:space="preserve">
+        <value>未启用锁定用户</value>
+    </data>
+    <data name="UserNameNotFound" xml:space="preserve">
+        <value>用户 {0} 不存在</value>
+    </data>
+    <data name="UserNotInRole" xml:space="preserve">
+        <value>用户不属于 '{0}' 角色</value>
+    </data>
+</root>

@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
+using Discussion.Tests.Common.AssertionExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
@@ -70,7 +72,7 @@ namespace Discussion.Tests.Common
             return request;
         }
         
-        public static RequestBuilder WithJsonContent(this RequestBuilder request, object obj)
+        public static RequestBuilder WithJson(this RequestBuilder request, object obj)
         {
             return request.And(req =>
             {
@@ -80,7 +82,7 @@ namespace Discussion.Tests.Common
             });
         }
         
-        public static RequestBuilder WithFormContent(this RequestBuilder request, Dictionary<string, string> obj)
+        public static RequestBuilder WithForm(this RequestBuilder request, Dictionary<string, string> obj)
         {
             return request.And(req =>
             {
@@ -105,7 +107,10 @@ namespace Discussion.Tests.Common
                 .WithCookie(tokens.Cookie);
         }
 
-
+        public static TestHttpRequestBuilder Path(this TestApplication app, string path)
+        {
+            return new TestHttpRequestBuilder(app, path);
+        }
 
     }
 }

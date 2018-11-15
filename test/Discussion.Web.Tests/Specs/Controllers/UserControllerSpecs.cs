@@ -55,6 +55,26 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         [Fact]
+        public async Task should_update_avatar_file_id()
+        {
+            var user = _theApp.MockUser();
+            var settingViewModel = new UserSettingsViewModel
+            {
+                AvatarFileId = 12
+            };
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            
+            var result = await userCtrl.DoSettings(settingViewModel);
+
+            
+            ShouldBeRedirectResult(result);
+            
+            _theApp.ReloadEntity(user);
+            Assert.Equal(12, user.AvatarFileId);
+        }
+        
+        [Fact]
         public async Task should_use_username_as_display_name_if_update_display_name_to_null()
         {
             var user = _theApp.MockUser();

@@ -31,7 +31,11 @@ namespace Discussion.Tests.Common
             User = _originalUser;
             ReplacableServiceProvider.Reset();
         }
-        public IDataProtector dataProtector { get; private set; }
+
+        internal void ResetUser()
+        {
+            User = _originalUser;
+        }
 
         public StubLoggerProvider LoggerProvider { get; private set; }
         public IHostingEnvironment HostingEnvironment { get; private set; }
@@ -77,7 +81,7 @@ namespace Discussion.Tests.Common
                 });
             });
 
-            var connectionStringEVKey = $"DOTNETCLUB_{ApplicationDataServices.ConfigKeyConnectionString}";
+            var connectionStringEVKey = $"DOTNETCLUB_{ServiceExtensions.ConfigKeyConnectionString}";
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(connectionStringEVKey)))
             {
                 Environment.SetEnvironmentVariable(connectionStringEVKey, " ");

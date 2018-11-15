@@ -8,11 +8,18 @@ using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
+using Discussion.Web.Resources;
+using Discussion.Web.Services.Identity;
+using Discussion.Web.Tests.Specs.Resources;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Abstractions.Internal;
+using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
@@ -38,7 +45,6 @@ namespace Discussion.Web.Tests.StartupSpecs
             services.ShouldContain(x => x.ServiceType.ToString().EndsWith("MvcMarkerService"));
         }
 
-
         [Fact]
         public void should_use_ef_repository()
         {
@@ -52,6 +58,30 @@ namespace Discussion.Web.Tests.StartupSpecs
             repo.ShouldNotBeNull();
             repo.GetType().GetGenericTypeDefinition().ShouldEqual(typeof(EfRepository<>));
         }
+        
+        [Fact]
+        public void should_add_identity_services()
+        {
+            var applicationServices = CreateApplicationServices();
+
+            var userManager = applicationServices.GetRequiredService<UserManager<User>>();
+            var errorDescriber = applicationServices.GetRequiredService<IdentityErrorDescriber>();
+
+            Assert.IsType<EmailAddressAwareUserManager<User>>(userManager);
+            Assert.IsType<ResourceBasedIdentityErrorDescriber>(errorDescriber);
+        }
+        
+        [Fact]
+        public void should_use_translated_model_binding_messages()
+        {
+            var applicationServices = CreateApplicationServices();
+
+            var options = applicationServices.GetRequiredService<IOptions<MvcOptions>>().Value;
+
+            var methodType = options.ModelBindingMessageProvider.ValueIsInvalidAccessor.Method.DeclaringType;
+            var containingType = methodType.ReflectedType;
+            Assert.Equal(typeof(ResourceModelBindingMessageExtensions), containingType);
+        }
 
         static IServiceProvider CreateApplicationServices()
         {
@@ -61,6 +91,7 @@ namespace Discussion.Web.Tests.StartupSpecs
         static IServiceProvider CreateApplicationServices(Action<Mock<IConfiguration>> configureSettings, Action<IServiceCollection> configureServices) {
             var services = new ServiceCollection();
             var startup = CreateMockStartup(configureSettings);
+            services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
             startup.ConfigureServices(services);
             configureServices(services);
 
@@ -74,16 +105,6 @@ namespace Discussion.Web.Tests.StartupSpecs
             hostingEnv.SetupGet(e => e.ContentRootPath).Returns(TestEnv.WebProjectPath());
 
             var appConfig = new Mock<IConfiguration>();
-
-            var msgSenderConfig = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>()
-                {
-                    {"AuthMessageSenderOptions:SendServer", "mail.example.org"},
-                    {"AuthMessageSenderOptions:EncryptionKey", Guid.NewGuid().ToString()},
-                });
-            var section = new ConfigurationSection(new ConfigurationRoot(msgSenderConfig.Build().Providers.ToList()), "");
-            
-            appConfig.Setup(e => e.GetSection("AuthMessageSenderOptions")).Returns(section);
             appConfig.SetupGet(e => e[It.IsAny<string>()]).Returns((string)null);
             configureSettings(appConfig);
 

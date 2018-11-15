@@ -42,6 +42,7 @@ node_modules
 src/Discussion.Web/logs/*
 src/Discussion.*/publish/*
 dotnetclub.db
+src/Discussion.Web/uploaded/*
 
 src/Discussion.Web/wwwroot/lib/node_modules
 src/Discussion.Web/wwwroot/dist/*

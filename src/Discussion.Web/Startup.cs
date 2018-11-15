@@ -1,22 +1,25 @@
-﻿using System;
+﻿using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Data;
-using Discussion.Core.Models;
+using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
+using Discussion.Web.Resources;
+using Discussion.Web.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Discussion.Web.Services.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.EmailConfirmation;
-using Discussion.Web.Services.EmailConfirmation.Impl;
-using Microsoft.AspNetCore.DataProtection;
+using Discussion.Web.Services.Impl;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace Discussion.Web
 {
@@ -47,50 +50,27 @@ namespace Discussion.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging();
-            services.AddIdentity<User, Role>()
-                    .AddUserStore<RepositoryUserStore>()
-                    .AddRoleStore<NullRoleStore>()
-                    .AddClaimsPrincipalFactory<DiscussionUserClaimsPrincipalFactory>()
-                    .AddDefaultTokenProviders();
-            services.AddScoped<UserManager<User>, EmailAddressAwareUserManager<User>>();
-
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
+
             services.AddMvc(options =>
             {
+                options.ModelBindingMessageProvider.UseTranslatedResources();
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
                 options.Filters.Add(new ApiResponseMvcFilter());
             });
+            
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
-        
-            services.AddAuthorization();
-            services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
-            services.Configure<IdentityOptions>(options =>
+            services.AddIdentityServices();
+            services.AddEmailSendingServices(_appConfiguration);
+            services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
+            services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
+                .AddScoped<IUserAvatarService>(sp =>
             {
-                // 我们在 SigninUserViewModel 中的 PasswordRules 类中进行验证
-                options.Password.RequiredLength = 6;
-                options.Password.RequiredUniqueChars = 0;
-                options.Password.RequireDigit = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireUppercase = false;
-                options.User.RequireUniqueEmail = false; // 不但会检查 Email 的唯一性，还会要求 Email 必填
+                var actionAccessor = sp.GetService<IActionContextAccessor>();
+                var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
+                return new UserAvatarService(urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext));
             });
-
-            services.Configure<AuthMessageSenderOptions>(this._appConfiguration.GetSection("AuthMessageSenderOptions"));
-            services.AddTransient<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
-
-            if (_hostingEnvironment.IsDevelopment())
-            {
-                services.AddTransient<IEmailSender, DevEmailSender>();
-            }
-            else
-            {
-                services.AddTransient<IEmailSender, SendGridEmailSender>();
-            }
-
-//            services.AddDataProtection()
-//                .SetDefaultKeyLifetime(TimeSpan.FromDays(7))
-//                .SetApplicationName(_hostingEnvironment.ApplicationName);
         }
 
         public void Configure(IApplicationBuilder app)

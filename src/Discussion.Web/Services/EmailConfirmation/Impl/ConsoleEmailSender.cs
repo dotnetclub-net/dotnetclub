@@ -3,11 +3,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Discussion.Web.Services.EmailConfirmation.Impl
 {
-    public class DevEmailSender : IEmailSender
+    public class ConsoleEmailSender : IEmailSender
     {
-        private readonly ILogger<DevEmailSender> _logger;
+        private readonly ILogger<ConsoleEmailSender> _logger;
 
-        public DevEmailSender(ILogger<DevEmailSender> logger)
+        public ConsoleEmailSender(ILogger<ConsoleEmailSender> logger)
         {
             _logger = logger;
         }

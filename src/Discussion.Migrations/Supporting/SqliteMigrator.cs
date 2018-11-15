@@ -16,12 +16,18 @@ namespace Discussion.Migrations.Supporting
                 Environment.Exit(1);
                 return;
             }
+
+            int? downToVersion = null;
+            if (args.Length > 1 && int.TryParse(args[1], out var downTargetVersion))
+            {
+                downToVersion = downTargetVersion;
+            }
             
             Console.WriteLine($"Starting migrating...");
 
             try
             {
-                Migrate(connectionString, null);
+                Migrate(connectionString, null, downToVersion);
             }
             catch (Exception e)
             {
@@ -42,13 +48,13 @@ namespace Discussion.Migrations.Supporting
         }
 
 
-        public static void Migrate(string connectionString, Action<ILoggingBuilder> migrationLogging)
+        public static void Migrate(string connectionString, Action<ILoggingBuilder> migrationLogging, int? downToVersion = null)
         {
             var services = CreateServices(connectionString, migrationLogging);
 
             using (var scope = services.CreateScope())
             {
-                UpdateDatabase(scope.ServiceProvider);
+                UpdateDatabase(scope.ServiceProvider, downToVersion);
             }
             
             (services as IDisposable)?.Dispose();
@@ -71,10 +77,17 @@ namespace Discussion.Migrations.Supporting
         }
 
 
-        private static void UpdateDatabase(IServiceProvider serviceProvider)
+        private static void UpdateDatabase(IServiceProvider serviceProvider, int? downToVersion)
         {
             var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
-            runner.MigrateUp();
+            if (downToVersion.HasValue)
+            {
+                runner.MigrateDown(downToVersion.Value);
+            }
+            else
+            {
+                runner.MigrateUp();
+            }
         }
     }
 }
