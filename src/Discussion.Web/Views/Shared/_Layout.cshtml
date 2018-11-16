@@ -4,15 +4,12 @@
 @inject Discussion.Web.Services.IUserAvatarService AvatarService
 
 @{
-    string dotnetClub = "dotnetClub";
-    if (null == ViewData["Title"])
+    var pageTitle = "dotnetClub";
+    var viewDataTitle = ViewData["Title"];
+    if (null != viewDataTitle)
     {
-        ViewData["Title"] = dotnetClub;
-    }
-    else
-    {
-        string title = (string) ViewData["Title"];
-        ViewData["Title"] =  $"{title} - {dotnetClub}";
+        var title = (string) viewDataTitle;
+        pageTitle =  $"{title} - {pageTitle}";
     }
 }
 <!DOCTYPE html>
@@ -20,7 +17,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+    <title>@pageTitle</title>
     <meta name="keywords" content=".NET 开发,.NET Core club, .NET 跨平台, .NET 微服务, DevOps" />
     <meta name="description" content=".NET Core club 是国内 .NET 开发人员的聚集地，围绕 .NET 技术的问题解答与最佳实践展开讨论" />
     <link rel="shortcut icon" href="~/favicon/favicon.ico" />
