@@ -33,6 +33,8 @@ namespace Discussion.Web.Controllers
         public ActionResult List([FromQuery]int? page = null)
         {
             var pagedTopics = _topicRepo.All()
+                                        .Include(t => t.Author)
+                                        .Include(t => t.LastRepliedUser)
                                         .OrderByDescending(topic => topic.CreatedAtUtc)
                                         .Page(PageSize, page);
 
