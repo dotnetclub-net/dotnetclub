@@ -39,26 +39,56 @@ body.with-generic-nav {
 	color:white;
 	margin-top: 15px;
 	
-	.user-settings-link {
-		display: inline-block;
-		margin-left: 10px;
+	.avatar{
+		width:24px;
+		height: 24px;
 	}
 	
+	.dropdown {
+		.dropdown-toggle{
+			cursor: pointer;
+		}
+		
+		.dropdown-menu {
+			right: 0;
+			left: initial;
+			color: $text-color;
+
+			.username-item {
+				padding-left: 15px;
+
+				.username {
+					display: inline-block;
+
+					position: relative;
+					top: 5px;
+
+					max-width: 90px;
+					white-space: nowrap;
+					overflow: hidden;
+					text-overflow: ellipsis;
+				}
+			}
+		}
+	}
+	
+	
 	.signout-form {
-		display: inline;
+		
+		&:hover, &:active {
+			background-color:$gray-content-hover;
+		}
 		
 		button {
-			display: inline;
+			display: block;
+			padding: 3px 20px;
+			width: 100%;
+			text-align: left;
 			border: none;
 			background: transparent;
 			cursor: pointer;
 			outline: none;
-			color:$brand-primary;
-		}
-		
-		&:hover, &:active {
-			color:#834790;
-			text-decoration: underline;
+			color:$text-color;
 		}
 	}
 }

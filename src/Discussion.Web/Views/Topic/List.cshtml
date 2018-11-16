@@ -29,7 +29,7 @@
                     <div class="topic-meta-primary pull-left">
                         <span class="topic-type">@Html.DescribeTopicType(topicItem.Type)</span>
                     </div>
-                    <a class="topic-title" href="@Url.Action("Index", "Topic", new { id = topicItem.Id})">
+                    <a class="topic-title" href="@Url.Action("Index", "Topic", new { id = topicItem.Id})" title="@topicItem.Title">
                         @topicItem.Title
                     </a>
                     @if (topicItem.LastRepliedAt.HasValue)

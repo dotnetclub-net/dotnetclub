@@ -1,6 +1,7 @@
 ﻿@using Discussion.Core.Mvc
 @using Discussion.Web.Services.Identity
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
+@inject Discussion.Web.Services.IUserAvatarService AvatarService
 
 @{
     string dotnetClub = "dotnetClub";
@@ -56,11 +57,22 @@
                 <div class="header-user pull-right">
                     @if (Context.IsAuthenticated())
                     {
-                        <span class="username">欢迎你，@Context.DiscussionUser().DisplayName</span>
-                        @Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })
-                        <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
-                            <button>注销</button>
-                        </form>
+                        <div class="dropdown hidden-xs hidden-sm">
+                            <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
+                                <span class="caret"></span>
+                            </div>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                <li class="username-item">你好，<span class="username" title="@Context.DiscussionUser().DisplayName">@Context.DiscussionUser().DisplayName</span></li>
+                                <li role="separator" class="divider"></li>
+                                <li>@Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })</li>
+                                <li>
+                                    <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
+                                        <button>注销</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     }
                     else
                     {
