@@ -47,17 +47,10 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/">dotnetClub</a>
-            </div>
-            <div id="main-navigation" class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li class="active"><a href="/">首页</a></li>
-                    <li><a href="/about">关于</a></li>
-                </ul>
-                <div class="header-user pull-right">
+                <div class="header-user pull-right hidden-sm hidden-md hidden-lg">
                     @if (Context.IsAuthenticated())
                     {
-                        <div class="dropdown hidden-xs hidden-sm">
+                        <div class="dropdown">
                             <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
                                 <span class="caret"></span>
@@ -76,7 +69,40 @@
                     }
                     else
                     {
-                       
+                        @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
+                        <span>&nbsp;</span>
+                        @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
+                    }
+                </div>
+                <a class="navbar-brand" href="/">dotnetClub</a>
+            </div>
+            <div id="main-navigation" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="/">首页</a></li>
+                    <li><a href="/about">关于</a></li>
+                </ul>
+                <div class="header-user pull-right hidden-xs">
+                    @if (Context.IsAuthenticated())
+                    {
+                        <div class="dropdown">
+                            <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
+                                <span class="caret"></span>
+                            </div>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                                <li class="username-item">你好，<span class="username" title="@Context.DiscussionUser().DisplayName">@Context.DiscussionUser().DisplayName</span></li>
+                                <li role="separator" class="divider"></li>
+                                <li>@Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })</li>
+                                <li>
+                                    <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
+                                        <button>注销</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
                         @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                         <span>&nbsp;</span>
                         @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
