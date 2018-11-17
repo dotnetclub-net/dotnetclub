@@ -22,7 +22,7 @@
                 <div class="inner-square">
                     <img src="@AvatarService.GetUserAvatarUrl(Model)" title="点击更改头像" class="user-avatar"/>
                 </div>
-                <span>点击更改头像，请使用 240x240 方形图片</span>
+                <span class="avatar-note">点击更改头像，请使用 240x240 方形图片</span>
                 <canvas class="avatar-preview" width="240" height="240"></canvas>
             </div>
             <div>
@@ -230,6 +230,7 @@
                         if (data.hasSucceeded) {
                             $('.user-avatar')[0].src = data.result.publicUrl;
                             $('#@(nameof(Model.AvatarFileId))').val(data.result.fileId);
+                            $('.avatar-note').text('请点击 保存 确认使用新头像');
                         }
                     },
                     error: function() {
