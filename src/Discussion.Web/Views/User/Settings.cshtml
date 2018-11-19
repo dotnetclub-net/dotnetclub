@@ -22,7 +22,8 @@
                 <div class="inner-square">
                     <img src="@AvatarService.GetUserAvatarUrl(Model)" title="点击更改头像" class="user-avatar"/>
                 </div>
-                <span>点击更改头像，请使用 240x240 方形图片</span>
+                <span class="avatar-note">点击更改头像，请使用 240x240 方形图片</span>
+                <canvas class="avatar-preview" width="240" height="240"></canvas>
             </div>
             <div>
                 @Html.HiddenFor(model => model.AvatarFileId)
@@ -65,6 +66,8 @@
         <button type="submit" class="btn btn-default">保存</button>
     </form>
 </div>
+
+
 
 @section Tail{
     <script>
@@ -137,15 +140,85 @@
             $('a.link.confirmation-operation').click(send);
             
             
-            
-            function uploadAvatar() {
+            function fileSelected() {
                 if (!this.files.length) {
                     return;
                 }
 
+
+                var blob = URL.createObjectURL(this.files[0]);
+                var parsedFile = parseFileName(this.files[0].name);
+                var img = new Image();
+                img.onload = function() {
+                    var size = 240;
+                    if (this.width < size || this.height < size) {
+                        alert('所选的图片太小，请选择 ' + size + 'x' + size + ' 像素以上的方形图片');
+                    } else {
+                        var resized = resizeTo(img, size, parsedFile.canBeTransparent);
+                        $('.user-avatar')[0].src = resized.dataURL;
+                        uploadAvatar(resized.dataURL, parsedFile.name + resized.ext);
+                    }
+                    URL.revokeObjectURL(blob);
+                };
+                img.onerror = function() {
+                    console.error('所选择的文件不是图片文件');
+                    URL.revokeObjectURL(blob);
+                };
+                img.src = blob;
+                
+                
+                function resizeTo(img, size, canBeTransparent) {
+                    var canvas = $('.avatar-preview')[0];
+                    var ctx = canvas.getContext('2d');
+
+                    var wRatio = img.width / size;
+                    var hRatio = img.height / size;
+                    var ratio = Math.min(wRatio, hRatio);
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img,
+                        0, 0,
+                        Math.floor(size * ratio), Math.floor(size * ratio), 
+                        0, 0,
+                        size, size);
+                    var usePng = canBeTransparent ? hasTransparent(ctx.getImageData(0, 0, size, size)) : false;
+                    return {
+                        dataURL: canvas.toDataURL(usePng ? 'image/png' : 'image/jpeg', 0.8),
+                        ext: usePng ? '.png' : '.jpg'
+                    };
+                }
+                
+                function hasTransparent(imageData) {
+                    for(var x = 0; x < imageData.width; x++){
+                        for(var y = 0; y < imageData.height; y++){
+                            if (imageData.data[3] === 0) {
+                                return true;
+                            }
+                        }
+                    }
+                    
+                    return false;
+                }
+                
+                function parseFileName(fileName) {
+                    var lastIndexOfDot = fileName.lastIndexOf('.');
+                    var hasExt = lastIndexOfDot > 0 && lastIndexOfDot < fileName.length - 2; 
+                    var name = hasExt ? fileName.substr(0, lastIndexOfDot) : fileName;
+                    var ext = hasExt ? fileName.substr(lastIndexOfDot) : '';
+                    return {
+                        name: name,
+                        canBeTransparent: ext.toLowerCase() === '.png' || ext.toLowerCase() === '.gif'
+                    };
+                }
+            }
+            
+            function uploadAvatar(dataURL, fileName) {
+                var u8Image  = b64ToUint8Array(dataURL);
                 var formData = new FormData();
-                formData.append('file', this.files[0]); 
-                formData.append('__RequestVerificationToken', window.__RequestVerificationToken); 
+                formData.append('file', new Blob([ u8Image ], {type: "image/png"}), fileName);
+                formData.append('__RequestVerificationToken', window.__RequestVerificationToken);
+
+                $('.user-avatar').addClass('uploading').attr('title', '正在上传，请稍候...');
                 $.ajax({
                     url: uploadAvatarUrl,
                     data: formData,
@@ -153,19 +226,40 @@
                     contentType: false,
                     processData: false,
                     success: function(data) {
+                        $('.user-avatar').removeClass('uploading').attr('title', '点击更改头像');
                         if (data.hasSucceeded) {
-                            $('.user-avatar').attr('src', data.result.publicUrl);
+                            $('.user-avatar')[0].src = data.result.publicUrl;
                             $('#@(nameof(Model.AvatarFileId))').val(data.result.fileId);
+                            $('.avatar-note').text('请点击 保存 确认使用新头像');
                         }
+                    },
+                    error: function() {
+                        $('.user-avatar').removeClass('uploading').attr('title', '点击更改头像');
+                        console.error('无法上传头像', arguments);
                     }
                 });
+                
+                
+                function b64ToUint8Array(b64Image) {
+                    var img = atob(b64Image.split(',')[1]);
+                    var imgBuffer = [];
+                    var i = 0;
+                    while (i < img.length) {
+                        imgBuffer.push(img.charCodeAt(i));
+                        i++;
+                    }
+                    return new Uint8Array(imgBuffer);
+                }
             }
 
 
             $('.user-avatar').click(function() {
+                if ($(this).hasClass('uploading')) {
+                    return;
+                }
                 $('#avatar-file-upload').click();
             });
-            $('#avatar-file-upload').change(uploadAvatar);
+            $('#avatar-file-upload').change(fileSelected);
         });
 
 

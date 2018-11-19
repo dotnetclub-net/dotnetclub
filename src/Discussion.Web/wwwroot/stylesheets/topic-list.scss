@@ -9,19 +9,25 @@
   }
   
   .topic-item {
-    height: 45px;
+    height: 50px;
     font-size: 1.2em;
-    padding: 13px 10px;
+    padding: 10px 10px;
     border-bottom: 1px solid $gray-inner-border;
 
     &:hover{
       background: $gray-content-hover;
     }
 
-
+    .topic-author-avatar{
+      width: 30px;
+      height: 30px;
+      float: left;
+      border-radius: 2px;
+    }
 
     .topic-meta-primary{
       width: 40px;
+      margin-top:5px;
       text-align: right;
 
       .counts{
@@ -48,7 +54,8 @@
     .topic-title{
       color: $text-color;
       padding: 0 10px;
-      width: calc(100% - 100px);
+      margin-top:5px;
+      width: calc(100% - 165px);
       display: inline-block;
       white-space: nowrap;
       overflow: hidden;
@@ -61,10 +68,26 @@
         color:$text-muted
       }
     }
+
+    @media (max-width: 767px) {
+      .topic-title {
+        width: calc(100% - 80px);
+      }
+    }
     
     .topic-meta-secondary {
      
+      .last-replied-user-avatar{
+        width:18px;
+        height:18px;
+        border-radius: 2px;
+      }
+      
       .last-replied-at{
+        display:inline-block;
+        margin-left: 5px;
+        width:60px;
+        text-align: right;
         font-size: 13px;
         padding-top: 5px;
         color: #777777;

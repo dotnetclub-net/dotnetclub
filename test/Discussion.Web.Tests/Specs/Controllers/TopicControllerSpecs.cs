@@ -4,6 +4,7 @@ using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Pagination;
+using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
@@ -17,20 +18,26 @@ namespace Discussion.Web.Tests.Specs.Controllers
     public class TopicControllerSpecs
     {
         private readonly TestDiscussionWebApp _app;
+        private readonly IRepository<User> _userRepo;
+        private readonly User _author;
 
         public TopicControllerSpecs(TestDiscussionWebApp app)
         {
             _app = app.Reset();
+            _app.DeleteAll<Topic>();
+            _userRepo = app.GetService<IRepository<User>>();
+            _author = CreateNewUser();
         }
 
         [Fact]
         public void should_serve_topic_list_on_page()
         {
+            var replied = CreateNewUser();
             var topicItems = new[]
             {
-                new Topic {Title = "dummy topic 1", Type = TopicType.Discussion},
-                new Topic {Title = "dummy topic 2", Type = TopicType.Discussion },
-                new Topic {Title = "dummy topic 3", Type = TopicType.Discussion },
+                new Topic {Title = "dummy topic 1", Type = TopicType.Discussion, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.Now.AddMinutes(-3)},
+                new Topic {Title = "dummy topic 2", Type = TopicType.Question, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.Now.AddMinutes(-3) },
+                new Topic {Title = "dummy topic 3", Type = TopicType.Job, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.Now.AddMinutes(-3)},
             };
             var repo = _app.GetService<IRepository<Topic>>();
             foreach (var item in topicItems)
@@ -44,9 +51,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var listViewModel = topicListResult.ViewData.Model as Paged<Topic>;
 
             listViewModel.ShouldNotBeNull();
-            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 1");
-            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 2");
-            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 3");
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 1" && t.Type == TopicType.Discussion);
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 2" && t.Type == TopicType.Question);
+            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 3" && t.Type == TopicType.Job);
+            
+            listViewModel.Items.All(t => t.Author != null).ShouldEqual(true);
+            listViewModel.Items.All(t => t.LastRepliedUser != null).ShouldEqual(true);
         }
 
         [Fact]
@@ -60,6 +70,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 repo.Save(new Topic
                 {
                     Title = "dummy topic " + all,
+                    Author = _author,
                     Type = TopicType.Discussion,
                     CreatedAtUtc = DateTime.Today.AddSeconds(-all)
                 });
@@ -181,6 +192,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             topicShown.Replies[1].Content.ShouldEqual(replyContent + "2");
             topicShown.Replies[1].TopicId.ShouldEqual(topic.Id);
+        }
+        
+        private User CreateNewUser()
+        {
+            var rand = StringUtility.Random();
+            var user = new User
+            {
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
+                UserName = rand,
+                DisplayName = rand,
+                HashedPassword = "some-password",
+                EmailAddress = $"{rand}@here.com",
+                EmailAddressConfirmed = false
+            };
+            _userRepo.Save(user);
+            return user;
         }
     }
 }

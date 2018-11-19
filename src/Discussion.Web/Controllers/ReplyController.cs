@@ -36,17 +36,19 @@ namespace Discussion.Web.Controllers
                 return BadRequest(ModelState);
             }
 
-            topic.LastRepliedAt = DateTime.UtcNow;
-            topic.ReplyCount += 1;
-            _topicRepo.Update(topic);
-
+            var user = HttpContext.DiscussionUser();
             var reply = new Reply
             {
                 TopicId = topicId,
-                CreatedBy = User.ExtractUserId().Value,
+                CreatedBy = user.Id,
                 Content = replyCreationModel.Content
             };
             _replyRepo.Save(reply);
+            
+            topic.LastRepliedAt = DateTime.UtcNow;
+            topic.LastRepliedUser = user;
+            topic.ReplyCount += 1;
+            _topicRepo.Update(topic);
             return NoContent();
         }
     }

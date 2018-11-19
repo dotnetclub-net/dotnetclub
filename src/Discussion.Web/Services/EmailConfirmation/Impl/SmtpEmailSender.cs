@@ -1,7 +1,8 @@
-﻿using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
+using MimeKit;
+using MimeKit.Text;
 
 namespace Discussion.Web.Services.EmailConfirmation.Impl
 {
@@ -15,34 +16,25 @@ namespace Discussion.Web.Services.EmailConfirmation.Impl
         
         public async Task SendEmailAsync(string emailTo, string subject, string message)
         {
-            var smtpClient = new SmtpClient
-            {
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                Host = _emailSendingOptions.ServerHost,
-                Port = _emailSendingOptions.ServerSslPort,
-                EnableSsl = true
-            };
+            var mimeMessage = new MimeMessage ();
+            mimeMessage.From.Add (new MailboxAddress ("dotnet club", _emailSendingOptions.MailFrom));
+            mimeMessage.To.Add (new MailboxAddress (emailTo));
+            mimeMessage.Subject = subject;
+            mimeMessage.Body = new TextPart (TextFormat.Html) { Text = message };
 
-            if (!string.IsNullOrEmpty(_emailSendingOptions.LoginName)
-                && !string.IsNullOrEmpty(_emailSendingOptions.Password))
+
+            using (var client = new SmtpClient())
             {
-                smtpClient.Credentials = new System.Net.NetworkCredential(_emailSendingOptions.LoginName, _emailSendingOptions.Password);
+                client.Connect(_emailSendingOptions.ServerHost, _emailSendingOptions.ServerSslPort, useSsl: true);
+                if (!string.IsNullOrEmpty(_emailSendingOptions.LoginName)
+                    && !string.IsNullOrEmpty(_emailSendingOptions.Password))
+                {
+                    client.Authenticate(_emailSendingOptions.LoginName, _emailSendingOptions.Password);
+                }
+
+                await client.SendAsync(mimeMessage);
+                client.Disconnect(true);
             }
-
-            var fromAddress = string.IsNullOrEmpty(_emailSendingOptions.MailFrom)
-                ? _emailSendingOptions.LoginName
-                : _emailSendingOptions.MailFrom;
-            var mailMessage = new MailMessage(fromAddress, emailTo)
-            {
-                Subject = subject,
-                Body = message,
-                BodyEncoding = Encoding.UTF8,
-                IsBodyHtml = true,
-                Priority = MailPriority.Normal
-            };
-            await Task.Run(() => {
-                smtpClient.Send(mailMessage);
-            });
         }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Discussion.Core.Data;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Discussion.Web.Controllers
@@ -16,15 +17,17 @@ namespace Discussion.Web.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<AccountController> _logger;
+        private readonly IRepository<User> _userRepo;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger, IRepository<User> userRepo)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _userRepo = userRepo;
         }
 
         [Route("/signin")]
@@ -67,9 +70,13 @@ namespace Discussion.Web.Controllers
             {
                 ModelState.Clear();   // 将真正的验证结果隐藏掉（如果有的话）
                 ModelState.AddModelError("UserName", "用户名或密码错误");
+                return View("Signin");
             }
 
-            return ModelState.IsValid ? RedirectTo(returnUrl) : View("Signin");
+            var user = await _userManager.FindByNameAsync(viewModel.UserName);
+            user.LastSeenAt = DateTime.UtcNow;
+            _userRepo.Update(user);
+            return RedirectTo(returnUrl);
         }
 
         [HttpPost]

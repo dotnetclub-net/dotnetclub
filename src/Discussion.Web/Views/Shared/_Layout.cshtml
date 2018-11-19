@@ -1,17 +1,15 @@
 ﻿@using Discussion.Core.Mvc
 @using Discussion.Web.Services.Identity
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
+@inject Discussion.Web.Services.IUserAvatarService AvatarService
 
 @{
-    string dotnetClub = "dotnetClub";
-    if (null == ViewData["Title"])
+    var pageTitle = "dotnetClub";
+    var viewDataTitle = ViewData["Title"];
+    if (null != viewDataTitle)
     {
-        ViewData["Title"] = dotnetClub;
-    }
-    else
-    {
-        string title = (string) ViewData["Title"];
-        ViewData["Title"] =  $"{title} - {dotnetClub}";
+        var title = (string) viewDataTitle;
+        pageTitle =  $"{title} - {pageTitle}";
     }
 }
 <!DOCTYPE html>
@@ -19,7 +17,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+    <title>@pageTitle</title>
     <meta name="keywords" content=".NET 开发,.NET Core club, .NET 跨平台, .NET 微服务, DevOps" />
     <meta name="description" content=".NET Core club 是国内 .NET 开发人员的聚集地，围绕 .NET 技术的问题解答与最佳实践展开讨论" />
     <link rel="shortcut icon" href="~/favicon/favicon.ico" />
@@ -46,6 +44,33 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
+                <div class="header-user pull-right hidden-sm hidden-md hidden-lg">
+                    @if (Context.IsAuthenticated())
+                    {
+                        <div class="dropdown">
+                            <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
+                                <span class="caret"></span>
+                            </div>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                <li class="username-item">你好，<span class="username" title="@Context.DiscussionUser().DisplayName">@Context.DiscussionUser().DisplayName</span></li>
+                                <li role="separator" class="divider"></li>
+                                <li>@Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })</li>
+                                <li>
+                                    <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
+                                        <button>注销</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
+                        <span>&nbsp;</span>
+                        @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
+                    }
+                </div>
                 <a class="navbar-brand" href="/">dotnetClub</a>
             </div>
             <div id="main-navigation" class="navbar-collapse collapse">
@@ -53,18 +78,28 @@
                     <li class="active"><a href="/">首页</a></li>
                     <li><a href="/about">关于</a></li>
                 </ul>
-                <div class="header-user pull-right">
+                <div class="header-user pull-right hidden-xs">
                     @if (Context.IsAuthenticated())
                     {
-                        <span class="username">欢迎你，@Context.DiscussionUser().DisplayName</span>
-                        @Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })
-                        <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
-                            <button>注销</button>
-                        </form>
+                        <div class="dropdown">
+                            <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
+                                <span class="caret"></span>
+                            </div>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                                <li class="username-item">你好，<span class="username" title="@Context.DiscussionUser().DisplayName">@Context.DiscussionUser().DisplayName</span></li>
+                                <li role="separator" class="divider"></li>
+                                <li>@Html.ActionLink("设置", "Settings", "User", null, new { @class = "user-settings-link" })</li>
+                                <li>
+                                    <form class="signout-form" asp-action="DoSignOut" asp-controller="Account" method="post">
+                                        <button>注销</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     }
                     else
                     {
-                       
                         @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                         <span>&nbsp;</span>
                         @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})

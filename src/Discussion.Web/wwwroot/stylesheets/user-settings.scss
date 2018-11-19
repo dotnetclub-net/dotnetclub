@@ -26,11 +26,17 @@
       .user-avatar {
         width: 100%;
         height: 100%;
+        border-radius: 5px;
         cursor: pointer;
         
         position: absolute;
         top: 0;
         left: 0;
+        transition: opacity linear .2s; 
+        
+        &.uploading{
+          opacity: 0.65;
+        }
       }
       
       &:after {
@@ -40,8 +46,9 @@
       }
     }
 
-    
-    
+    .avatar-preview{
+      display: none;
+    }
   }
   
   .avatar-upload{

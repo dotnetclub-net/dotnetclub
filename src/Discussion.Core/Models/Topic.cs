@@ -10,14 +10,17 @@ namespace Discussion.Core.Models
         public string Content { get; set; }
         public TopicType Type { get; set; }
 
+        [ForeignKey("CreatedBy")]
+        public User Author { get; set; }
         public int CreatedBy { get; set; }
+
+        [ForeignKey("LastRepliedBy")]
+        public User LastRepliedUser { get; set; }
+        public int? LastRepliedBy { get; set; }
         public DateTime? LastRepliedAt { get; set; }
 
         public int ReplyCount { get; set; }
         public int ViewCount { get; set; }
-
-        [ForeignKey("CreatedBy")]
-        public User Author { get; set; }
     }
 
     public enum TopicType

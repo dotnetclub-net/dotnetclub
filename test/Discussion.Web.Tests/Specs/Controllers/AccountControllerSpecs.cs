@@ -9,13 +9,10 @@ using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.ViewModels;
-using FluentMigrator;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -82,7 +79,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
             sigininResult.IsType<RedirectResult>();
             
             authService.Verify();
-            Assert.Equal("jim", signedInClaimsPrincipal.ToDiscussionUser(userRepo).UserName);
+            var signedInUser = signedInClaimsPrincipal.ToDiscussionUser(userRepo);
+            _theApp.ReloadEntity(signedInUser);
+            Assert.Equal("jim", signedInUser.UserName);
+            Assert.NotNull(signedInUser.LastSeenAt);
         }
         
         [Fact]
