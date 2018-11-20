@@ -7,6 +7,7 @@ using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
+using Discussion.Web.Services;
 using Discussion.Web.Services.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -290,6 +291,36 @@ namespace Discussion.Web.Tests.Specs.Controllers
         // QUESTION: should not confirm with used token?
         
         #endregion
+        
+        #region Phone Number Verification
+
+        [Fact]
+        public async Task should_send_sms_to_specified_phone_number()
+        {
+            const string phoneNumber = "13603503455";
+            var smsSender = MockSmsSender(phoneNumber);
+            
+            var user = _theApp.MockUser();
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            
+            var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
+            
+            Assert.True(result.HasSucceeded);
+            smsSender.Verify();
+            _theApp.ReloadEntity(user);
+            Assert.Null(user.PhoneNumberId);
+
+            var records = _theApp.GetService<IRepository<PhoneNumberVerificationRecord>>();
+            var sentRecord = records.All().FirstOrDefault(r => r.UserId == user.Id);
+            Assert.NotNull(sentRecord);
+            Assert.NotNull(sentRecord.Code);
+            Assert.Equal(phoneNumber, sentRecord.PhoneNumber);
+            Assert.True( (sentRecord.Expires - DateTime.UtcNow).TotalMinutes > 5 );
+        }
+        
+        
+        #endregion
 
         #region Helpers
 
@@ -369,6 +400,16 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
             return mailSender;
+        }
+        
+        private Mock<ISmsSender> MockSmsSender(string phoneNumber)
+        {
+            var smsSender = new Mock<ISmsSender>();
+            smsSender.Setup(sender => sender.SendMessageAsync(phoneNumber, It.IsAny<string>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+            ReplacableServiceProvider.Replace(services => services.AddSingleton(smsSender.Object));
+            return smsSender;
         }
 
         #endregion

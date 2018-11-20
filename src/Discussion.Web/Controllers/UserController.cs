@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
+using Discussion.Web.Services;
 using Discussion.Web.Services.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -22,13 +24,17 @@ namespace Discussion.Web.Controllers
         private readonly IEmailSender _emailSender;
         private readonly IConfirmationEmailBuilder _emailBuilder;
         private readonly IRepository<User> _userRepo;
+        private readonly IRepository<PhoneNumberVerificationRecord> _verificationCodeRecordRepo;
+        private readonly ISmsSender _smsSender;
 
-        public UserController(UserManager<User> userManager, IEmailSender emailSender, IConfirmationEmailBuilder emailBuilder, IRepository<User> userRepo)
+        public UserController(UserManager<User> userManager, IEmailSender emailSender, IConfirmationEmailBuilder emailBuilder, IRepository<User> userRepo, ISmsSender smsSender, IRepository<PhoneNumberVerificationRecord> verificationCodeRecordRepo)
         {
             _userManager = userManager;
             _emailSender = emailSender;
             _emailBuilder = emailBuilder;
             _userRepo = userRepo;
+            _smsSender = smsSender;
+            _verificationCodeRecordRepo = verificationCodeRecordRepo;
         }
 
         
@@ -161,6 +167,24 @@ namespace Discussion.Web.Controllers
             return RedirectToAction(getActionName);
         }
 
+        [Route("send-phone-number-verification-code")]
+        public async Task<ApiResponse> SendPhoneNumberVerificationCode([FromForm] string phoneNumber)
+        {
+            var verificationCode = StringUtility.RandomNumbers();
+            var record = new PhoneNumberVerificationRecord
+            {
+                UserId = User.ExtractUserId().Value,
+                Code = verificationCode,
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                PhoneNumber = phoneNumber
+            };
+            _verificationCodeRecordRepo.Save(record);
+            await _smsSender.SendMessageAsync(phoneNumber, $"你的 dotnet club 验证码为 {verificationCode}");
+            return ApiResponse.NoContent();
+        }
+        
+        
+        
         private bool IsEmailTaken(int userId, string newEmail)
         {
             if (string.IsNullOrWhiteSpace(newEmail))

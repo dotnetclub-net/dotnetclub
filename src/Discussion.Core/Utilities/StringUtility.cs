@@ -24,6 +24,20 @@ namespace Discussion.Core.Utilities
             return sb.ToString();
         }
         
+        public static string RandomNumbers(int length = 6)
+        {
+            var sb = new StringBuilder();
+            var random = new Random();
+            
+            do
+            {
+                var rand = random.Next(0, 9);
+                sb.Append((char) rand);
+            } while (sb.Length < length);
+
+            return sb.ToString();
+        }
+        
         
         public static bool IgnoreCaseEqual(this string one, string theOther)
         {
