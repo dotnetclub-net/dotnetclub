@@ -66,11 +66,12 @@ namespace Discussion.Web
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
                 .AddScoped<IUserAvatarService>(sp =>
-            {
-                var actionAccessor = sp.GetService<IActionContextAccessor>();
-                var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
-                return new UserAvatarService(urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext));
-            });
+                {
+                    var actionAccessor = sp.GetService<IActionContextAccessor>();
+                    var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
+                    return new UserAvatarService(urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext));
+                });
+            services.AddTransient<ISmsSender, ConsoleSmsSender>();
         }
 
         public void Configure(IApplicationBuilder app)

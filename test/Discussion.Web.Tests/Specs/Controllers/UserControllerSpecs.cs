@@ -25,11 +25,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
     {
         private readonly TestDiscussionWebApp _theApp;
         private readonly IRepository<User> _userRepo;
+        private readonly IRepository<PhoneNumberVerificationRecord> _phoneVerifyRepo;
+        private readonly IRepository<VerifiedPhoneNumber> _phoneRepo;
 
         public UserControllerSpecs(TestDiscussionWebApp theApp)
         {
             _theApp = theApp;
             _userRepo = _theApp.GetService<IRepository<User>>();
+            _phoneVerifyRepo = theApp.GetService<IRepository<PhoneNumberVerificationRecord>>();
+            _phoneRepo = theApp.GetService<IRepository<VerifiedPhoneNumber>>();
             _theApp.DeleteAll<User>();
         }
 
@@ -311,14 +315,89 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _theApp.ReloadEntity(user);
             Assert.Null(user.PhoneNumberId);
 
-            var records = _theApp.GetService<IRepository<PhoneNumberVerificationRecord>>();
-            var sentRecord = records.All().FirstOrDefault(r => r.UserId == user.Id);
+            var sentRecord = _phoneVerifyRepo.All().FirstOrDefault(r => r.UserId == user.Id);
             Assert.NotNull(sentRecord);
             Assert.NotNull(sentRecord.Code);
             Assert.Equal(phoneNumber, sentRecord.PhoneNumber);
             Assert.True( (sentRecord.Expires - DateTime.UtcNow).TotalMinutes > 5 );
         }
         
+        [Fact]
+        public async Task should_not_send_sms_again_in_2_minutes()
+        {
+            const string phoneNumber = "13603503455";
+            
+            var user = _theApp.MockUser();
+            var record = new PhoneNumberVerificationRecord
+            {
+                UserId = user.Id,
+                Code = "389451",
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                PhoneNumber = phoneNumber
+            };
+            _phoneVerifyRepo.Save(record);
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            
+            var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
+            
+            Assert.False(result.HasSucceeded);
+            var sentRecords = _phoneVerifyRepo
+                .All()
+                .Where(r => r.UserId == user.Id && r.PhoneNumber == phoneNumber)
+                .ToList();
+            Assert.Equal(1, sentRecords.Count);
+        }
+        
+        [Fact]
+        public async Task should_not_send_sms_again_in_7_days_after_verified()
+        {
+            const string phoneNumber = "13603503455";
+            
+            var verifiedRecord = new VerifiedPhoneNumber {PhoneNumber = phoneNumber};
+            _phoneRepo.Save(verifiedRecord);
+            var user = _theApp.MockUser();
+            user.VerifiedPhoneNumber = verifiedRecord;
+            _userRepo.Update(user);
+            
+            var userCtrl = _theApp.CreateController<UserController>();
+            var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
+            
+            Assert.False(result.HasSucceeded);
+            var messageSent = _phoneVerifyRepo
+                .All()
+                .Any(r => r.UserId == user.Id && r.PhoneNumber == phoneNumber);
+            Assert.False(messageSent);
+        }
+        
+        [Fact]
+        public void should_verify_phone_number()
+        {
+            const string code = "389451";
+            const string phoneNumber = "13603503455";
+            
+            var user = _theApp.MockUser();
+            var record = new PhoneNumberVerificationRecord
+            {
+                UserId = user.Id,
+                Code = code,
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                PhoneNumber = phoneNumber
+            };
+            _phoneVerifyRepo.Save(record);
+            
+            var userCtrl = _theApp.CreateController<UserController>();
+            var result = userCtrl.VerifyPhoneNumber(code);
+            
+            Assert.True(result.HasSucceeded);
+            _theApp.ReloadEntity(user);
+            Assert.NotNull(user.PhoneNumberId);
+        }
+        
+        
+        // todo: should be able to change phone number after 7 days
+        // todo: should be able to send code after 2 mins
+        // *todo: should auto invalid after 1 year
         
         #endregion
 
