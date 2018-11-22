@@ -338,7 +338,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _phoneVerifyRepo.Save(record);
             var userCtrl = _theApp.CreateController<UserController>();
             
-            
             var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
             
             Assert.False(result.HasSucceeded);
@@ -368,6 +367,37 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 .All()
                 .Any(r => r.UserId == user.Id && r.PhoneNumber == phoneNumber);
             Assert.False(messageSent);
+        }
+        
+        [Fact]
+        public async Task should_not_send_sms_for_a_user_more_than_5_times_in_a_day()
+        {
+            const string phoneNumber = "13603503455";
+
+            var user = _theApp.MockUser();
+            Enumerable.Range(1, 5).ToList().ForEach(index =>
+            {
+                var record = new PhoneNumberVerificationRecord
+                {
+                    CreatedAtUtc = DateTime.UtcNow.AddMinutes(-2 * index),
+                    UserId = user.Id,
+                    Code = "389451",
+                    Expires = DateTime.UtcNow.AddMinutes(15),
+                    PhoneNumber = StringUtility.RandomNumbers(11)
+                };
+                _phoneVerifyRepo.Save(record);    
+            });
+            
+            
+            var userCtrl = _theApp.CreateController<UserController>();
+            var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
+            
+            Assert.False(result.HasSucceeded);
+            var messageSent = _phoneVerifyRepo
+                .All()
+                .Where(r => r.UserId == user.Id)
+                .ToList();
+            Assert.Equal(5, messageSent.Count);
         }
         
         [Fact]

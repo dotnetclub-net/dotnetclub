@@ -189,13 +189,17 @@ namespace Discussion.Web.Controllers
         {
             var user = HttpContext.DiscussionUser();
             _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
-            var twoMinutesAgo = DateTime.UtcNow.AddMinutes(-2);
-            var sentInTwoMinutes = _verificationCodeRecordRepo
+            var today = DateTime.UtcNow.Date;
+
+            var msgSentToday = _verificationCodeRecordRepo
                 .All()
-                .Any(r => r.UserId == user.Id && r.CreatedAtUtc > twoMinutesAgo);
+                .Where(r => r.UserId == user.Id && r.CreatedAtUtc >= today)
+                .ToList();
+            var sentInTwoMinutes = msgSentToday.Any(r => r.CreatedAtUtc > DateTime.UtcNow.AddMinutes(-2));
+            
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
             var verifiedNotLongerThan7Days = user.VerifiedPhoneNumber != null && (user.VerifiedPhoneNumber.CreatedAtUtc > sevenDaysAgo || user.VerifiedPhoneNumber.CreatedAtUtc > sevenDaysAgo);
-            if (sentInTwoMinutes || verifiedNotLongerThan7Days)
+            if (msgSentToday.Count >= 5 || sentInTwoMinutes || verifiedNotLongerThan7Days)
             {
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }

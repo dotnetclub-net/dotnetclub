@@ -37,18 +37,15 @@
                 <span data-status="error" class="verification-operation">无法发送验证短信，请稍后再试</span>
             </div>
         </fieldset>
-        <fieldset class="form-group" data-status="sent" class="verification-operation">
+        <fieldset class="form-group verification-submit">
             <label for="VerificationCode">
                 验证码
             </label>
             <div>
-                <input type="number" name="VerificationCode" id="VerificationCode" 
-                       class="form-control"
-                       pattern=".{6}",
-                       title="验证码是 6 位数字"/>
+                <input type="number" name="VerificationCode" id="VerificationCode" class="form-control"/>
             </div>
         </fieldset>
-        <button id="btn-verify" class="btn btn-default">验证</button>
+        <button id="btn-verify" class="btn btn-default verification-submit">验证</button>
     }else{
         <fieldset class="form-group">
             <label>
@@ -75,16 +72,6 @@
         var sendCodeUrl = '@Url.Action("SendPhoneNumberVerificationCode", "User")';
         var verifyNumberUrl = '@Url.Action("DoVerifyPhoneNumber", "User")';
         $(function() {
-            $('input[name=PhoneNumber]').keyup(function() {
-                var changed = !this.value || this.value !== '@Model.VerifiedPhoneNumber?.PhoneNumber';
-                if (changed) {
-                    $('[rel=verification]').hide();
-                } else {
-                    $('[rel=verification]').show();
-                }
-            });
-
-
             // "send", "re-send", "error", "sending", "sent"
             var currentStatus = null;
 
@@ -94,14 +81,15 @@
                 $('.verification-operation[data-status=' + currentStatus + ']').show();
 
                 if (status === 'sent') {
+                    $('.verification-submit').show();
                     $('span[data-status=sent-2]').hide();
                     $('span[data-status=sent-1]').show();
                     setTimeout(function() {
                             $('span[data-status=sent-1]').hide();
                             $('span[data-status=sent-2]').show();
-                            countdown(120);
+                            countdown(118);
                         },
-                        3500);
+                        5000);
                 }
 
                 function countdown(cur) {
