@@ -71,7 +71,7 @@
 
 @section Tail{
     <script>
-        var settingsPostUrl = '@Url.Action("SendEmailConfirmation", "User")';
+        var sendConfirmationMailUrl = '@Url.Action("SendEmailConfirmation", "User")';
         var uploadAvatarUrl = '@Url.Action("UploadFile", "Common", new {category = "avatar"})';
         $(function() {
             $('input[name=EmailAddress]').keyup(function() {
@@ -119,7 +119,7 @@
                 updateOperations('sending');
 
                 $.ajax({
-                    url: settingsPostUrl,
+                    url: sendConfirmationMailUrl,
                     method: 'POST',
                     data: { __RequestVerificationToken: window.__RequestVerificationToken },
                     dataType: 'json',

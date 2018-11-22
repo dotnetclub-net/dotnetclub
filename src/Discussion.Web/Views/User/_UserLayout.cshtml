@@ -1,6 +1,5 @@
 @{
     Layout = "../Shared/_Layout.cshtml";
-    ViewData["Title"] = "个人中心";
 }
 
 @section Head{
@@ -14,6 +13,7 @@
             <div class="panel-body">
                 <ul>
                     <li>@Html.ActionLink("基本信息", "Settings", "User")</li>
+                    <li>@Html.ActionLink("手机验证", "VerifyPhoneNumber", "User")</li>
                     <li>@Html.ActionLink("修改密码", "ChangePassword", "User")</li>
                 </ul>
             </div>
@@ -23,6 +23,7 @@
         <div class="panel">
             <div class="panel-heading">
                 @Html.ActionLink("基本信息", "Settings", "User")
+                @Html.ActionLink("手机验证", "VerifyPhoneNumber", "User")
                 @Html.ActionLink("修改密码", "ChangePassword", "User")
             </div>
         </div>

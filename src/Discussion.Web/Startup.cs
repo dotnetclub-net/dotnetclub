@@ -76,7 +76,7 @@ namespace Discussion.Web
             var smsConfigSection = _appConfiguration.GetSection(nameof(AliyunSmsOptions));
             if (smsConfigSection != null && !string.IsNullOrEmpty(smsConfigSection[nameof(AliyunSmsOptions.AccountKeyId)]))
             {
-                services.Configure<EmailSendingOptions>(smsConfigSection);
+                services.Configure<AliyunSmsOptions>(smsConfigSection);
                 services.AddTransient<ISmsSender, AliyunSmsSender>();
             }
             else

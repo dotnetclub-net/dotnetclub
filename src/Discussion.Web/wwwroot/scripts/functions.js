@@ -29,13 +29,22 @@ export function describeTime(timestamp) {
     return '刚刚';
 }
 
+function realTime(timestamp) {
+    var time = new Date();
+    time.setTime(timestamp);
+    
+    var parts = [ time.getFullYear(), '-', time.getMonth() + 1, '-', time.getDate(), ' ', time.getHours(), ':', time.getMinutes()];
+    return parts.join('');
+}
+
 export function transformTimestampOn(domSelector, attr) {
     $(domSelector).each(function() {
         var item = $(this);
         var lastRepliedAt = item.attr(attr);
         if (lastRepliedAt) {
             var timestamp = parseInt(lastRepliedAt);
-            item.text(describeTime(timestamp));
+            item.text(describeTime(timestamp))
+                .attr('title', realTime(timestamp));
         }
     });
 }

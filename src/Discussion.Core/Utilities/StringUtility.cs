@@ -37,6 +37,16 @@ namespace Discussion.Core.Utilities
 
             return sb.ToString();
         }
+
+        public static string MaskPhoneNumber(string phoneNumber)
+        {
+            if (phoneNumber.Length < 7)
+            {
+                return phoneNumber;
+            }
+
+            return string.Concat(phoneNumber.Substring(0, 3), "****", phoneNumber.Substring(7));
+        }
         
         
         public static bool IgnoreCaseEqual(this string one, string theOther)

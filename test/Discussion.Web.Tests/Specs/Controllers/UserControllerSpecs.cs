@@ -387,7 +387,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _phoneVerifyRepo.Save(record);
             
             var userCtrl = _theApp.CreateController<UserController>();
-            var result = userCtrl.VerifyPhoneNumber(code);
+            var result = userCtrl.DoVerifyPhoneNumber(code);
             
             Assert.True(result.HasSucceeded);
             _theApp.ReloadEntity(user);

@@ -16,5 +16,7 @@ namespace Discussion.Core.Models
         public DateTime CreatedAtUtc { get; set; } = EntityInitialDate;
 
         public DateTime ModifiedAtUtc { get; set; } = EntityInitialDate;
+
+        public DateTime VerifiedTime => ModifiedAtUtc > CreatedAtUtc ? ModifiedAtUtc : CreatedAtUtc;
     }
 }

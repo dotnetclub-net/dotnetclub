@@ -174,6 +174,15 @@ namespace Discussion.Web.Controllers
             return RedirectToAction(getActionName);
         }
 
+
+        [Route("phone-number-verification")]
+        public IActionResult VerifyPhoneNumber([FromForm] string code)
+        {
+            var user = HttpContext.DiscussionUser();
+            _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
+            return View(user);
+        }
+
         [HttpPost]
         [Route("phone-number-verification/send-code")]
         public async Task<ApiResponse> SendPhoneNumberVerificationCode([FromForm] string phoneNumber)
@@ -205,10 +214,9 @@ namespace Discussion.Web.Controllers
             return ApiResponse.NoContent();
         }
 
-
         [HttpPost]
         [Route("phone-number-verification/verify")]
-        public ApiResponse VerifyPhoneNumber([FromForm] string code)
+        public ApiResponse DoVerifyPhoneNumber([FromForm] string code)
         {
             var user = HttpContext.DiscussionUser();
             var validCode = _verificationCodeRecordRepo
