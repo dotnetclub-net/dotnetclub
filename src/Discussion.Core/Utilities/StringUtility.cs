@@ -32,7 +32,7 @@ namespace Discussion.Core.Utilities
             do
             {
                 var rand = random.Next(0, 9);
-                sb.Append((char) rand);
+                sb.Append(rand);
             } while (sb.Length < length);
 
             return sb.ToString();

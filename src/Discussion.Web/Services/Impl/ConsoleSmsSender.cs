@@ -1,12 +1,25 @@
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Discussion.Web.Services.Impl
 {
     public class ConsoleSmsSender: ISmsSender
-    {
-        public Task SendMessageAsync(string phoneNumber, string content)
+    {       
+        private readonly ILogger<ConsoleSmsSender> _logger;
+
+        public ConsoleSmsSender(ILogger<ConsoleSmsSender> logger)
         {
-            throw new System.NotImplementedException();
+            _logger = logger;
+        }
+        
+        public async Task SendVerificationCodeAsync(string phoneNumber, string code)
+        {
+            var logMessage = $@"========
+Sending SMS to {phoneNumber}
+Message: verification code is {code}
+========";
+            _logger.LogInformation(logMessage);
+            await Task.CompletedTask;    
         }
     }
 }

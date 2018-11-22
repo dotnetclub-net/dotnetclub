@@ -71,7 +71,18 @@ namespace Discussion.Web
                     var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
                     return new UserAvatarService(urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext));
                 });
-            services.AddTransient<ISmsSender, ConsoleSmsSender>();
+            
+            
+            var smsConfigSection = _appConfiguration.GetSection(nameof(AliyunSmsOptions));
+            if (smsConfigSection != null && !string.IsNullOrEmpty(smsConfigSection[nameof(AliyunSmsOptions.AccountKeyId)]))
+            {
+                services.Configure<EmailSendingOptions>(smsConfigSection);
+                services.AddTransient<ISmsSender, AliyunSmsSender>();
+            }
+            else
+            {
+                services.AddTransient<ISmsSender, ConsoleSmsSender>();
+            }
         }
 
         public void Configure(IApplicationBuilder app)

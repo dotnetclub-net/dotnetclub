@@ -191,7 +191,7 @@ namespace Discussion.Web.Controllers
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }
             
-            var verificationCode = StringUtility.RandomNumbers();
+            var verificationCode = StringUtility.RandomNumbers(length:6);
             var record = new PhoneNumberVerificationRecord
             {
                 // ReSharper disable PossibleInvalidOperationException
@@ -201,7 +201,7 @@ namespace Discussion.Web.Controllers
                 PhoneNumber = phoneNumber
             };
             _verificationCodeRecordRepo.Save(record);
-            await _smsSender.SendMessageAsync(phoneNumber, $"你的 dotnet club 验证码为 {verificationCode}");
+            await _smsSender.SendVerificationCodeAsync(phoneNumber, verificationCode);
             return ApiResponse.NoContent();
         }
 

@@ -4,6 +4,6 @@ namespace Discussion.Web.Services
 {
     public interface ISmsSender
     {
-        Task SendMessageAsync(string phoneNumber, string content);
+        Task SendVerificationCodeAsync(string phoneNumber, string code);
     }
 }

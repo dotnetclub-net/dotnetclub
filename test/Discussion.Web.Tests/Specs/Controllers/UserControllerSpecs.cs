@@ -484,7 +484,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         private Mock<ISmsSender> MockSmsSender(string phoneNumber)
         {
             var smsSender = new Mock<ISmsSender>();
-            smsSender.Setup(sender => sender.SendMessageAsync(phoneNumber, It.IsAny<string>()))
+            smsSender.Setup(sender => sender.SendVerificationCodeAsync(phoneNumber, It.IsAny<string>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
             ReplacableServiceProvider.Replace(services => services.AddSingleton(smsSender.Object));
