@@ -1,14 +1,24 @@
 ﻿@using Discussion.Core.Models
 @inject Discussion.Web.Services.IUserAvatarService AvatarService
+@inject Discussion.Web.Models.SiteSettings SiteSettings
 @model User
 @{
     Layout = "_UserLayout.cshtml";
     ViewData["Title"] = "基本信息";
+
+    var suggestVerifying = SiteSettings.RequireUserPhoneNumberVerified && !Model.PhoneNumberId.HasValue;
 }
 
 
 <div class="panel panel-body panel-user-settings">
+    @if (suggestVerifying)
+    {
+        <div class="text-danger">
+            <p>在验证实名手机号之前，不能创建话题、添加回复。@Html.ActionLink("现在验证", "VerifyPhoneNumber", "User") </p>     
+        </div>
+    }
     <h3>基本信息</h3>
+
     <form asp-action="DoSettings" method="post">
         <div asp-validation-summary="All" class="text-danger"></div>
         <fieldset class="form-group">
