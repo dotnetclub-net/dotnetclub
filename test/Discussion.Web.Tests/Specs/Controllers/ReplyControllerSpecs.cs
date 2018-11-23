@@ -8,7 +8,10 @@ using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Moq;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
@@ -83,6 +86,29 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.Contains("必须填写回复内容", errors.Values.Cast<string[]>().SelectMany(err => err).ToList());
         }
 
+        [Fact]
+        public void should_not_add_reply_if_require_verified_phone_number_but_user_has_no()
+        {
+            _app.MockUser();
+            var (topic, _) = CreateTopic(_app);
+            var replyRepo = new Mock<IRepository<Reply>>();
+            var appConfig = new Mock<IConfigurationRoot>();
+            appConfig.SetupGet(c => c[UserController.ConfigKeyRequireUserPhoneNumberVerified]).Returns("true").Verifiable();
+
+            var replyController = new ReplyController(replyRepo.Object, _app.GetService<IRepository<Topic>>(), appConfig.Object);
+            replyController.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = _app.User,
+                RequestServices = _app.ApplicationServices
+            };
+
+            var actionResult = replyController.Reply(topic.Id, new ReplyCreationModel { Content = "some content"});
+            
+            actionResult.IsType<BadRequestResult>();
+            appConfig.Verify();
+            replyRepo.VerifyNoOtherCalls();
+        }
+        
         [Fact]
         public void should_not_add_reply_when_topic_id_does_not_exist()
         {

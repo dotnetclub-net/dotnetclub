@@ -9,7 +9,10 @@ using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Moq;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
@@ -35,9 +38,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var replied = CreateNewUser();
             var topicItems = new[]
             {
-                new Topic {Title = "dummy topic 1", Type = TopicType.Discussion, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.Now.AddMinutes(-3)},
-                new Topic {Title = "dummy topic 2", Type = TopicType.Question, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.Now.AddMinutes(-3) },
-                new Topic {Title = "dummy topic 3", Type = TopicType.Job, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.Now.AddMinutes(-3)},
+                new Topic {Title = "dummy topic 1", Type = TopicType.Discussion, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.UtcNow.AddMinutes(-3)},
+                new Topic {Title = "dummy topic 2", Type = TopicType.Question, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.UtcNow.AddMinutes(-3) },
+                new Topic {Title = "dummy topic 3", Type = TopicType.Job, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.UtcNow.AddMinutes(-3)},
             };
             var repo = _app.GetService<IRepository<Topic>>();
             foreach (var item in topicItems)
@@ -124,6 +127,34 @@ namespace Discussion.Web.Tests.Specs.Controllers
             createdTopic.LastRepliedAt.ShouldBeNull();
             createdTopic.ReplyCount.ShouldEqual(0);
             createdTopic.ViewCount.ShouldEqual(0);
+        }
+        
+        [Fact]
+        public void should_not_create_topic_if_require_verified_phone_number_but_user_has_no()
+        {
+            _app.MockUser();
+            var topicRepo = new Mock<IRepository<Topic>>();
+            var appConfig = new Mock<IConfigurationRoot>();
+            appConfig.SetupGet(c => c[UserController.ConfigKeyRequireUserPhoneNumberVerified]).Returns("true").Verifiable();
+            
+            var topicController = new TopicController(topicRepo.Object, new Mock<IRepository<Reply>>().Object, appConfig.Object);
+            topicController.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = _app.User,
+                RequestServices = _app.ApplicationServices
+            };
+
+            var actionResult = topicController.CreateTopic(
+                new TopicCreationModel
+                {
+                    Title = "first topic you created",
+                    Content = "some content",
+                    Type = TopicType.Job
+                });
+            
+            actionResult.IsType<BadRequestResult>();
+            topicRepo.VerifyNoOtherCalls();
+            appConfig.Verify();
         }
 
         [Fact]

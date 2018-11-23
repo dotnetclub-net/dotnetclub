@@ -19,6 +19,7 @@ namespace Discussion.Web.Controllers
     [Authorize]
     public class UserController: Controller
     {
+        public const string ConfigKeyRequireUserPhoneNumberVerified = "RequireUserPhoneNumberVerified"; 
         
         private readonly UserManager<User> _userManager;
         private readonly IEmailSender _emailSender;
@@ -241,7 +242,7 @@ namespace Discussion.Web.Controllers
             else
             {
                 user.VerifiedPhoneNumber.PhoneNumber = validCode.PhoneNumber;
-                user.VerifiedPhoneNumber.ModifiedAtUtc = DateTime.Now;
+                user.VerifiedPhoneNumber.ModifiedAtUtc = DateTime.UtcNow;
                 _phoneNumberRepo.Update(user.VerifiedPhoneNumber);
             }
             _userRepo.Update(user);
