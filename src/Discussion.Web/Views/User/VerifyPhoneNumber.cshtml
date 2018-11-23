@@ -55,11 +55,11 @@
         <div>
             <input type="text"
                    class="form-control"
-                   value="@StringUtility.MaskPhoneNumber(Model.VerifiedPhoneNumber.PhoneNumber)"
+                   value="@StringUtility.MaskPhoneNumber(Model.VerifiedPhoneNumber?.PhoneNumber)"
                    title="@(canModifyPhoneNumber ? "" : "上次验证七天以后，才可以修改已验证的手机号")" disabled="disabled" />
         </div>
         <div class="verify-palette">
-            <span class="verified-at" data-last-verified-at="@Html.Timestamp(Model.VerifiedPhoneNumber.VerifiedTime)"></span> 已验证
+            <span class="verified-at" data-last-verified-at="@Html.Timestamp(Model.VerifiedPhoneNumber?.VerifiedTime)"></span> 已验证
             @if (canModifyPhoneNumber)
             {
                 <a class="link change-phone-number">修改手机号</a>

@@ -6,6 +6,7 @@ using Discussion.Core.Mvc;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
+using Discussion.Web.Models;
 using Discussion.Web.Services.Identity;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -92,10 +93,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _app.MockUser();
             var (topic, _) = CreateTopic(_app);
             var replyRepo = new Mock<IRepository<Reply>>();
-            var appConfig = new Mock<IConfigurationRoot>();
-            appConfig.SetupGet(c => c[UserController.ConfigKeyRequireUserPhoneNumberVerified]).Returns("true").Verifiable();
+            var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
 
-            var replyController = new ReplyController(replyRepo.Object, _app.GetService<IRepository<Topic>>(), appConfig.Object);
+            var replyController = new ReplyController(replyRepo.Object, _app.GetService<IRepository<Topic>>(), siteSettings);
             replyController.ControllerContext.HttpContext = new DefaultHttpContext
             {
                 User = _app.User,
@@ -105,7 +105,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var actionResult = replyController.Reply(topic.Id, new ReplyCreationModel { Content = "some content"});
             
             actionResult.IsType<BadRequestResult>();
-            appConfig.Verify();
             replyRepo.VerifyNoOtherCalls();
         }
         

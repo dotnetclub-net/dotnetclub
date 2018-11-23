@@ -40,7 +40,7 @@ namespace Discussion.Core.Utilities
 
         public static string MaskPhoneNumber(string phoneNumber)
         {
-            if (phoneNumber.Length < 7)
+            if (phoneNumber == null || phoneNumber.Length < 7)
             {
                 return phoneNumber;
             }

@@ -8,6 +8,7 @@ using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
+using Discussion.Web.Models;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -134,10 +135,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             _app.MockUser();
             var topicRepo = new Mock<IRepository<Topic>>();
-            var appConfig = new Mock<IConfigurationRoot>();
-            appConfig.SetupGet(c => c[UserController.ConfigKeyRequireUserPhoneNumberVerified]).Returns("true").Verifiable();
+            var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
             
-            var topicController = new TopicController(topicRepo.Object, new Mock<IRepository<Reply>>().Object, appConfig.Object);
+            var topicController = new TopicController(topicRepo.Object, new Mock<IRepository<Reply>>().Object, siteSettings);
             topicController.ControllerContext.HttpContext = new DefaultHttpContext
             {
                 User = _app.User,
@@ -154,7 +154,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             
             actionResult.IsType<BadRequestResult>();
             topicRepo.VerifyNoOtherCalls();
-            appConfig.Verify();
         }
 
         [Fact]

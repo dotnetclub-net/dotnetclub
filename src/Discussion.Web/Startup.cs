@@ -6,6 +6,7 @@ using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
+using Discussion.Web.Models;
 using Discussion.Web.Resources;
 using Discussion.Web.Services;
 using Microsoft.AspNetCore.Builder;
@@ -20,6 +21,7 @@ using Discussion.Web.Services.Impl;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web
 {
@@ -83,6 +85,13 @@ namespace Discussion.Web
             {
                 services.AddTransient<ISmsSender, ConsoleSmsSender>();
             }
+            
+            var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));
+            if (siteSettingsSection != null)
+            {
+                services.Configure<SiteSettings>(siteSettingsSection);
+            }
+            services.AddSingleton(sp => sp.GetService<IOptions<SiteSettings>>().Value);
         }
 
         public void Configure(IApplicationBuilder app)

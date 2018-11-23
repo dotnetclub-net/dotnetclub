@@ -7,8 +7,8 @@ using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Pagination;
+using Discussion.Web.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace Discussion.Web.Controllers
 {
@@ -17,13 +17,13 @@ namespace Discussion.Web.Controllers
         private const int PageSize = 20;
         private readonly IRepository<Topic> _topicRepo;
         private readonly IRepository<Reply> _replyRepo;
-        private readonly IConfigurationRoot _appConfig;
+        private readonly SiteSettings _settings;
 
-        public TopicController(IRepository<Topic> topicRepo, IRepository<Reply> replyRepo, IConfigurationRoot appConfig)
+        public TopicController(IRepository<Topic> topicRepo, IRepository<Reply> replyRepo, SiteSettings settings)
         {
             _topicRepo = topicRepo;
             _replyRepo = replyRepo;
-            _appConfig = appConfig;
+            _settings = settings;
         }
 
 
@@ -79,9 +79,7 @@ namespace Discussion.Web.Controllers
         public ActionResult CreateTopic(TopicCreationModel model)
         {
             var currentUser = HttpContext.DiscussionUser();
-            
-            var requireVerifiedNumber = Convert.ToBoolean(_appConfig[UserController.ConfigKeyRequireUserPhoneNumberVerified]);
-            if (requireVerifiedNumber && !currentUser.PhoneNumberId.HasValue)
+            if (_settings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
             {
                 return BadRequest();
             }

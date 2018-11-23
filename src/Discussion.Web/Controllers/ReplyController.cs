@@ -2,6 +2,7 @@ using System;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Web.Models;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,15 +14,15 @@ namespace Discussion.Web.Controllers
     {
         private readonly IRepository<Reply> _replyRepo;
         private readonly IRepository<Topic> _topicRepo;
-        private readonly IConfigurationRoot _appConfig;
+        private SiteSettings _siteSettings;
 
         public ReplyController(IRepository<Reply> replyRepo, 
             IRepository<Topic> topicRepo,
-            IConfigurationRoot appConfig)
+            SiteSettings siteSettings)
         {
             _replyRepo = replyRepo;
             _topicRepo = topicRepo;
-            _appConfig = appConfig;
+            _siteSettings = siteSettings;
         }
 
         [Route("/topics/{topicId}/replies")]
@@ -30,9 +31,8 @@ namespace Discussion.Web.Controllers
         public IActionResult Reply(int topicId, ReplyCreationModel replyCreationModel)
         {
             var currentUser = HttpContext.DiscussionUser();
-            
-            var requireVerifiedNumber = Convert.ToBoolean(_appConfig[UserController.ConfigKeyRequireUserPhoneNumberVerified]);
-            if (requireVerifiedNumber && !currentUser.PhoneNumberId.HasValue)
+
+            if (_siteSettings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
             {
                 return BadRequest();
             }
