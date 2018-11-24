@@ -5,7 +5,7 @@
 
 
 
-FROM microsoft/dotnet:2.1.4-runtime
+FROM microsoft/dotnet:2.1.6-runtime
 
 ENV ASPNETCORE_URLS http://*:5000
 VOLUME /club-data
