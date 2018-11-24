@@ -105,6 +105,20 @@ namespace Discussion.Tests.Common
             return assertion.WithResponse(res => response.IsSuccessStatusCode.ShouldEqual(true));
         }
         
+        public ResponseAssertion ShouldSuccessWithRedirect(User user = null)
+        {
+            var response = SendRequest();
+            var assertion = new ResponseAssertion(response, this);
+            return assertion.WithResponse(res =>
+            {
+                var isRedirect = response.StatusCode == HttpStatusCode.Found ||
+                                 response.StatusCode == HttpStatusCode.Moved;
+                var isSignin = res.Headers.Location?.ToString()?.Contains("signin");
+                isRedirect.ShouldEqual(true);
+                (isSignin == null || !isSignin.Value).ShouldEqual(true);
+            });
+        }
+        
         public ResponseAssertion ShouldFail(User user = null)
         {
             var response = SendRequest();
@@ -135,13 +149,16 @@ namespace Discussion.Tests.Common
                 else
                 {
                     requestBuilder.AddHeader("RequestVerificationToken", tokens.VerificationToken);
-                    requestBuilder.And(req =>
+                    if (_postEntity != null)
+                    {
+                        requestBuilder.And(req =>
                         {
                             var content = new ByteArrayContent(_postEntity);
                             content.Headers.ContentType = new MediaTypeHeaderValue(_contentType);
                             req.Content = content;
-                        })
-                        .WithCookie(tokens.Cookie);
+                        });
+                    }
+                    requestBuilder.WithCookie(tokens.Cookie);
                 }
             }
 
@@ -207,5 +224,11 @@ namespace Discussion.Tests.Common
         
         
         
+    }
+    
+    public enum PrincipalStatus
+    {
+        OnlyAuthorized,
+        AllUsers
     }
 }
