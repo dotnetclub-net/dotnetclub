@@ -97,33 +97,29 @@ namespace Discussion.Tests.Common
             _headers[name] = value;
             return this;
         }
-        
+
+        public ResponseAssertion ShouldBeHandled(User user = null)
+        {
+            var response = SendRequest();
+            return new ResponseAssertion(response, this);
+        }
+
         public ResponseAssertion ShouldSuccess(User user = null)
         {
-            var response = SendRequest();
-            var assertion = new ResponseAssertion(response, this);
-            return assertion.WithResponse(res => response.IsSuccessStatusCode.ShouldEqual(true));
+            return ShouldBeHandled(user)
+                .WithResponse(ResponseAssertion.Is2XxSuccess);
         }
-        
+
         public ResponseAssertion ShouldSuccessWithRedirect(User user = null)
         {
-            var response = SendRequest();
-            var assertion = new ResponseAssertion(response, this);
-            return assertion.WithResponse(res =>
-            {
-                var isRedirect = response.StatusCode == HttpStatusCode.Found ||
-                                 response.StatusCode == HttpStatusCode.Moved;
-                var isSignin = res.Headers.Location?.ToString()?.Contains("signin");
-                isRedirect.ShouldEqual(true);
-                (isSignin == null || !isSignin.Value).ShouldEqual(true);
-            });
+            return ShouldBeHandled(user)
+                .WithResponse(ResponseAssertion.IsSuccessRedirect);
         }
         
         public ResponseAssertion ShouldFail(User user = null)
         {
-            var response = SendRequest();
-            var assertion = new ResponseAssertion(response, this);
-            return assertion.WithResponse(res => response.IsSuccessStatusCode.ShouldEqual(false));
+            return ShouldBeHandled(user)
+                .WithResponse(res => !ResponseAssertion.Is2XxSuccess(res) && !ResponseAssertion.IsSuccessRedirect(res));
         }
 
         private HttpResponseMessage SendRequest()
@@ -215,20 +211,47 @@ namespace Discussion.Tests.Common
             
             public ResponseAssertion WithSigninRedirect()
             {
-                return WithResponse(res => res.StatusCode == HttpStatusCode.Redirect
-                                           && res.Headers.Location.ToString().Contains("signin"));
+                return WithResponse(IsSigninRedirect);
             }
 
             public TestHttpRequestBuilder And { get; }
+
+            public static bool Is2XxSuccess(HttpResponseMessage response)
+            {
+                var statusCode = (int)response.StatusCode;
+                return statusCode >= 200 && statusCode <= 299;
+            } 
+            
+            public static bool IsRedirect(HttpResponseMessage response)
+            {
+                var statusCode = (int)response.StatusCode;
+                return statusCode == 301 || statusCode == 302;
+            }
+            
+            public static bool IsSigninRedirect(HttpResponseMessage response)
+            {
+                if (!IsRedirect(response))
+                {
+                    return false;
+                }
+
+                var location = response.Headers.Location?.ToString();
+                return location != null && location.Contains("signin");
+            }
+            
+            public static bool IsSuccessRedirect(HttpResponseMessage response)
+            {
+                return IsRedirect(response) && !IsSigninRedirect(response);
+            } 
         }
         
         
         
     }
     
-    public enum PrincipalStatus
+    public enum SigninRequirement
     {
-        OnlyAuthorized,
-        AllUsers
+        SigninRequired,
+        SigninNotRequired
     }
 }

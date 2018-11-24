@@ -2,10 +2,12 @@ using System.Threading.Tasks;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
+using Discussion.Web.Services;
 using Discussion.Web.Services.EmailConfirmation;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using static Discussion.Tests.Common.SigninRequirement;
 
 namespace Discussion.Web.Tests.IntegrationTests
 {
@@ -23,57 +25,41 @@ namespace Discussion.Web.Tests.IntegrationTests
         [Fact]
         public void should_show_settings_page()
         {
-            _app.Path("/user/settings")
-                .Get()
-                .ShouldSuccess(_app.MockUser())
-                .WithResponse(res => res.ReadAllContent().Contains("基本信息"))
-                .And
-                .ShouldFail(user: null)
-                .WithSigninRedirect();
+            _app.ShouldGet("/user/settings", 
+                SigninRequired, 
+                responseShouldContain: "基本信息");
         }
 
         [Fact]
         public void should_update_settings()
         {
-            _app.Path("/user/settings")
-                .Post()
-                .WithForm(new
+            _app.ShouldPost("/user/settings", 
+                new
                 {
                     DisplayName = "三毛",
                     EmailAddress = "one@here.com"
-                })
-                .ShouldSuccessWithRedirect(_app.MockUser())
-                .And
-                .ShouldFail(user: null)
-                .WithSigninRedirect();
+                },
+                SigninRequired);
         }
         
         [Fact]
         public void should_show_change_password_page()
         {
-            _app.Path("/user/change-password")
-                .Get()
-                .ShouldSuccess(_app.MockUser())
-                .WithResponse(res => res.ReadAllContent().Contains("修改密码"))
-                .And
-                .ShouldFail(user: null)
-                .WithSigninRedirect();
+            _app.ShouldGet("/user/change-password", 
+                SigninRequired, 
+                responseShouldContain: "修改密码");
         }
         
         [Fact]
         public void should_change_password_for_an_authorized_user()
-        {
-            _app.Path("/user/change-password")
-                .Post()
-                .WithForm(new
+        {   
+            _app.ShouldPost("/user/change-password", 
+                new
                 {
                     OldPassword = "111111",
                     NewPassword = "123423LKJLK"
-                })
-                .ShouldSuccessWithRedirect(_app.MockUser())
-                .And
-                .ShouldFail(user: null)
-                .WithSigninRedirect();
+                },
+                SigninRequired);
         }
 
         [Fact]
@@ -83,22 +69,48 @@ namespace Discussion.Web.Tests.IntegrationTests
             mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
             ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
 
-            _app.Path("/user/send-confirmation-mail")
-                .Post()
-                .ShouldSuccess(_app.MockUser())
-                .WithApiResult((api, _)=> api.HasSucceeded.ShouldEqual(true))
-                .And
-                .ShouldFail(user: null)
-                .WithSigninRedirect();
+            _app.ShouldPost("/user/send-confirmation-mail", 
+                    signinStatus: SigninRequired)
+                .WithApiResult((api, _)=> api.HasSucceeded.ShouldEqual(true));
         }
         
         [Fact]
         public void should_accept_email_confirmation_request_without_login()
         {
-            _app.Path("/user/confirm-email?token=985473")
-                .Get()
-                .ShouldSuccess(user: null)
-                .WithResponse(res => res.ReadAllContent().Contains("无法确认邮件地址"));
+            _app.ShouldGet("/user/confirm-email?token=985473", 
+                    signinStatus: SigninNotRequired,
+                    responseShouldContain: "无法确认邮件地址");
+        }
+        
+        [Fact]
+        public void should_show_phone_number_verification_code_page()
+        {
+            _app.ShouldGet("/user/phone-number-verification", 
+                    signinStatus: SigninRequired,
+                    responseShouldContain: "手机验证");
+        }
+        
+        [Fact]
+        public void should_send_phone_number_verification_code()
+        {
+            var mailSender = new Mock<ISmsSender>();
+            mailSender.Setup(sender => sender.SendVerificationCodeAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+
+            _app.ShouldPost("/user/phone-number-verification/send-code", 
+                    new {phoneNumber = "15801234567"},
+                    signinStatus: SigninRequired)
+                .WithApiResult((api, _)=> api.HasSucceeded.ShouldEqual(true));
+        }
+        
+        [Fact]
+        public void should_accept_verify_phone_number_request()
+        {
+            _app.ShouldPost("/user/phone-number-verification/verify",
+                    new {code = "945323"},
+                    signinStatus: SigninRequired,
+                    responseShouldContain: "验证码不正确或已过期")
+                .WithApiResult((api, _) => api.HasSucceeded.ShouldEqual(false));
         }
         
   

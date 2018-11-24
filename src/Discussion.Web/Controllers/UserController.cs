@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -188,6 +189,11 @@ namespace Discussion.Web.Controllers
         [Route("phone-number-verification/send-code")]
         public async Task<ApiResponse> SendPhoneNumberVerificationCode([FromForm] string phoneNumber)
         {
+            if (string.IsNullOrEmpty(phoneNumber) || !Regex.IsMatch(phoneNumber, "\\d{11}"))
+            {
+                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+            }
+            
             var user = HttpContext.DiscussionUser();
             _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
             var today = DateTime.UtcNow.Date;
