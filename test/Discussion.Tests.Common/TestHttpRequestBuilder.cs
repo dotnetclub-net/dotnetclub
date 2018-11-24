@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Tests.Common.AssertionExtensions;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace Discussion.Tests.Common
 {
@@ -52,6 +53,21 @@ namespace Discussion.Tests.Common
         public TestHttpRequestBuilder WithCookie(string name, string value)
         {
             _cookies.Add(new Cookie(name, value));
+            return this;
+        }
+        
+        public TestHttpRequestBuilder WithCookieFrom(HttpResponseMessage prevResponse)
+        {
+            if (!prevResponse.Headers.TryGetValues(HeaderNames.SetCookie, out var cookies))
+            {
+                return this;
+            }
+            
+            var responseCookieHeaders = SetCookieHeaderValue.ParseList(cookies.ToList()); 
+            foreach (var cookie in responseCookieHeaders)
+            {
+                WithCookie(cookie.Name.ToString(), cookie.Value.ToString());
+            }
             return this;
         }
         
@@ -161,6 +177,11 @@ namespace Discussion.Tests.Common
             if (_headers.Any())
             {
                 _headers.Keys.ToList().ForEach(key => requestBuilder.AddHeader(key, _headers[key]));
+            }
+
+            if (_cookies.Any())
+            {
+                _cookies.ForEach(c => requestBuilder.WithCookie(c.Name.ToString(), c.Value.ToString()));
             }
 
             var response = requestBuilder.SendAsync(_method.ToString().ToUpper()).Result;

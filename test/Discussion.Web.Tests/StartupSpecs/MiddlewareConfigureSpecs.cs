@@ -51,7 +51,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             await server.SendAsync(ctx =>
             {
                 httpContext = ctx;
-                ctx.Request.Path = IntegrationTests.HomePageSpecs.HomePagePath;
+                ctx.Request.Path = "/";
             });
             
 
