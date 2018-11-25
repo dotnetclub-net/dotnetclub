@@ -5,11 +5,11 @@ using Discussion.Core.Communication.Email;
 using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Services;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -121,7 +121,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         [Fact]
-        public async Task should_not_update_password_with_invalid_old_password()
+        public async Task should_not_update_password_with_invalid_wrong_password()
         {
             var user = _theApp.MockUser();
             var viewModel = new ChangePasswordViewModel
@@ -136,7 +136,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             
             _theApp.ReloadEntity(user);
-            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "ChangePassword", string.Empty);
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "密码不正确", "ChangePassword");
             var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
             Assert.False(passwordChanged);
         }
@@ -167,7 +167,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var (result, userCtrl) = await SubmitSettingsWithEmail("someone#cha.com");
             
             _theApp.ReloadEntity(user);
-            ShouldBeViewResultWithErrors(result, userCtrl.ModelState);
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "邮件地址格式不正确");
             Assert.Equal("one@before-change.com", user.EmailAddress);
             Assert.True(user.EmailAddressConfirmed);
         }
@@ -195,7 +195,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var (result, userCtrl) = await SubmitSettingsWithEmail("email@taken.com");
             
-            ShouldBeViewResultWithErrors(result, userCtrl.ModelState);
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "邮件地址已由其他用户使用");
 
             _theApp.ReloadEntity(appUser);
             Assert.Equal("one@before-change.com", appUser.EmailAddress);
@@ -452,7 +452,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
 
         private static void ShouldBeViewResultWithErrors(IActionResult result, ModelStateDictionary modelState, 
-            string viewName = "Settings", string errorKey = nameof(UserSettingsViewModel.EmailAddress))
+            string errorDescription, string viewName = "Settings")
         {
             var viewResult = result as ViewResult;
             viewResult.ShouldNotBeNull();
@@ -460,7 +460,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             viewResult.ViewName.ShouldEqual(viewName);
             Assert.NotNull(viewResult.Model);
             Assert.False(modelState.IsValid);
-            Assert.True(modelState.ContainsKey(errorKey));
+            var parsedErrors = ApiResponse.Error(modelState);
+            Assert.True(parsedErrors.ErrorMessage.Contains(errorDescription));
         }
 
         private void CreateUser(string email, bool confirmed)

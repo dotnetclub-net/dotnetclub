@@ -89,7 +89,6 @@ namespace Discussion.Core.Mvc
                         .ToList());
             var response = NoContent(HttpStatusCode.BadRequest);
             response.Errors = errors;
-            modelState.Clear();
             return response;
         }
 

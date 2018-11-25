@@ -11,6 +11,7 @@ using Discussion.Migrations.Supporting;
 using Discussion.Web.Models;
 using Discussion.Web.Resources;
 using Discussion.Web.Services;
+using Discussion.Web.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -67,7 +68,8 @@ namespace Discussion.Web
             services.AddIdentityServices();
             services.AddEmailServices(_appConfiguration);
             services.AddSmsServices(_appConfiguration);
-            
+
+            services.AddScoped<IUserService, DefaultUserService>();
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));

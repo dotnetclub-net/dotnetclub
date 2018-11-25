@@ -10,6 +10,7 @@ using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
 using Discussion.Web.Services;
+using Discussion.Web.Services.UserManagement;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -35,11 +36,12 @@ namespace Discussion.Web.Controllers
         private readonly IRepository<VerifiedPhoneNumber> _phoneNumberRepo;
         private readonly ApplicationDbContext _dbContext;
         private readonly ISmsSender _smsSender;
+        private readonly IUserService _userService;
 
         public UserController(UserManager<User> userManager, IEmailDeliveryMethod emailDeliveryMethod,
             IConfirmationEmailBuilder emailBuilder, IRepository<User> userRepo, ISmsSender smsSender,
             IRepository<PhoneNumberVerificationRecord> verificationCodeRecordRepo,
-            ApplicationDbContext dbContext, IRepository<VerifiedPhoneNumber> phoneNumberRepo)
+            ApplicationDbContext dbContext, IRepository<VerifiedPhoneNumber> phoneNumberRepo, IUserService userService)
         {
             _userManager = userManager;
             _emailDeliveryMethod = emailDeliveryMethod;
@@ -49,6 +51,7 @@ namespace Discussion.Web.Controllers
             _verificationCodeRecordRepo = verificationCodeRecordRepo;
             _dbContext = dbContext;
             _phoneNumberRepo = phoneNumberRepo;
+            _userService = userService;
         }
 
         
@@ -68,39 +71,17 @@ namespace Discussion.Web.Controllers
                 return View("Settings", user);
             }
 
-            user.AvatarFileId = userSettingsViewModel.AvatarFileId;
-            user.DisplayName = userSettingsViewModel.DisplayName;
-            if (string.IsNullOrWhiteSpace(user.DisplayName))
-            {
-                user.DisplayName = user.UserName;
-            }
-            _userRepo.Update(user);
-            
-            var existingEmail = user.EmailAddress?.Trim();
-            var newEmail = userSettingsViewModel.EmailAddress?.Trim();
-            if (existingEmail.IgnoreCaseEqual(newEmail))
+            var identityResult = await _userService.UpdateUserInfo(userSettingsViewModel, user);
+            if (identityResult.Succeeded)
             {
                 return RedirectToAction("Settings");
             }
-            
-            var emailFieldName = nameof(UserSettingsViewModel.EmailAddress);
-            var emailTaken = IsEmailTaken(user.Id, newEmail);
-            if (emailTaken)
-            {
-                ModelState.AddModelError(emailFieldName, "邮件地址已由其他用户使用");
-                return View("Settings", user);
-            }
-            
-            var identityResult = await _userManager.SetEmailAsync(user, newEmail);
-            if (!identityResult.Succeeded)
-            {
-                var msg = string.Join(";", identityResult.Errors.Select(e => e.Description));
-                ModelState.AddModelError(emailFieldName, msg);
-                return View("Settings", user);
-            }
-            
-            return RedirectToAction("Settings");
+
+            var msg = string.Join(";", identityResult.Errors.Select(e => e.Description));
+            ModelState.AddModelError(string.Empty, msg);
+            return View("Settings", user);
         }
+
 
         [HttpPost]
         [Route("send-confirmation-mail")]
@@ -138,7 +119,7 @@ namespace Discussion.Web.Controllers
                 var user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
                 var identityResult = await _userManager.ConfirmEmailAsync(user, tokenInEmail.Token);
                 hasErrors = !identityResult.Succeeded;
-                if (!hasErrors && IsEmailTaken(user.Id, user.EmailAddress))
+                if (!hasErrors && _userService.IsEmailTakenOtherUser(user.Id, user.EmailAddress))
                 {
                     hasErrors = true;
                     user.EmailAddressConfirmed = false;
@@ -259,20 +240,6 @@ namespace Discussion.Web.Controllers
             _userRepo.Update(user);
             
             return ApiResponse.NoContent();
-        }
-
-        private bool IsEmailTaken(int userId, string newEmail)
-        {
-            if (string.IsNullOrWhiteSpace(newEmail))
-            {
-                return false;
-            }
-            
-            return _userRepo.All()
-                .Any(u => u.EmailAddressConfirmed
-                          && u.Id != userId
-                          && u.EmailAddress != null
-                          && u.EmailAddress.ToLower() == newEmail.ToLower());
         }
     }
 }
