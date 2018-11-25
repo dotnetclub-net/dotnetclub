@@ -29,8 +29,6 @@ namespace Discussion.Web.Controllers
         public const string ConfigKeyRequireUserPhoneNumberVerified = "RequireUserPhoneNumberVerified"; 
         
         private readonly UserManager<User> _userManager;
-        private readonly IEmailDeliveryMethod _emailDeliveryMethod;
-        private readonly IConfirmationEmailBuilder _emailBuilder;
         private readonly IRepository<User> _userRepo;
         private readonly IRepository<PhoneNumberVerificationRecord> _verificationCodeRecordRepo;
         private readonly IRepository<VerifiedPhoneNumber> _phoneNumberRepo;
@@ -38,14 +36,12 @@ namespace Discussion.Web.Controllers
         private readonly ISmsSender _smsSender;
         private readonly IUserService _userService;
 
-        public UserController(UserManager<User> userManager, IEmailDeliveryMethod emailDeliveryMethod,
-            IConfirmationEmailBuilder emailBuilder, IRepository<User> userRepo, ISmsSender smsSender,
+        public UserController(UserManager<User> userManager, 
+            IRepository<User> userRepo, ISmsSender smsSender,
             IRepository<PhoneNumberVerificationRecord> verificationCodeRecordRepo,
             ApplicationDbContext dbContext, IRepository<VerifiedPhoneNumber> phoneNumberRepo, IUserService userService)
         {
             _userManager = userManager;
-            _emailDeliveryMethod = emailDeliveryMethod;
-            _emailBuilder = emailBuilder;
             _userRepo = userRepo;
             _smsSender = smsSender;
             _verificationCodeRecordRepo = verificationCodeRecordRepo;
@@ -87,25 +83,19 @@ namespace Discussion.Web.Controllers
         [Route("send-confirmation-mail")]
         public async Task<ApiResponse> SendEmailConfirmation()
         {
-            var user = HttpContext.DiscussionUser();
-            if (user.EmailAddressConfirmed)
+            try
             {
-                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+                var user = HttpContext.DiscussionUser();
+                await _userService.SendEmailConfirmationMail(user, Request.Scheme);
+                return  ApiResponse.NoContent();
             }
-            
-            var tokenString = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var tokenInEmail = new UserEmailToken {UserId = user.Id, Token = tokenString};
+            catch (UserEmailAlreadyConfirmedException ex)
+            {
+                return ApiResponse.Error(ex.Message);
+            }
 
-            var callbackUrl = Url.Action(
-                "ConfirmEmail",
-                "User",
-                new { token = tokenInEmail.EncodeAsUrlQueryString() },
-                protocol: Request.Scheme);
-            
-            var emailBody = _emailBuilder.BuildEmailBody(callbackUrl);
-            await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
-            return  ApiResponse.NoContent();
         }
+
 
         [HttpGet]
         [Route("confirm-email")]

@@ -24,6 +24,7 @@ namespace Discussion.Tests.Common
         
         public object GetService(Type serviceType)
         {   
+            // BUG: 无法替换内部隐含的依赖项
             var replaced = _replacingProvider.GetService(serviceType);
             return replaced ?? _systemProvider.GetService(serviceType);
         }

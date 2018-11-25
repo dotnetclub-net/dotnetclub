@@ -9,6 +9,8 @@ namespace Discussion.Web.Services.UserManagement
     {
         Task<IdentityResult> UpdateUserInfo(UserSettingsViewModel userSettingsViewModel, User user);
 
+        Task SendEmailConfirmationMail(User user, string urlProtocol);
+        
         bool IsEmailTakenOtherUser(int thisUserId, string checkingEmail);
     }
 }

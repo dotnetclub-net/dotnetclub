@@ -27,6 +27,11 @@ namespace Discussion.Tests.Common
             return controller.HttpContext.RequestServices.GetService<T>();
         }
         
+        public static TestApplicationExtensions.FakeRoute GetFakeRouter(this ControllerBase controller)
+        {
+            return controller.RouteData.Routers[0] as TestApplicationExtensions.FakeRoute;
+        }
+        
         public static string ReadAllContent(this HttpResponseMessage response)
         {
             return response.Content.ReadAsStringAsync().Result;

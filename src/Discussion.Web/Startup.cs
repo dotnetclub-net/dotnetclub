@@ -69,17 +69,18 @@ namespace Discussion.Web
             services.AddEmailServices(_appConfiguration);
             services.AddSmsServices(_appConfiguration);
 
-            services.AddScoped<IUserService, DefaultUserService>();
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
-                .AddScoped<IUserAvatarService>(sp =>
+                .AddScoped(sp =>
                 {
                     var actionAccessor = sp.GetService<IActionContextAccessor>();
                     var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
-                    return new UserAvatarService(urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext));
-                });
+                    return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);              
+                })
+                .AddScoped<IUserAvatarService, UserAvatarService>();
+            services.AddScoped<IUserService, DefaultUserService>();
 
             var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));
             if (siteSettingsSection != null)

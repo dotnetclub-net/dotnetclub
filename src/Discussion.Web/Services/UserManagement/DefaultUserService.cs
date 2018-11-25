@@ -1,10 +1,13 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Email;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Utilities;
+using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Web.Services.UserManagement
 {
@@ -12,11 +15,21 @@ namespace Discussion.Web.Services.UserManagement
     {
         private readonly IRepository<User> _userRepo;
         private readonly UserManager<User> _userManager;
+        private readonly IUrlHelper _urlHelper;
+        private readonly IEmailDeliveryMethod _emailDeliveryMethod;
+        private readonly IConfirmationEmailBuilder _confirmationEmailBuilder;
 
-        public DefaultUserService(IRepository<User> userRepo, UserManager<User> userManager)
+        public DefaultUserService(IRepository<User> userRepo, 
+            UserManager<User> userManager, 
+            IEmailDeliveryMethod emailDeliveryMethod, 
+            IUrlHelper urlHelper, 
+            IConfirmationEmailBuilder confirmationEmailBuilder)
         {
             _userRepo = userRepo;
             _userManager = userManager;
+            _emailDeliveryMethod = emailDeliveryMethod;
+            _urlHelper = urlHelper;
+            _confirmationEmailBuilder = confirmationEmailBuilder;
         }
 
         public async Task<IdentityResult> UpdateUserInfo(UserSettingsViewModel userSettingsViewModel, User user)
@@ -59,8 +72,29 @@ namespace Discussion.Web.Services.UserManagement
             }
             return await _userManager.SetEmailAsync(user, newEmail);
         }
-        
-        
+
+        public async Task SendEmailConfirmationMail(User user, string urlProtocol)
+        {
+            if (user.EmailAddressConfirmed)
+            {
+                throw new UserEmailAlreadyConfirmedException();
+            }
+            
+            var tokenString = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var tokenInEmail = new UserEmailToken {UserId = user.Id, Token = tokenString};
+            
+            // ReSharper disable Mvc.ActionNotResolved
+            // ReSharper disable Mvc.ControllerNotResolved
+            var callbackUrl = _urlHelper.Action(
+                "ConfirmEmail",
+                "User",
+                new {token = tokenInEmail.EncodeAsUrlQueryString()},
+                protocol: urlProtocol);
+
+            var emailBody = _confirmationEmailBuilder.BuildEmailBody(callbackUrl);
+            await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
+        }
+
         public bool IsEmailTakenOtherUser(int thisUserId, string checkingEmail)
         {
             if (string.IsNullOrWhiteSpace(checkingEmail))

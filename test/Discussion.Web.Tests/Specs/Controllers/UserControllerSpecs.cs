@@ -214,7 +214,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             
             
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = CreateMockUrlHelper();
             var result = await userCtrl.SendEmailConfirmation();
             
             Assert.True(result.HasSucceeded);
@@ -252,13 +251,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var user = UseUpdatedAppUser("one@changing.com", confirmed: false);
             
             
-            dynamic routeValues = null;
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = CreateMockUrlHelper(ctx => { routeValues = ctx.Values; });
             await userCtrl.SendEmailConfirmation();
 
 
-            string token = routeValues.token;
+            var generatedUrl = userCtrl.GetFakeRouter().GetGeneratedUrl;
+            var token = generatedUrl["token"].ToString();
             var result = await userCtrl.ConfirmEmail(token);
             
             _theApp.ReloadEntity(user);
@@ -277,12 +275,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
             MockMailSender();
             var user = UseUpdatedAppUser("email@taken.com", confirmed: false);
             
-            dynamic routeValues = null; 
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = CreateMockUrlHelper(ctx => { routeValues = ctx.Values; });
             await userCtrl.SendEmailConfirmation();
-            string token = routeValues.token;
-
+            var generatedUrl = userCtrl.GetFakeRouter().GetGeneratedUrl;
+            var token = generatedUrl["token"].ToString();
 
             CreateUser("email@taken.com", confirmed: true);
             await userCtrl.ConfirmEmail(token);
