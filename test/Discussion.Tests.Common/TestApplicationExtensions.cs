@@ -43,9 +43,12 @@ namespace Discussion.Tests.Common
                     ControllerTypeInfo = typeof(T).GetTypeInfo()
                 });
 
-            app.GetService<IActionContextAccessor>().ActionContext = actionContext;
-            return app.GetService<IControllerFactory>()
-                .CreateController(new ControllerContext(actionContext)) as T;
+            var actionContextAccessor = app.GetService<IActionContextAccessor>();
+            if (actionContextAccessor != null)
+            {
+                actionContextAccessor.ActionContext = actionContext;
+            }
+            return app.GetService<IControllerFactory>().CreateController(new ControllerContext(actionContext)) as T;
         }
 
         public static T GetService<T>(this TestApplication app) where T : class

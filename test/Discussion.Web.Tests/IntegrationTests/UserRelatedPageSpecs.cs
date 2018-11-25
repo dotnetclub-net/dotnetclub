@@ -68,7 +68,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             var mailDeliveryMethod = new Mock<IEmailDeliveryMethod>();
             mailDeliveryMethod.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailDeliveryMethod.Object));
+            _app.OverrideServices(services => services.AddSingleton(mailDeliveryMethod.Object));
 
             _app.ShouldPost("/user/send-confirmation-mail", 
                     signinStatus: SigninRequired)
@@ -96,7 +96,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             var mailSender = new Mock<ISmsSender>();
             mailSender.Setup(sender => sender.SendVerificationCodeAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+            _app.OverrideServices(services => services.AddSingleton(mailSender.Object));
 
             _app.ShouldPost("/user/phone-number-verification/send-code", 
                     new {phoneNumber = "15801234567"},

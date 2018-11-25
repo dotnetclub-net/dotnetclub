@@ -55,10 +55,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
                      signedInClaimsPrincipal = claimsPrincipal;
                  })
                 .Verifiable();
-            ReplacableServiceProvider.Replace(services =>
-                {
-                    services.AddSingleton(authService.Object);
-                });
+            _theApp.OverrideServices(services => services.AddSingleton(authService.Object));
+            
             
             var accountCtrl = _theApp.CreateController<AccountController>();
             var userRepo = _theApp.GetService<IRepository<User>>();
@@ -268,10 +266,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var authService = new Mock<IAuthenticationService>();
             authService.Setup(auth => auth.SignOutAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<AuthenticationProperties>())).Returns(Task.CompletedTask).Verifiable();
-            ReplacableServiceProvider.Replace(services =>
-            {
-                services.AddSingleton(authService.Object);
-            });
+            _theApp.OverrideServices(services => services.AddSingleton(authService.Object));
             _theApp.MockUser();
             var accountCtrl = _theApp.CreateController<AccountController>();
             

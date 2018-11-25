@@ -18,6 +18,7 @@ namespace Discussion.Tests.Common
     {
         ClaimsPrincipal _originalUser;
         AntiForgeryRequestTokens _antiForgeryRequestTokens;
+        ServiceProviderOverrider _spOverrider;
 
         protected void Init<TStartup>(Action<IWebHostBuilder> configureHost = null) where TStartup: class 
         {           
@@ -29,7 +30,7 @@ namespace Discussion.Tests.Common
         {
             _antiForgeryRequestTokens = null;
             User = _originalUser;
-            ReplacableServiceProvider.Reset();
+            _spOverrider.Restore();
         }
 
         internal void ResetUser()
@@ -41,7 +42,6 @@ namespace Discussion.Tests.Common
         public IHostingEnvironment HostingEnvironment { get; private set; }
 
         public IServiceProvider ApplicationServices {get; private set; }
-        public ReplacableServiceProvider ServiceReplacer { get; private set; }
 
         public TestServer Server {get; private set;  }
         public ClaimsPrincipal User{ get; set;}
@@ -54,6 +54,13 @@ namespace Discussion.Tests.Common
             }
             
             return _antiForgeryRequestTokens;
+        }
+
+        public void OverrideServices(Action<IServiceCollection> services)
+        {
+            var sc = new ServiceCollection();
+            services?.Invoke(sc);
+            this._spOverrider.OverrideService(sc);
         }
         
         public static TestApplication BuildTestApplication<TStartup>(TestApplication testApp, 
@@ -75,12 +82,12 @@ namespace Discussion.Tests.Common
                     httpContextFactory.ConfigureFeatureWithContext((features, httpCtx) =>
                     {
                         features.Set<IHttpAuthenticationFeature>(new HttpAuthenticationFeature { User = testApp.User });
-                        features.Set<IServiceProvidersFeature>(new RequestServicesFeature(httpCtx, testApp.ServiceReplacer.CreateScopeFactory()));
+                        features.Set<IServiceProvidersFeature>(new RequestServicesFeature(httpCtx, 
+                            testApp.ApplicationServices.GetService<IServiceScopeFactory>()));
                     });
                     return httpContextFactory;
                 });
             });
-
             var connectionStringEVKey = $"DOTNETCLUB_{ServiceExtensions.ConfigKeyConnectionString}";
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(connectionStringEVKey)))
             {
@@ -101,9 +108,8 @@ namespace Discussion.Tests.Common
             
             testApp.Server = new TestServer(hostBuilder);
             testApp.ApplicationServices = testApp.Server.Host.Services;
-            testApp.ServiceReplacer = new ReplacableServiceProvider(testApp.ApplicationServices);
+            testApp._spOverrider = new ServiceProviderOverrider(testApp.ApplicationServices);
 
-            
             return testApp;
         }
         

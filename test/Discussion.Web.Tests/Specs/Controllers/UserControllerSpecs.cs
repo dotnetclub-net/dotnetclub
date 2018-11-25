@@ -457,7 +457,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.NotNull(viewResult.Model);
             Assert.False(modelState.IsValid);
             var parsedErrors = ApiResponse.Error(modelState);
-            Assert.True(parsedErrors.ErrorMessage.Contains(errorDescription));
+            Assert.Contains(errorDescription, parsedErrors.ErrorMessage);
         }
 
         private void CreateUser(string email, bool confirmed)
@@ -507,7 +507,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                     .Verifiable();
             }
 
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+            _theApp.OverrideServices(services => services.AddSingleton(mailSender.Object));
             return mailSender;
         }
         
@@ -517,7 +517,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             smsSender.Setup(sender => sender.SendVerificationCodeAsync(phoneNumber, It.IsAny<string>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(smsSender.Object));
+            
+            _theApp.OverrideServices(services => services.AddSingleton(smsSender.Object));
+//            ReplacableServiceProvider.Replace(services => services.AddSingleton(smsSender.Object));
             return smsSender;
         }
 

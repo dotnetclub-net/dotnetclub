@@ -76,7 +76,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             var mockRepo = new Mock<IRepository<FileRecord>>();
             mockRepo.Setup(repo => repo.Get(42)).Returns(new FileRecord {StoragePath = "file-path", OriginalName = "file.txt"});
             
-            ReplacableServiceProvider.Replace(services =>
+            _app.OverrideServices(services =>
             {
                 services.AddSingleton(mockFileSystem.Object);
                 services.AddSingleton(mockRepo.Object);
