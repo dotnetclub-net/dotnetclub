@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Discussion.Web.Services
+namespace Discussion.Core.Communication.Sms
 {
     public interface ISmsSender
     {

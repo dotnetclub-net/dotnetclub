@@ -9,7 +9,7 @@ using Discussion.Core.Models;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Resources;
-using Discussion.Web.Services.Identity;
+using Discussion.Web.Services.UserManagement.Identity;
 using Discussion.Web.Tests.Specs.Resources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

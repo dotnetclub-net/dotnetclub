@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Email;
+using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Utilities;
@@ -8,7 +10,6 @@ using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services;
-using Discussion.Web.Services.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -183,7 +184,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             _theApp.ReloadEntity(appUser);
             Assert.Equal("email@taken.com", appUser.EmailAddress);
-            Assert.Equal(false, appUser.EmailAddressConfirmed);
+            Assert.False(appUser.EmailAddressConfirmed);
         }
 
         [Fact]
@@ -446,6 +447,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var redirectResult = result as RedirectToActionResult;
             redirectResult.ShouldNotBeNull();
+            // ReSharper disable once PossibleNullReferenceException
             redirectResult.ActionName.ShouldEqual(actionName);
         }
 
@@ -454,10 +456,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var viewResult = result as ViewResult;
             viewResult.ShouldNotBeNull();
+            // ReSharper disable once PossibleNullReferenceException
             viewResult.ViewName.ShouldEqual(viewName);
             Assert.NotNull(viewResult.Model);
             Assert.False(modelState.IsValid);
-            Assert.True(modelState.Keys.Contains(errorKey));
+            Assert.True(modelState.ContainsKey(errorKey));
         }
 
         private void CreateUser(string email, bool confirmed)
@@ -497,9 +500,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             return urlHelper.Object;
         }
 
-        private Mock<IEmailSender> MockMailSender(bool willBeCalled = true)
+        private Mock<IEmailDeliveryMethod> MockMailSender(bool willBeCalled = true)
         {
-            var mailSender = new Mock<IEmailSender>();
+            var mailSender = new Mock<IEmailDeliveryMethod>();
             if (willBeCalled)
             {
                 mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), "dotnet club 用户邮件地址确认", It.IsAny<string>()))

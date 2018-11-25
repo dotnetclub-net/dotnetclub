@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
-namespace Discussion.Web.Services.Impl
+namespace Discussion.Core.Communication.Sms.SmsSenders
 {
     public class AliyunSmsSender: ISmsSender
     {       

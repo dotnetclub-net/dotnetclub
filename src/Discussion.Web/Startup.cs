@@ -2,6 +2,8 @@
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
+using Discussion.Core.Communication.Email;
+using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
@@ -13,11 +15,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Discussion.Web.Services.EmailConfirmation;
-using Discussion.Web.Services.Impl;
+using Discussion.Web.Services.UserManagement.Avatar;
+using Discussion.Web.Services.UserManagement.EmailConfirmation;
+using Discussion.Web.Services.UserManagement.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
@@ -63,7 +65,10 @@ namespace Discussion.Web
             
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
             services.AddIdentityServices();
-            services.AddEmailSendingServices(_appConfiguration);
+            services.AddEmailServices(_appConfiguration);
+            services.AddSmsServices(_appConfiguration);
+            
+            services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
@@ -73,19 +78,7 @@ namespace Discussion.Web
                     var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
                     return new UserAvatarService(urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext));
                 });
-            
-            
-            var smsConfigSection = _appConfiguration.GetSection(nameof(AliyunSmsOptions));
-            if (smsConfigSection != null && !string.IsNullOrEmpty(smsConfigSection[nameof(AliyunSmsOptions.AccountKeyId)]))
-            {
-                services.Configure<AliyunSmsOptions>(smsConfigSection);
-                services.AddTransient<ISmsSender, AliyunSmsSender>();
-            }
-            else
-            {
-                services.AddTransient<ISmsSender, ConsoleSmsSender>();
-            }
-            
+
             var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));
             if (siteSettingsSection != null)
             {

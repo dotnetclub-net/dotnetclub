@@ -2,7 +2,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Discussion.Core.Models;
-using Discussion.Web.Services.Impl;
+using Discussion.Web.Services.UserManagement.Avatar;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Moq;

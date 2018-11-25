@@ -1,5 +1,6 @@
 ﻿@using Discussion.Core.Mvc
-@inject Discussion.Web.Services.IUserAvatarService AvatarService
+@using Discussion.Web.Services.UserManagement.Avatar
+@inject IUserAvatarService AvatarService
 @inject Discussion.Web.Models.SiteSettings SiteSettings
 @model Discussion.Core.Pagination.Paged<Discussion.Core.Models.Topic>
 

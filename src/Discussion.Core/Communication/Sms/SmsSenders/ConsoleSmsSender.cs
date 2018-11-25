@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Discussion.Web.Services.Impl
+namespace Discussion.Core.Communication.Sms.SmsSenders
 {
     public class ConsoleSmsSender: ISmsSender
     {       

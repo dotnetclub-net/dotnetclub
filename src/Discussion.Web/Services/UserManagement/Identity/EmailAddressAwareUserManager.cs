@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Discussion.Web.Services.Identity
+namespace Discussion.Web.Services.UserManagement.Identity
 {
     /// <summary>
     /// Extended UserManager that uses email address when generating confirmation token

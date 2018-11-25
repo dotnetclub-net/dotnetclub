@@ -1,6 +1,7 @@
 ﻿@using Discussion.Core.Models
 @using Discussion.Core.Utilities
-@inject Discussion.Web.Services.IUserAvatarService AvatarService
+@using Discussion.Web.Services.UserManagement.Avatar
+@inject IUserAvatarService AvatarService
 @model User
 @{
     Layout = "_UserLayout.cshtml";

@@ -100,6 +100,9 @@ namespace Discussion.Web.Controllers
             };
 
             _topicRepo.Save(topic);
+            
+            // ReSharper disable Mvc.ActionNotResolved
+            // ReSharper disable Mvc.ControllerNotResolved
             return RedirectToAction("Index", new { topic.Id });
         }
     }

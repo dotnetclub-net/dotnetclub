@@ -3,7 +3,7 @@ using Discussion.Web.Resources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Discussion.Web.Services.Identity
+namespace Discussion.Web.Services.UserManagement.Identity
 {
     public static class ServiceExtensions
     {

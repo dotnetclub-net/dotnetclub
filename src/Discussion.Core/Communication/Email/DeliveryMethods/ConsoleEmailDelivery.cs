@@ -1,13 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Discussion.Web.Services.EmailConfirmation.Impl
+namespace Discussion.Core.Communication.Email.DeliveryMethods
 {
-    public class ConsoleEmailSender : IEmailSender
+    public class ConsoleEmailDelivery : IEmailDeliveryMethod
     {
-        private readonly ILogger<ConsoleEmailSender> _logger;
+        private readonly ILogger<ConsoleEmailDelivery> _logger;
 
-        public ConsoleEmailSender(ILogger<ConsoleEmailSender> logger)
+        public ConsoleEmailDelivery(ILogger<ConsoleEmailDelivery> logger)
         {
             _logger = logger;
         }

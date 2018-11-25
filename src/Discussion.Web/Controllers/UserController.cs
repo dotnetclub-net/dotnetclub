@@ -3,12 +3,14 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Email;
+using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
 using Discussion.Web.Services;
-using Discussion.Web.Services.EmailConfirmation;
+using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +18,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Web.Controllers
 {
+    // ReSharper disable Mvc.ActionNotResolved
+    // ReSharper disable Mvc.ControllerNotResolved
+    
     [Route("user")]
     [Authorize]
     public class UserController: Controller
@@ -23,7 +28,7 @@ namespace Discussion.Web.Controllers
         public const string ConfigKeyRequireUserPhoneNumberVerified = "RequireUserPhoneNumberVerified"; 
         
         private readonly UserManager<User> _userManager;
-        private readonly IEmailSender _emailSender;
+        private readonly IEmailDeliveryMethod _emailDeliveryMethod;
         private readonly IConfirmationEmailBuilder _emailBuilder;
         private readonly IRepository<User> _userRepo;
         private readonly IRepository<PhoneNumberVerificationRecord> _verificationCodeRecordRepo;
@@ -31,13 +36,13 @@ namespace Discussion.Web.Controllers
         private readonly ApplicationDbContext _dbContext;
         private readonly ISmsSender _smsSender;
 
-        public UserController(UserManager<User> userManager, IEmailSender emailSender,
+        public UserController(UserManager<User> userManager, IEmailDeliveryMethod emailDeliveryMethod,
             IConfirmationEmailBuilder emailBuilder, IRepository<User> userRepo, ISmsSender smsSender,
             IRepository<PhoneNumberVerificationRecord> verificationCodeRecordRepo,
             ApplicationDbContext dbContext, IRepository<VerifiedPhoneNumber> phoneNumberRepo)
         {
             _userManager = userManager;
-            _emailSender = emailSender;
+            _emailDeliveryMethod = emailDeliveryMethod;
             _emailBuilder = emailBuilder;
             _userRepo = userRepo;
             _smsSender = smsSender;
@@ -58,7 +63,6 @@ namespace Discussion.Web.Controllers
         public async Task<IActionResult> DoSettings(UserSettingsViewModel userSettingsViewModel)
         {
             var user = HttpContext.DiscussionUser();
-            var emailFieldName = nameof(UserSettingsViewModel.EmailAddress);
             if (!ModelState.IsValid)
             {
                 return View("Settings", user);
@@ -79,6 +83,7 @@ namespace Discussion.Web.Controllers
                 return RedirectToAction("Settings");
             }
             
+            var emailFieldName = nameof(UserSettingsViewModel.EmailAddress);
             var emailTaken = IsEmailTaken(user.Id, newEmail);
             if (emailTaken)
             {
@@ -117,7 +122,7 @@ namespace Discussion.Web.Controllers
                 protocol: Request.Scheme);
             
             var emailBody = _emailBuilder.BuildEmailBody(callbackUrl);
-            await _emailSender.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
+            await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
             return  ApiResponse.NoContent();
         }
 

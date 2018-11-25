@@ -1,9 +1,10 @@
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Email;
+using Discussion.Core.Communication.Sms;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
-using Discussion.Web.Services;
-using Discussion.Web.Services.EmailConfirmation;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -65,9 +66,9 @@ namespace Discussion.Web.Tests.IntegrationTests
         [Fact]
         public void should_send_email_confirmation()
         {
-            var mailSender = new Mock<IEmailSender>();
-            mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+            var mailDeliveryMethod = new Mock<IEmailDeliveryMethod>();
+            mailDeliveryMethod.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailDeliveryMethod.Object));
 
             _app.ShouldPost("/user/send-confirmation-mail", 
                     signinStatus: SigninRequired)

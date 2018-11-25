@@ -6,7 +6,6 @@ using Discussion.Web.Models;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace Discussion.Web.Controllers
 {
