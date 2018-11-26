@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Discussion.Core.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace Discussion.Web.Services.Identity
+namespace Discussion.Web.Services.UserManagement.Identity
 {
     public class DiscussionUserClaimsPrincipalFactory: IUserClaimsPrincipalFactory<User>
     {

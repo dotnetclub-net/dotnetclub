@@ -1,4 +1,4 @@
-namespace Discussion.Web.Services.EmailConfirmation
+namespace Discussion.Web.Services.UserManagement.EmailConfirmation
 {
     public interface IConfirmationEmailBuilder
     {

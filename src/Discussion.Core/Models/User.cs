@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Discussion.Core.Models
 {
@@ -8,12 +9,16 @@ namespace Discussion.Core.Models
         public string DisplayName { get; set; }
         public string EmailAddress { get; set; }
 
+        public int AvatarFileId { get; set; }
         public string HashedPassword { get; set; }
         public DateTime? LastSeenAt { get; set; }
+        
         public bool EmailAddressConfirmed { get; set; }
-        public int AvatarFileId { get; set; }
-
         public string ConfirmedEmail => EmailAddressConfirmed ? EmailAddress : null;
+        
+        [ForeignKey("PhoneNumberId")]
+        public VerifiedPhoneNumber VerifiedPhoneNumber { get; set; }
+        public int? PhoneNumberId { get; set; }
     }
 
 

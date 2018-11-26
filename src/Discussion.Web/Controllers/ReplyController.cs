@@ -2,7 +2,7 @@ using System;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
-using Discussion.Web.Services.Identity;
+using Discussion.Web.Models;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +11,17 @@ namespace Discussion.Web.Controllers
 {
     public class ReplyController : Controller
     {
-        private IRepository<Reply> _replyRepo;
-        private IRepository<Topic> _topicRepo;
+        private readonly IRepository<Reply> _replyRepo;
+        private readonly IRepository<Topic> _topicRepo;
+        private SiteSettings _siteSettings;
 
-        public ReplyController(IRepository<Reply> replyRepo, IRepository<Topic> topicRepo)
+        public ReplyController(IRepository<Reply> replyRepo, 
+            IRepository<Topic> topicRepo,
+            SiteSettings siteSettings)
         {
             _replyRepo = replyRepo;
             _topicRepo = topicRepo;
+            _siteSettings = siteSettings;
         }
 
         [Route("/topics/{topicId}/replies")]
@@ -25,6 +29,13 @@ namespace Discussion.Web.Controllers
         [Authorize]
         public IActionResult Reply(int topicId, ReplyCreationModel replyCreationModel)
         {
+            var currentUser = HttpContext.DiscussionUser();
+
+            if (_siteSettings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
+            {
+                return BadRequest();
+            }
+            
             var topic = _topicRepo.Get(topicId);
             if (topic == null)
             {
@@ -36,17 +47,17 @@ namespace Discussion.Web.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = HttpContext.DiscussionUser();
             var reply = new Reply
             {
                 TopicId = topicId,
-                CreatedBy = user.Id,
+                CreatedBy = currentUser.Id,
                 Content = replyCreationModel.Content
             };
             _replyRepo.Save(reply);
             
+            // ReSharper disable once PossibleNullReferenceException
             topic.LastRepliedAt = DateTime.UtcNow;
-            topic.LastRepliedUser = user;
+            topic.LastRepliedUser = currentUser;
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
             return NoContent();

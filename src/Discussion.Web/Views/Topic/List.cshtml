@@ -1,5 +1,7 @@
 ﻿@using Discussion.Core.Mvc
-@inject Discussion.Web.Services.IUserAvatarService AvatarService
+@using Discussion.Web.Services.UserManagement.Avatar
+@inject IUserAvatarService AvatarService
+@inject Discussion.Web.Models.SiteSettings SiteSettings
 @model Discussion.Core.Pagination.Paged<Discussion.Core.Models.Topic>
 
 @{
@@ -7,6 +9,13 @@
 
     var prevDisabled = Model.Paging.HasPreviousPage ? "" : "disabled";
     var nextDisabled = Model.Paging.HasNextPage ? "" : "disabled";
+
+    var user = Context.DiscussionUser();
+    var canCreateTopic = user != null;
+    if (canCreateTopic && SiteSettings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue)
+    {
+        canCreateTopic = false;
+    }
 }
 
 
@@ -15,7 +24,7 @@
     <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="panel-heading">
             全部话题
-            @if(Context.IsAuthenticated())
+            @if(canCreateTopic)
             {
                 <span class="pull-right">
                     @Html.ActionLink("创建新话题", "Create", "Topic")

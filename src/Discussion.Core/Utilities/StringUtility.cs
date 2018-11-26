@@ -24,6 +24,30 @@ namespace Discussion.Core.Utilities
             return sb.ToString();
         }
         
+        public static string RandomNumbers(int length = 6)
+        {
+            var sb = new StringBuilder();
+            var random = new Random();
+            
+            do
+            {
+                var rand = random.Next(0, 9);
+                sb.Append(rand);
+            } while (sb.Length < length);
+
+            return sb.ToString();
+        }
+
+        public static string MaskPhoneNumber(string phoneNumber)
+        {
+            if (phoneNumber == null || phoneNumber.Length < 7)
+            {
+                return phoneNumber;
+            }
+
+            return string.Concat(phoneNumber.Substring(0, 3), "****", phoneNumber.Substring(7));
+        }
+        
         
         public static bool IgnoreCaseEqual(this string one, string theOther)
         {

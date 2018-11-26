@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using Discussion.Admin.Services;
-using Discussion.Admin.Supporting;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Utilities;
@@ -15,13 +14,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Discussion.Tests.Common
 {
@@ -31,17 +31,24 @@ namespace Discussion.Tests.Common
         {
             var httpContext = app.GetService<IHttpContextFactory>().Create(new DefaultHttpContext().Features);
             httpContext.User = app.User;
-            
+
+            var routeData = new RouteData();
+            routeData.Routers.Add(new FakeRoute(app.GetService<IInlineConstraintResolver>()));
+
             var actionContext = new ActionContext(
                 httpContext,
-                new RouteData(),
+                routeData, 
                 new ControllerActionDescriptor
                 {
                     ControllerTypeInfo = typeof(T).GetTypeInfo()
                 });
 
-            return app.GetService<IControllerFactory>()
-                .CreateController(new ControllerContext(actionContext)) as T;
+            var actionContextAccessor = app.GetService<IActionContextAccessor>();
+            if (actionContextAccessor != null)
+            {
+                actionContextAccessor.ActionContext = actionContext;
+            }
+            return app.GetService<IControllerFactory>().CreateController(new ControllerContext(actionContext)) as T;
         }
 
         public static T GetService<T>(this TestApplication app) where T : class
@@ -157,8 +164,33 @@ namespace Discussion.Tests.Common
 
             return user;
         }
-        
-        
+
+
+        public class FakeRoute : RouteBase
+        {
+            private List<VirtualPathContext> _urlGeneratingList = new List<VirtualPathContext>();
+            public FakeRoute(IInlineConstraintResolver constraintResolver) : base("", "foo", constraintResolver, null, null, null)
+            {
+            }
+
+            protected override Task OnRouteMatched(RouteContext context)
+            {
+                return Task.CompletedTask;
+            }
+
+            protected override VirtualPathData OnVirtualPathGenerated(VirtualPathContext context)
+            {
+                _urlGeneratingList.Add(context);
+                return null;
+            }
+
+            public RouteValueDictionary GetGeneratedUrl => _urlGeneratingList.FirstOrDefault()?.Values;
+
+            public List<RouteValueDictionary> GetGeneratedUrls
+            {
+                get { return _urlGeneratingList.Select(x => x.Values).ToList(); }
+            }
+        }
         
         
     }

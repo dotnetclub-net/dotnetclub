@@ -1,15 +1,14 @@
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Email;
+using Discussion.Core.Communication.Sms;
+using Discussion.Core.Models;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
-using Discussion.Web.Services.EmailConfirmation;
-using Discussion.Web.Tests.Specs.Controllers;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
-using HttpMethod = Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpMethod;
+using static Discussion.Tests.Common.SigninRequirement;
 
 namespace Discussion.Web.Tests.IntegrationTests
 {
@@ -20,124 +19,101 @@ namespace Discussion.Web.Tests.IntegrationTests
         public UserRelatedPageSpecs(TestDiscussionWebApp app)
         {
             _app = app.Reset();
+            _app.DeleteAll<User>();
         }
         
         
         [Fact]
-        public async Task should_show_settings_page_for_an_authorized_user()
+        public void should_show_settings_page()
         {
-            _app.MockUser();
-
-            await ShouldBeAbleToRequest("/user/settings", "基本信息");
+            _app.ShouldGet("/user/settings", 
+                SigninRequired, 
+                responseShouldContain: "基本信息");
         }
 
         [Fact]
-        public async Task should_update_settings_for_an_authorized_user()
+        public void should_update_settings()
         {
-            _app.MockUser();
-
-            await ShouldBeAbleToRequest("/user/settings", "", HttpMethod.Post, 
-                new Dictionary<string, string>()
+            _app.ShouldPost("/user/settings", 
+                new
                 {
-                    {"DisplayName", "三毛"},
-                    {"EmailAddress", "one@here.com"}
-                });
+                    DisplayName = "三毛",
+                    EmailAddress = "one@here.com"
+                },
+                SigninRequired);
         }
         
         [Fact]
-        public async Task should_not_show_settings_page_for_an_unauthorized_user()
+        public void should_show_change_password_page()
         {
-            await ShouldBeBlockedWithSignInRedirect("/user/settings");
-        }
-
-        [Fact]
-        public async Task should_show_change_password_page_for_an_authorized_user()
-        {
-            _app.MockUser();
-
-            await ShouldBeAbleToRequest("/user/change-password", "修改密码");
+            _app.ShouldGet("/user/change-password", 
+                SigninRequired, 
+                responseShouldContain: "修改密码");
         }
         
         [Fact]
-        public async Task should_change_password_for_an_authorized_user()
-        {
-            _app.MockUser();
-
-            await ShouldBeAbleToRequest("/user/change-password", "", HttpMethod.Post, 
-                new Dictionary<string, string>()
+        public void should_change_password_for_an_authorized_user()
+        {   
+            _app.ShouldPost("/user/change-password", 
+                new
                 {
-                    {"OldPassword", "111111"},
-                    {"NewPassword", "123423LKJLK"}
-                });
+                    OldPassword = "111111",
+                    NewPassword = "123423LKJLK"
+                },
+                SigninRequired);
         }
 
         [Fact]
-        public async Task should_not_show_change_password_page_for_an_unauthorized_user()
+        public void should_send_email_confirmation()
         {
-            await ShouldBeBlockedWithSignInRedirect("/user/change-password");
-        }
+            var mailDeliveryMethod = new Mock<IEmailDeliveryMethod>();
+            mailDeliveryMethod.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            _app.OverrideServices(services => services.AddSingleton(mailDeliveryMethod.Object));
 
-        [Fact]
-        public async Task should_send_email_confirmation_for_an_authorized_user()
-        {
-            var mailSender = new Mock<IEmailSender>();
-            mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
-            _app.MockUser();
-
-            await ShouldBeAbleToRequest("/user/send-confirmation-mail", "\"hasSucceeded\":true", HttpMethod.Post, new Dictionary<string, string>());
-        }
-
-        [Fact]
-        public async Task should_not_send_email_confirmation_for_an_unauthorized_user()
-        {
-            await ShouldBeBlockedWithSignInRedirect("/user/send-confirmation-mail", HttpMethod.Post, new Dictionary<string, string>());
+            _app.ShouldPost("/user/send-confirmation-mail", 
+                    signinStatus: SigninRequired)
+                .WithApiResult((api, _)=> api.HasSucceeded.ShouldEqual(true));
         }
         
         [Fact]
-        public async Task should_accept_email_confirmation_request_without_login()
+        public void should_accept_email_confirmation_request_without_login()
         {
-            await ShouldBeAbleToRequest("/user/confirm-email?token=985473", "无法确认邮件地址");
+            _app.ShouldGet("/user/confirm-email?token=985473", 
+                    signinStatus: SigninNotRequired,
+                    responseShouldContain: "无法确认邮件地址");
         }
         
-        
-        private async Task ShouldBeAbleToRequest(string url, string responseContain, HttpMethod method = HttpMethod.Get, Dictionary<string, string> postData = null)
+        [Fact]
+        public void should_show_phone_number_verification_code_page()
         {
-            var response = await Request(url, method, postData);
-            
-            if (response.StatusCode == HttpStatusCode.Redirect)
-            {
-                response.Headers.Location.ToString().Contains("signin").ShouldEqual(false);
-            }
-            else
-            {
-                response.StatusCode.ShouldEqual(HttpStatusCode.OK);
-            }
-            response.ReadAllContent().ShouldContain(responseContain);
-        }
-
-        private async Task ShouldBeBlockedWithSignInRedirect(string url, HttpMethod method = HttpMethod.Get, Dictionary<string, string> postData = null)
-        {
-            var response = await Request(url, method, postData);
-            response.StatusCode.ShouldEqual(HttpStatusCode.Redirect);
-            response.Headers.Location.ToString().Contains("signin").ShouldEqual(true);
+            _app.ShouldGet("/user/phone-number-verification", 
+                    signinStatus: SigninRequired,
+                    responseShouldContain: "手机验证");
         }
         
-        private async Task<HttpResponseMessage> Request(string url, HttpMethod method = HttpMethod.Get, Dictionary<string, string> postData = null)
+        [Fact]
+        public void should_send_phone_number_verification_code()
         {
-            var request = _app.Server.CreateRequest(url);
+            var mailSender = new Mock<ISmsSender>();
+            mailSender.Setup(sender => sender.SendVerificationCodeAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            _app.OverrideServices(services => services.AddSingleton(mailSender.Object));
 
-            HttpResponseMessage response;
-            if (method == HttpMethod.Post && postData != null)
-            {
-                response = await _app.RequestAntiForgeryForm(url, postData).PostAsync();
-            }
-            else
-            {
-                response = await request.GetAsync();   
-            }
-
-            return response;
+            _app.ShouldPost("/user/phone-number-verification/send-code", 
+                    new {phoneNumber = "15801234567"},
+                    signinStatus: SigninRequired)
+                .WithApiResult((api, _)=> api.HasSucceeded.ShouldEqual(true));
         }
+        
+        [Fact]
+        public void should_accept_verify_phone_number_request()
+        {
+            _app.ShouldPost("/user/phone-number-verification/verify",
+                    new {code = "945323"},
+                    signinStatus: SigninRequired,
+                    responseShouldContain: "验证码不正确或已过期")
+                .WithApiResult((api, _) => api.HasSucceeded.ShouldEqual(false));
+        }
+        
+  
     }
 }

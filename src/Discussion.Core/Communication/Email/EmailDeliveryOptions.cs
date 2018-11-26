@@ -1,6 +1,6 @@
-﻿namespace Discussion.Web.Services.EmailConfirmation
+﻿namespace Discussion.Core.Communication.Email
 {
-    public class EmailSendingOptions
+    public class EmailDeliveryOptions
     {
         public string LoginName { get; set; }
         public string Password { get; set; }

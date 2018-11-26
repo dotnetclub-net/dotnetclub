@@ -4,8 +4,7 @@ using System.Text;
 using Discussion.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 
-
-namespace Discussion.Web.Services.Impl
+namespace Discussion.Web.Services.UserManagement.Avatar
 {
     public class UserAvatarService : IUserAvatarService
     {

@@ -27,6 +27,11 @@ namespace Discussion.Tests.Common
             return controller.HttpContext.RequestServices.GetService<T>();
         }
         
+        public static TestApplicationExtensions.FakeRoute GetFakeRouter(this ControllerBase controller)
+        {
+            return controller.RouteData.Routers[0] as TestApplicationExtensions.FakeRoute;
+        }
+        
         public static string ReadAllContent(this HttpResponseMessage response)
         {
             return response.Content.ReadAsStringAsync().Result;
@@ -111,6 +116,56 @@ namespace Discussion.Tests.Common
         {
             return new TestHttpRequestBuilder(app, path);
         }
+        
+        public static TestHttpRequestBuilder.ResponseAssertion ShouldGet(this TestApplication app, string path, 
+            SigninRequirement signinStatus = SigninRequirement.SigninNotRequired,
+            string responseShouldContain = null)
+        {
+            app.ResetUser();
+            var get = app.Path(path).Get();
+            if (signinStatus == SigninRequirement.SigninRequired)
+            {
+                get.ShouldFail(app.NoUser()).WithSigninRedirect();
+            }
 
+            var user = signinStatus == SigninRequirement.SigninRequired ? app.MockUser() : app.NoUser();
+            var getSuccess = get.ShouldSuccess(user);
+            if (responseShouldContain != null)
+            {
+                getSuccess.WithResponse(res => res.ReadAllContent().Contains(responseShouldContain));
+            }
+            
+            return getSuccess;
+        }
+        
+        public static TestHttpRequestBuilder.ResponseAssertion ShouldPost(this TestApplication app, string path,
+            object postEntity = null,
+            SigninRequirement signinStatus = SigninRequirement.SigninNotRequired,
+            string responseShouldContain = null)
+        {
+            var post = app.Path(path).Post();
+            if (postEntity != null)
+            {
+                post.WithForm(postEntity);
+            }
+            
+            if (signinStatus == SigninRequirement.SigninRequired)
+            {
+                post.ShouldFail(user: app.NoUser()).WithSigninRedirect();
+            }
+            
+            var user = signinStatus == SigninRequirement.SigninRequired ? app.MockUser() : app.NoUser();
+            var postSuccess = post
+                .ShouldBeHandled(user)
+                .WithResponse(res =>
+                    TestHttpRequestBuilder.ResponseAssertion.Is2XxSuccess(res) ||
+                    TestHttpRequestBuilder.ResponseAssertion.IsSuccessRedirect(res));
+
+            if (responseShouldContain != null)
+            {
+                postSuccess.WithResponse(res => res.ReadAllContent().Contains(responseShouldContain));
+            }
+            return postSuccess;
+        }
     }
 }

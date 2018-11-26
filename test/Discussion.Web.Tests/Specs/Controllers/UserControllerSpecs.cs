@@ -1,13 +1,15 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Email;
+using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Services.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,11 +26,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
     {
         private readonly TestDiscussionWebApp _theApp;
         private readonly IRepository<User> _userRepo;
+        private readonly IRepository<PhoneNumberVerificationRecord> _phoneVerifyRepo;
+        private readonly IRepository<VerifiedPhoneNumber> _phoneRepo;
 
         public UserControllerSpecs(TestDiscussionWebApp theApp)
         {
             _theApp = theApp;
             _userRepo = _theApp.GetService<IRepository<User>>();
+            _phoneVerifyRepo = theApp.GetService<IRepository<PhoneNumberVerificationRecord>>();
+            _phoneRepo = theApp.GetService<IRepository<VerifiedPhoneNumber>>();
             _theApp.DeleteAll<User>();
         }
 
@@ -115,7 +121,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         [Fact]
-        public async Task should_not_update_password_with_invalid_old_password()
+        public async Task should_not_update_password_with_invalid_wrong_password()
         {
             var user = _theApp.MockUser();
             var viewModel = new ChangePasswordViewModel
@@ -130,7 +136,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             
             _theApp.ReloadEntity(user);
-            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "ChangePassword", string.Empty);
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "密码不正确", "ChangePassword");
             var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
             Assert.False(passwordChanged);
         }
@@ -161,7 +167,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var (result, userCtrl) = await SubmitSettingsWithEmail("someone#cha.com");
             
             _theApp.ReloadEntity(user);
-            ShouldBeViewResultWithErrors(result, userCtrl.ModelState);
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "邮件地址格式不正确");
             Assert.Equal("one@before-change.com", user.EmailAddress);
             Assert.True(user.EmailAddressConfirmed);
         }
@@ -178,7 +184,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             _theApp.ReloadEntity(appUser);
             Assert.Equal("email@taken.com", appUser.EmailAddress);
-            Assert.Equal(false, appUser.EmailAddressConfirmed);
+            Assert.False(appUser.EmailAddressConfirmed);
         }
 
         [Fact]
@@ -189,7 +195,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var (result, userCtrl) = await SubmitSettingsWithEmail("email@taken.com");
             
-            ShouldBeViewResultWithErrors(result, userCtrl.ModelState);
+            ShouldBeViewResultWithErrors(result, userCtrl.ModelState, "邮件地址已由其他用户使用");
 
             _theApp.ReloadEntity(appUser);
             Assert.Equal("one@before-change.com", appUser.EmailAddress);
@@ -208,7 +214,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             
             
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = CreateMockUrlHelper();
             var result = await userCtrl.SendEmailConfirmation();
             
             Assert.True(result.HasSucceeded);
@@ -246,13 +251,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var user = UseUpdatedAppUser("one@changing.com", confirmed: false);
             
             
-            dynamic routeValues = null;
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = CreateMockUrlHelper(ctx => { routeValues = ctx.Values; });
             await userCtrl.SendEmailConfirmation();
 
 
-            string token = routeValues.token;
+            var generatedUrl = userCtrl.GetFakeRouter().GetGeneratedUrl;
+            var token = generatedUrl["token"].ToString();
             var result = await userCtrl.ConfirmEmail(token);
             
             _theApp.ReloadEntity(user);
@@ -271,12 +275,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
             MockMailSender();
             var user = UseUpdatedAppUser("email@taken.com", confirmed: false);
             
-            dynamic routeValues = null; 
             var userCtrl = _theApp.CreateController<UserController>();
-            userCtrl.Url = CreateMockUrlHelper(ctx => { routeValues = ctx.Values; });
             await userCtrl.SendEmailConfirmation();
-            string token = routeValues.token;
-
+            var generatedUrl = userCtrl.GetFakeRouter().GetGeneratedUrl;
+            var token = generatedUrl["token"].ToString();
 
             CreateUser("email@taken.com", confirmed: true);
             await userCtrl.ConfirmEmail(token);
@@ -288,6 +290,141 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
 
         // QUESTION: should not confirm with used token?
+        
+        #endregion
+        
+        #region Phone Number Verification
+
+        [Fact]
+        public async Task should_send_sms_to_specified_phone_number()
+        {
+            const string phoneNumber = "13603503455";
+            var smsSender = MockSmsSender(phoneNumber);
+            
+            var user = _theApp.MockUser();
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            
+            var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
+            
+            Assert.True(result.HasSucceeded);
+            smsSender.Verify();
+            _theApp.ReloadEntity(user);
+            Assert.Null(user.PhoneNumberId);
+
+            var sentRecord = _phoneVerifyRepo.All().FirstOrDefault(r => r.UserId == user.Id);
+            Assert.NotNull(sentRecord);
+            Assert.NotNull(sentRecord.Code);
+            Assert.Equal(phoneNumber, sentRecord.PhoneNumber);
+            Assert.True( (sentRecord.Expires - DateTime.UtcNow).TotalMinutes > 5 );
+        }
+        
+        [Fact]
+        public async Task should_not_send_sms_again_in_2_minutes()
+        {
+            const string phoneNumber = "13603503455";
+            
+            var user = _theApp.MockUser();
+            var record = new PhoneNumberVerificationRecord
+            {
+                UserId = user.Id,
+                Code = "389451",
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                PhoneNumber = phoneNumber
+            };
+            _phoneVerifyRepo.Save(record);
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
+            
+            Assert.False(result.HasSucceeded);
+            var sentRecords = _phoneVerifyRepo
+                .All()
+                .Where(r => r.UserId == user.Id && r.PhoneNumber == phoneNumber)
+                .ToList();
+            Assert.Equal(1, sentRecords.Count);
+        }
+        
+        [Fact]
+        public async Task should_not_send_sms_again_in_7_days_after_verified()
+        {
+            const string phoneNumber = "13603503455";
+            
+            var verifiedRecord = new VerifiedPhoneNumber {PhoneNumber = phoneNumber};
+            _phoneRepo.Save(verifiedRecord);
+            var user = _theApp.MockUser();
+            user.VerifiedPhoneNumber = verifiedRecord;
+            _userRepo.Update(user);
+            
+            var userCtrl = _theApp.CreateController<UserController>();
+            var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
+            
+            Assert.False(result.HasSucceeded);
+            var messageSent = _phoneVerifyRepo
+                .All()
+                .Any(r => r.UserId == user.Id && r.PhoneNumber == phoneNumber);
+            Assert.False(messageSent);
+        }
+        
+        [Fact]
+        public async Task should_not_send_sms_for_a_user_more_than_5_times_in_a_day()
+        {
+            const string phoneNumber = "13603503455";
+
+            var user = _theApp.MockUser();
+            Enumerable.Range(1, 5).ToList().ForEach(index =>
+            {
+                var record = new PhoneNumberVerificationRecord
+                {
+                    CreatedAtUtc = DateTime.UtcNow.AddMinutes(-2 * index),
+                    UserId = user.Id,
+                    Code = "389451",
+                    Expires = DateTime.UtcNow.AddMinutes(15),
+                    PhoneNumber = StringUtility.RandomNumbers(11)
+                };
+                _phoneVerifyRepo.Save(record);    
+            });
+            
+            
+            var userCtrl = _theApp.CreateController<UserController>();
+            var result = await userCtrl.SendPhoneNumberVerificationCode(phoneNumber);
+            
+            Assert.False(result.HasSucceeded);
+            var messageSent = _phoneVerifyRepo
+                .All()
+                .Where(r => r.UserId == user.Id)
+                .ToList();
+            Assert.Equal(5, messageSent.Count);
+        }
+        
+        [Fact]
+        public void should_verify_phone_number()
+        {
+            const string code = "389451";
+            const string phoneNumber = "13603503455";
+            
+            var user = _theApp.MockUser();
+            var record = new PhoneNumberVerificationRecord
+            {
+                UserId = user.Id,
+                Code = code,
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                PhoneNumber = phoneNumber
+            };
+            _phoneVerifyRepo.Save(record);
+            
+            var userCtrl = _theApp.CreateController<UserController>();
+            var result = userCtrl.DoVerifyPhoneNumber(code);
+            
+            Assert.True(result.HasSucceeded);
+            _theApp.ReloadEntity(user);
+            Assert.NotNull(user.PhoneNumberId);
+        }
+        
+        
+        // todo: should be able to change phone number after 7 days
+        // todo: should be able to send code after 2 mins
+        // *todo: should auto invalid after 1 year
         
         #endregion
 
@@ -306,18 +443,21 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var redirectResult = result as RedirectToActionResult;
             redirectResult.ShouldNotBeNull();
+            // ReSharper disable once PossibleNullReferenceException
             redirectResult.ActionName.ShouldEqual(actionName);
         }
 
         private static void ShouldBeViewResultWithErrors(IActionResult result, ModelStateDictionary modelState, 
-            string viewName = "Settings", string errorKey = nameof(UserSettingsViewModel.EmailAddress))
+            string errorDescription, string viewName = "Settings")
         {
             var viewResult = result as ViewResult;
             viewResult.ShouldNotBeNull();
+            // ReSharper disable once PossibleNullReferenceException
             viewResult.ViewName.ShouldEqual(viewName);
             Assert.NotNull(viewResult.Model);
             Assert.False(modelState.IsValid);
-            Assert.True(modelState.Keys.Contains(errorKey));
+            var parsedErrors = ApiResponse.Error(modelState);
+            Assert.Contains(errorDescription, parsedErrors.ErrorMessage);
         }
 
         private void CreateUser(string email, bool confirmed)
@@ -357,9 +497,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             return urlHelper.Object;
         }
 
-        private Mock<IEmailSender> MockMailSender(bool willBeCalled = true)
+        private Mock<IEmailDeliveryMethod> MockMailSender(bool willBeCalled = true)
         {
-            var mailSender = new Mock<IEmailSender>();
+            var mailSender = new Mock<IEmailDeliveryMethod>();
             if (willBeCalled)
             {
                 mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), "dotnet club 用户邮件地址确认", It.IsAny<string>()))
@@ -367,8 +507,20 @@ namespace Discussion.Web.Tests.Specs.Controllers
                     .Verifiable();
             }
 
-            ReplacableServiceProvider.Replace(services => services.AddSingleton(mailSender.Object));
+            _theApp.OverrideServices(services => services.AddSingleton(mailSender.Object));
             return mailSender;
+        }
+        
+        private Mock<ISmsSender> MockSmsSender(string phoneNumber)
+        {
+            var smsSender = new Mock<ISmsSender>();
+            smsSender.Setup(sender => sender.SendVerificationCodeAsync(phoneNumber, It.IsAny<string>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+            
+            _theApp.OverrideServices(services => services.AddSingleton(smsSender.Object));
+//            ReplacableServiceProvider.Replace(services => services.AddSingleton(smsSender.Object));
+            return smsSender;
         }
 
         #endregion

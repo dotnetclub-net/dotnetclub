@@ -4,12 +4,12 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
 
-namespace Discussion.Web.Services.EmailConfirmation.Impl
+namespace Discussion.Core.Communication.Email.DeliveryMethods
 {
-    public class SmtpEmailSender : IEmailSender
+    public class SmtpEmailEmailDelivery: IEmailDeliveryMethod
     {
-        private readonly EmailSendingOptions _emailSendingOptions;
-        public SmtpEmailSender(IOptions<EmailSendingOptions> emailSendingOptions)
+        private readonly EmailDeliveryOptions _emailSendingOptions;
+        public SmtpEmailEmailDelivery(IOptions<EmailDeliveryOptions> emailSendingOptions)
         {
             _emailSendingOptions = emailSendingOptions.Value;
         }

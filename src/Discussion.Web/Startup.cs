@@ -2,24 +2,29 @@
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
+using Discussion.Core.Communication.Email;
+using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
+using Discussion.Web.Models;
 using Discussion.Web.Resources;
 using Discussion.Web.Services;
+using Discussion.Web.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Discussion.Web.Services.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Discussion.Web.Services.EmailConfirmation;
-using Discussion.Web.Services.Impl;
+using Discussion.Web.Services.UserManagement.Avatar;
+using Discussion.Web.Services.UserManagement.EmailConfirmation;
+using Discussion.Web.Services.UserManagement.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web
 {
@@ -61,16 +66,28 @@ namespace Discussion.Web
             
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
             services.AddIdentityServices();
-            services.AddEmailSendingServices(_appConfiguration);
+            services.AddEmailServices(_appConfiguration);
+            services.AddSmsServices(_appConfiguration);
+
+            services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
-                .AddScoped<IUserAvatarService>(sp =>
+                .AddScoped(sp =>
+                {
+                    var actionAccessor = sp.GetService<IActionContextAccessor>();
+                    var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
+                    return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);              
+                })
+                .AddScoped<IUserAvatarService, UserAvatarService>();
+            services.AddScoped<IUserService, DefaultUserService>();
+
+            var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));
+            if (siteSettingsSection != null)
             {
-                var actionAccessor = sp.GetService<IActionContextAccessor>();
-                var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
-                return new UserAvatarService(urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext));
-            });
+                services.Configure<SiteSettings>(siteSettingsSection);
+            }
+            services.AddSingleton(sp => sp.GetService<IOptions<SiteSettings>>().Value);
         }
 
         public void Configure(IApplicationBuilder app)

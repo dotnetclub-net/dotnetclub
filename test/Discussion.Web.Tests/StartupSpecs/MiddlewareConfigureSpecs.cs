@@ -2,12 +2,18 @@
 using Xunit;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Sms;
+using Discussion.Core.FileSystem;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Microsoft.AspNetCore.TestHost;
+using Moq;
 
 namespace Discussion.Web.Tests.StartupSpecs
 {
@@ -51,7 +57,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             await server.SendAsync(ctx =>
             {
                 httpContext = ctx;
-                ctx.Request.Path = IntegrationTests.HomePageSpecs.HomePagePath;
+                ctx.Request.Path = "/";
             });
             
 

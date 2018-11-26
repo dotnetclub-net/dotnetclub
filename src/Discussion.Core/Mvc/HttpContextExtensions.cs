@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography.Xml;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Discussion.Core.Mvc
@@ -27,13 +29,21 @@ namespace Discussion.Core.Mvc
                 return null;
             }
 
-            return ToDiscussionUser(httpContext.User,  httpContext.RequestServices.GetRequiredService<IRepository<User>>());
+            var serviceProvider = httpContext.RequestServices;
+            return ToDiscussionUser(httpContext.User,  serviceProvider.GetRequiredService<IRepository<User>>());
         }
         
         public static User ToDiscussionUser(this ClaimsPrincipal claimsPrincipal, IRepository<User> userRepo)
         {
             var userId = ExtractUserId(claimsPrincipal);
-            return userId == null ? null : userRepo.Get(userId.Value);
+            if (userId == null)
+            {
+                return null;
+            }
+            
+            return userRepo.All()
+                .Include(u => u.VerifiedPhoneNumber)
+                .FirstOrDefault(u => u.Id == userId);
         }
 
         public static int? ExtractUserId(this ClaimsPrincipal claimsPrincipal)

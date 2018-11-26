@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Tests.Common.AssertionExtensions;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace Discussion.Tests.Common
 {
@@ -52,6 +53,21 @@ namespace Discussion.Tests.Common
         public TestHttpRequestBuilder WithCookie(string name, string value)
         {
             _cookies.Add(new Cookie(name, value));
+            return this;
+        }
+        
+        public TestHttpRequestBuilder WithCookieFrom(HttpResponseMessage prevResponse)
+        {
+            if (!prevResponse.Headers.TryGetValues(HeaderNames.SetCookie, out var cookies))
+            {
+                return this;
+            }
+            
+            var responseCookieHeaders = SetCookieHeaderValue.ParseList(cookies.ToList()); 
+            foreach (var cookie in responseCookieHeaders)
+            {
+                WithCookie(cookie.Name.ToString(), cookie.Value.ToString());
+            }
             return this;
         }
         
@@ -97,19 +113,29 @@ namespace Discussion.Tests.Common
             _headers[name] = value;
             return this;
         }
-        
-        public ResponseAssertion ShouldSuccess(User user = null)
+
+        public ResponseAssertion ShouldBeHandled(User user = null)
         {
             var response = SendRequest();
-            var assertion = new ResponseAssertion(response, this);
-            return assertion.WithResponse(res => response.IsSuccessStatusCode.ShouldEqual(true));
+            return new ResponseAssertion(response, this);
+        }
+
+        public ResponseAssertion ShouldSuccess(User user = null)
+        {
+            return ShouldBeHandled(user)
+                .WithResponse(ResponseAssertion.Is2XxSuccess);
+        }
+
+        public ResponseAssertion ShouldSuccessWithRedirect(User user = null)
+        {
+            return ShouldBeHandled(user)
+                .WithResponse(ResponseAssertion.IsSuccessRedirect);
         }
         
         public ResponseAssertion ShouldFail(User user = null)
         {
-            var response = SendRequest();
-            var assertion = new ResponseAssertion(response, this);
-            return assertion.WithResponse(res => response.IsSuccessStatusCode.ShouldEqual(false));
+            return ShouldBeHandled(user)
+                .WithResponse(res => !ResponseAssertion.Is2XxSuccess(res) && !ResponseAssertion.IsSuccessRedirect(res));
         }
 
         private HttpResponseMessage SendRequest()
@@ -135,19 +161,27 @@ namespace Discussion.Tests.Common
                 else
                 {
                     requestBuilder.AddHeader("RequestVerificationToken", tokens.VerificationToken);
-                    requestBuilder.And(req =>
+                    if (_postEntity != null)
+                    {
+                        requestBuilder.And(req =>
                         {
                             var content = new ByteArrayContent(_postEntity);
                             content.Headers.ContentType = new MediaTypeHeaderValue(_contentType);
                             req.Content = content;
-                        })
-                        .WithCookie(tokens.Cookie);
+                        });
+                    }
+                    requestBuilder.WithCookie(tokens.Cookie);
                 }
             }
 
             if (_headers.Any())
             {
                 _headers.Keys.ToList().ForEach(key => requestBuilder.AddHeader(key, _headers[key]));
+            }
+
+            if (_cookies.Any())
+            {
+                _cookies.ForEach(c => requestBuilder.WithCookie(c.Name.ToString(), c.Value.ToString()));
             }
 
             var response = requestBuilder.SendAsync(_method.ToString().ToUpper()).Result;
@@ -198,14 +232,47 @@ namespace Discussion.Tests.Common
             
             public ResponseAssertion WithSigninRedirect()
             {
-                return WithResponse(res => res.StatusCode == HttpStatusCode.Redirect
-                                           && res.Headers.Location.ToString().Contains("signin"));
+                return WithResponse(IsSigninRedirect);
             }
 
             public TestHttpRequestBuilder And { get; }
+
+            public static bool Is2XxSuccess(HttpResponseMessage response)
+            {
+                var statusCode = (int)response.StatusCode;
+                return statusCode >= 200 && statusCode <= 299;
+            } 
+            
+            public static bool IsRedirect(HttpResponseMessage response)
+            {
+                var statusCode = (int)response.StatusCode;
+                return statusCode == 301 || statusCode == 302;
+            }
+            
+            public static bool IsSigninRedirect(HttpResponseMessage response)
+            {
+                if (!IsRedirect(response))
+                {
+                    return false;
+                }
+
+                var location = response.Headers.Location?.ToString();
+                return location != null && location.Contains("signin");
+            }
+            
+            public static bool IsSuccessRedirect(HttpResponseMessage response)
+            {
+                return IsRedirect(response) && !IsSigninRedirect(response);
+            } 
         }
         
         
         
+    }
+    
+    public enum SigninRequirement
+    {
+        SigninRequired,
+        SigninNotRequired
     }
 }

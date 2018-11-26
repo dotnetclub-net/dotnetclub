@@ -6,9 +6,11 @@ using Discussion.Core.Mvc;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Services.Identity;
+using Discussion.Web.Models;
 using Discussion.Web.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
@@ -52,6 +54,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topic.ReplyCount.ShouldEqual(1);
             topic.LastRepliedUser.ShouldNotBeNull();
             topic.LastRepliedAt.ShouldNotBeNull();
+            // ReSharper disable once PossibleInvalidOperationException
             var span = DateTime.UtcNow - topic.LastRepliedAt.Value;
             Assert.True(span.TotalSeconds > 0);
             Assert.True(span.TotalSeconds < 10);
@@ -62,7 +65,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             // Arrange
             _app.MockUser();
-            var (topic, userId) = CreateTopic(_app);
+            var (topic, _) = CreateTopic(_app);
 
             var replyController = _app.CreateController<ReplyController>();
             replyController.ModelState.AddModelError("Content", "必须填写回复内容");
@@ -84,6 +87,27 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
 
         [Fact]
+        public void should_not_add_reply_if_require_verified_phone_number_but_user_has_no()
+        {
+            _app.MockUser();
+            var (topic, _) = CreateTopic(_app);
+            var replyRepo = new Mock<IRepository<Reply>>();
+            var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
+
+            var replyController = new ReplyController(replyRepo.Object, _app.GetService<IRepository<Topic>>(), siteSettings);
+            replyController.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = _app.User,
+                RequestServices = _app.ApplicationServices
+            };
+
+            var actionResult = replyController.Reply(topic.Id, new ReplyCreationModel { Content = "some content"});
+            
+            actionResult.IsType<BadRequestResult>();
+            replyRepo.VerifyNoOtherCalls();
+        }
+        
+        [Fact]
         public void should_not_add_reply_when_topic_id_does_not_exist()
         {
             _app.MockUser();
@@ -100,9 +124,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.Equal(400, statusCodeResult.StatusCode);
         }
 
-        internal static (Topic, int) CreateTopic(TestDiscussionWebApp testDiscussionWeb)
+        internal static (Topic, int) CreateTopic(TestDiscussionWebApp app)
         {
-            var userId = testDiscussionWeb.User.ExtractUserId().Value;
+            // ReSharper disable once PossibleInvalidOperationException
+            var userId = app.User.ExtractUserId().Value;
             var topic = new Topic
             {
                 Title = "test topic",
@@ -110,7 +135,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 CreatedBy = userId,
                 Type = TopicType.Discussion
             };
-            testDiscussionWeb.GetService<IRepository<Topic>>().Save(topic);
+            app.GetService<IRepository<Topic>>().Save(topic);
             return (topic, userId);
         }
     }

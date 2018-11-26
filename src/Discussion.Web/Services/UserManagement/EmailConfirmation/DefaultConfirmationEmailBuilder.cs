@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Discussion.Web.Services.EmailConfirmation.Impl
+namespace Discussion.Web.Services.UserManagement.EmailConfirmation
 {
     public class DefaultConfirmationEmailBuilder: IConfirmationEmailBuilder
     {

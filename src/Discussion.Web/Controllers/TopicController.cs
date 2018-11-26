@@ -1,15 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Discussion.Web.ViewModels;
 using System;
-using System.Collections.Generic;
-using Discussion.Web.Services.Identity;
-using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Pagination;
+using Discussion.Web.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Discussion.Web.Controllers
@@ -19,11 +17,13 @@ namespace Discussion.Web.Controllers
         private const int PageSize = 20;
         private readonly IRepository<Topic> _topicRepo;
         private readonly IRepository<Reply> _replyRepo;
+        private readonly SiteSettings _settings;
 
-        public TopicController(IRepository<Topic> topicRepo, IRepository<Reply> replyRepo)
+        public TopicController(IRepository<Topic> topicRepo, IRepository<Reply> replyRepo, SiteSettings settings)
         {
             _topicRepo = topicRepo;
             _replyRepo = replyRepo;
+            _settings = settings;
         }
 
 
@@ -78,21 +78,31 @@ namespace Discussion.Web.Controllers
         [Route("/topics")]
         public ActionResult CreateTopic(TopicCreationModel model)
         {
+            var currentUser = HttpContext.DiscussionUser();
+            if (_settings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
+            {
+                return BadRequest();
+            }
+            
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
+            // ReSharper disable once PossibleInvalidOperationException
             var topic = new Topic
             {
                 Title = model.Title,
                 Content = model.Content,
                 Type = model.Type.Value,
-                CreatedBy = HttpContext.DiscussionUser().Id,
+                CreatedBy = currentUser.Id,
                 CreatedAtUtc = DateTime.UtcNow
             };
 
             _topicRepo.Save(topic);
+            
+            // ReSharper disable Mvc.ActionNotResolved
+            // ReSharper disable Mvc.ControllerNotResolved
             return RedirectToAction("Index", new { topic.Id });
         }
     }

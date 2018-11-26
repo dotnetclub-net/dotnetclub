@@ -1,6 +1,6 @@
 using Discussion.Core.Models;
 
-namespace Discussion.Web.Services
+namespace Discussion.Web.Services.UserManagement.Avatar
 {
     public interface IUserAvatarService
     {
