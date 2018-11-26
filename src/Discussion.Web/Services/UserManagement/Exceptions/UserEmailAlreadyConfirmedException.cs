@@ -1,6 +1,6 @@
 using System;
 
-namespace Discussion.Web.Services.UserManagement
+namespace Discussion.Web.Services.UserManagement.Exceptions
 {
     public class UserEmailAlreadyConfirmedException : InvalidOperationException
     {

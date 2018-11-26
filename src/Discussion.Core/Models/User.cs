@@ -23,9 +23,13 @@ namespace Discussion.Core.Models
 
         public bool CanModifyPhoneNumberNow()
         {
+            if (PhoneNumberId == null)
+            {
+                return true;
+            }
+            
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
-            return PhoneNumberId != null
-                   && VerifiedPhoneNumber.CreatedAtUtc < sevenDaysAgo
+            return VerifiedPhoneNumber.CreatedAtUtc < sevenDaysAgo
                    && VerifiedPhoneNumber.ModifiedAtUtc < sevenDaysAgo;
         }
     }

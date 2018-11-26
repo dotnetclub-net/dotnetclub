@@ -1,14 +1,11 @@
-using System;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Discussion.Core.Communication.Sms;
-using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
-using Discussion.Core.Utilities;
 using Discussion.Web.Services.UserManagement;
+using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -24,24 +21,11 @@ namespace Discussion.Web.Controllers
         public const string ConfigKeyRequireUserPhoneNumberVerified = "RequireUserPhoneNumberVerified"; 
         
         private readonly UserManager<User> _userManager;
-        private readonly IRepository<User> _userRepo;
-        private readonly IRepository<PhoneNumberVerificationRecord> _verificationCodeRecordRepo;
-        private readonly IRepository<VerifiedPhoneNumber> _phoneNumberRepo;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly ISmsSender _smsSender;
         private readonly IUserService _userService;
 
-        public UserController(UserManager<User> userManager, 
-            IRepository<User> userRepo, ISmsSender smsSender,
-            IRepository<PhoneNumberVerificationRecord> verificationCodeRecordRepo,
-            ApplicationDbContext dbContext, IRepository<VerifiedPhoneNumber> phoneNumberRepo, IUserService userService)
+        public UserController(UserManager<User> userManager, IUserService userService)
         {
             _userManager = userManager;
-            _userRepo = userRepo;
-            _smsSender = smsSender;
-            _verificationCodeRecordRepo = verificationCodeRecordRepo;
-            _dbContext = dbContext;
-            _phoneNumberRepo = phoneNumberRepo;
             _userService = userService;
         }
 
@@ -130,7 +114,10 @@ namespace Discussion.Web.Controllers
             if (!changeResult.Succeeded)
             {
                 ModelState.Clear();
-                ModelState.AddModelError(string.Empty, changeResult.Errors.ToList().First().Description);
+                changeResult.Errors.ToList().ForEach(err =>
+                {
+                    ModelState.AddModelError(err.Code, err.Description);    
+                });
                 return View(getActionName, viewModel);
             }
 
@@ -148,39 +135,22 @@ namespace Discussion.Web.Controllers
         [Route("phone-number-verification/send-code")]
         public async Task<ApiResponse> SendPhoneNumberVerificationCode([FromForm] string phoneNumber)
         {
+            var badRequestResponse = ApiResponse.NoContent(HttpStatusCode.BadRequest);
             if (string.IsNullOrEmpty(phoneNumber) || !Regex.IsMatch(phoneNumber, "\\d{11}"))
             {
-                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+                return badRequestResponse;
             }
-            
-            var user = HttpContext.DiscussionUser();
-            _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
-            var today = DateTime.UtcNow.Date;
 
-            var msgSentToday = _verificationCodeRecordRepo
-                .All()
-                .Where(r => r.UserId == user.Id && r.CreatedAtUtc >= today)
-                .ToList();
-            var sentInTwoMinutes = msgSentToday.Any(r => r.CreatedAtUtc > DateTime.UtcNow.AddMinutes(-2));
-            
-            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
-            var verifiedNotLongerThan7Days = user.VerifiedPhoneNumber != null && (user.VerifiedPhoneNumber.CreatedAtUtc > sevenDaysAgo || user.VerifiedPhoneNumber.CreatedAtUtc > sevenDaysAgo);
-            if (msgSentToday.Count >= 5 || sentInTwoMinutes || verifiedNotLongerThan7Days)
+            try
             {
-                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+                var user = HttpContext.DiscussionUser();
+                await _userService.SendPhoneNumberVerificationCodeAsync(user, phoneNumber);
             }
-            
-            var verificationCode = StringUtility.RandomNumbers(length:6);
-            var record = new PhoneNumberVerificationRecord
+            catch(PhoneNumberVerificationFrequencyExceededException)
             {
-                // ReSharper disable PossibleInvalidOperationException
-                UserId = User.ExtractUserId().Value,
-                Code = verificationCode,
-                Expires = DateTime.UtcNow.AddMinutes(15),
-                PhoneNumber = phoneNumber
-            };
-            _verificationCodeRecordRepo.Save(record);
-            await _smsSender.SendVerificationCodeAsync(phoneNumber, verificationCode);
+                return badRequestResponse;                
+            }
+                
             return ApiResponse.NoContent();
         }
 
@@ -189,28 +159,15 @@ namespace Discussion.Web.Controllers
         public ApiResponse DoVerifyPhoneNumber([FromForm] string code)
         {
             var user = HttpContext.DiscussionUser();
-            var validCode = _verificationCodeRecordRepo
-                .All()
-                .FirstOrDefault(r => r.UserId == user.Id && r.Code == code && r.Expires > DateTime.UtcNow);
 
-            if (validCode == null)
+            try
+            {
+                _userService.VerifyPhoneNumberByCode(user, code);
+            }
+            catch (PhoneNumberVerificationCodeInvalidException)
             {
                 return ApiResponse.Error("code", "验证码不正确或已过期");
             }
-
-            _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
-            if (user.VerifiedPhoneNumber == null)
-            {
-                user.VerifiedPhoneNumber = new VerifiedPhoneNumber{ PhoneNumber =  validCode.PhoneNumber };
-                _phoneNumberRepo.Save(user.VerifiedPhoneNumber);
-            }
-            else
-            {
-                user.VerifiedPhoneNumber.PhoneNumber = validCode.PhoneNumber;
-                user.VerifiedPhoneNumber.ModifiedAtUtc = DateTime.UtcNow;
-                _phoneNumberRepo.Update(user.VerifiedPhoneNumber);
-            }
-            _userRepo.Update(user);
             
             return ApiResponse.NoContent();
         }

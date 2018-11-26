@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.UserManagement.Avatar;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.Services.UserManagement.Identity;
+using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
@@ -68,17 +69,20 @@ namespace Discussion.Web
             services.AddEmailServices(_appConfiguration);
             services.AddSmsServices(_appConfiguration);
 
-            services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
+            
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
                 .AddScoped(sp =>
                 {
                     var actionAccessor = sp.GetService<IActionContextAccessor>();
                     var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
                     return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);              
-                })
-                .AddScoped<IUserAvatarService, UserAvatarService>();
+                });
+            
+            services.AddScoped<IUserAvatarService, UserAvatarService>();
+            services.AddScoped<IPhoneNumberVerificationService, DefaultPhoneNumberVerificationService>();
+            services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
 
             var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));

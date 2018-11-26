@@ -520,7 +520,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 .Verifiable();
             
             _theApp.OverrideServices(services => services.AddSingleton(smsSender.Object));
-//            ReplacableServiceProvider.Replace(services => services.AddSingleton(smsSender.Object));
             return smsSender;
         }
 

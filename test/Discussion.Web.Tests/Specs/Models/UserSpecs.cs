@@ -7,6 +7,14 @@ namespace Discussion.Web.Tests.Specs.Models
     public class UserSpecs
     {
         [Fact]
+        public void should_modify_phone_number_if_not_verified()
+        {
+            var user = new User();
+
+            Assert.True(user.CanModifyPhoneNumberNow());
+        }
+        
+        [Fact]
         public void should_not_modify_phone_number_if_verified_3_days_ago()
         {
             var user = CreateVerifiedUser(DateTime.UtcNow.AddDays(-3), null);

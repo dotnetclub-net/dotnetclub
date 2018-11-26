@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
@@ -5,6 +6,8 @@ using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Utilities;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
+using Discussion.Web.Services.UserManagement.Exceptions;
+using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,18 +21,24 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IUrlHelper _urlHelper;
         private readonly IEmailDeliveryMethod _emailDeliveryMethod;
         private readonly IConfirmationEmailBuilder _confirmationEmailBuilder;
+        private readonly IPhoneNumberVerificationService _phoneNumberVerificationService;
+        private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
 
         public DefaultUserService(IRepository<User> userRepo, 
             UserManager<User> userManager, 
             IEmailDeliveryMethod emailDeliveryMethod, 
             IUrlHelper urlHelper, 
-            IConfirmationEmailBuilder confirmationEmailBuilder)
+            IConfirmationEmailBuilder confirmationEmailBuilder, 
+            IPhoneNumberVerificationService phoneNumberVerificationService, 
+            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo)
         {
             _userRepo = userRepo;
             _userManager = userManager;
             _emailDeliveryMethod = emailDeliveryMethod;
             _urlHelper = urlHelper;
             _confirmationEmailBuilder = confirmationEmailBuilder;
+            _phoneNumberVerificationService = phoneNumberVerificationService;
+            _verifiedPhoneNumberRepo = verifiedPhoneNumberRepo;
         }
 
         public async Task<IdentityResult> UpdateUserInfoAsync(User user, UserSettingsViewModel userSettingsViewModel)
@@ -102,6 +111,39 @@ namespace Discussion.Web.Services.UserManagement
             return identityResult.Succeeded
                 ? await _userManager.UpdateAsync(user)
                 : identityResult;
+        }
+
+        public async Task SendPhoneNumberVerificationCodeAsync(User user, string phoneNumber)
+        {
+            if (!user.CanModifyPhoneNumberNow() || 
+                _phoneNumberVerificationService.IsFrequencyExceededForUser(user.Id))
+            {
+                throw new PhoneNumberVerificationFrequencyExceededException();
+            }
+
+            await _phoneNumberVerificationService.SendVerificationCodeAsync(user.Id, phoneNumber);
+        }
+
+        public void VerifyPhoneNumberByCode(User user, string verificationCode)
+        {
+            var validatedPhoneNumber = _phoneNumberVerificationService.GetVerifiedPhoneNumberByCode(user.Id, verificationCode);
+            if (validatedPhoneNumber == null)
+            {
+                throw new PhoneNumberVerificationCodeInvalidException();
+            }
+
+            if (user.VerifiedPhoneNumber == null)
+            {
+                user.VerifiedPhoneNumber = new VerifiedPhoneNumber{ PhoneNumber =  validatedPhoneNumber };
+                _verifiedPhoneNumberRepo.Save(user.VerifiedPhoneNumber);
+            }
+            else
+            {
+                user.VerifiedPhoneNumber.PhoneNumber = validatedPhoneNumber;
+                user.VerifiedPhoneNumber.ModifiedAtUtc = DateTime.UtcNow;
+                _verifiedPhoneNumberRepo.Update(user.VerifiedPhoneNumber);
+            }
+            _userRepo.Update(user);
         }
 
         private bool IsEmailTakenByAnotherUser(int thisUserId, string checkingEmail)
