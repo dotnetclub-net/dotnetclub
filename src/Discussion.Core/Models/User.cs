@@ -19,6 +19,15 @@ namespace Discussion.Core.Models
         [ForeignKey("PhoneNumberId")]
         public VerifiedPhoneNumber VerifiedPhoneNumber { get; set; }
         public int? PhoneNumberId { get; set; }
+
+
+        public bool CanModifyPhoneNumberNow()
+        {
+            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+            return PhoneNumberId != null
+                   && VerifiedPhoneNumber.CreatedAtUtc < sevenDaysAgo
+                   && VerifiedPhoneNumber.ModifiedAtUtc < sevenDaysAgo;
+        }
     }
 
 

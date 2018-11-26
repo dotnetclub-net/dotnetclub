@@ -32,7 +32,7 @@ namespace Discussion.Web.Services.UserManagement
             _confirmationEmailBuilder = confirmationEmailBuilder;
         }
 
-        public async Task<IdentityResult> UpdateUserInfo(UserSettingsViewModel userSettingsViewModel, User user)
+        public async Task<IdentityResult> UpdateUserInfoAsync(User user, UserSettingsViewModel userSettingsViewModel)
         {
             var updateEmailResult = await UpdateEmail(userSettingsViewModel, user);
             if (!updateEmailResult.Succeeded)
@@ -55,25 +55,21 @@ namespace Discussion.Web.Services.UserManagement
         {
             var existingEmail = user.EmailAddress?.Trim();
             var newEmail = userSettingsViewModel.EmailAddress?.Trim();
+            
             var emailNotChanged = existingEmail.IgnoreCaseEqual(newEmail);
             if (emailNotChanged)
             {
                 return IdentityResult.Success;
             }
             
-            var emailTaken = IsEmailTakenOtherUser(user.Id, newEmail);
-            if (emailTaken)
-            {
-                return IdentityResult.Failed(new IdentityError
-                {
-                    Code = "EmailTaken",
-                    Description = "邮件地址已由其他用户使用"
-                });
-            }
-            return await _userManager.SetEmailAsync(user, newEmail);
+            var emailTaken = IsEmailTakenByAnotherUser(user.Id, newEmail);
+            
+            return emailTaken 
+                ? EmailTakenResult()
+                : await _userManager.SetEmailAsync(user, newEmail);
         }
 
-        public async Task SendEmailConfirmationMail(User user, string urlProtocol)
+        public async Task SendEmailConfirmationMailAsync(User user, string urlProtocol)
         {
             if (user.EmailAddressConfirmed)
             {
@@ -95,7 +91,20 @@ namespace Discussion.Web.Services.UserManagement
             await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
         }
 
-        public bool IsEmailTakenOtherUser(int thisUserId, string checkingEmail)
+        public async Task<IdentityResult> ConfirmEmailAsync(User user, UserEmailToken tokenInEmail)
+        {
+            if (IsEmailTakenByAnotherUser(user.Id, user.EmailAddress))
+            {
+                return EmailTakenResult();
+            }
+            
+            var identityResult = await _userManager.ConfirmEmailAsync(user, tokenInEmail.Token);
+            return identityResult.Succeeded
+                ? await _userManager.UpdateAsync(user)
+                : identityResult;
+        }
+
+        private bool IsEmailTakenByAnotherUser(int thisUserId, string checkingEmail)
         {
             if (string.IsNullOrWhiteSpace(checkingEmail))
             {
@@ -109,5 +118,13 @@ namespace Discussion.Web.Services.UserManagement
                           && u.EmailAddress.ToLower() == checkingEmail.ToLower());
         }
 
+        private static IdentityResult EmailTakenResult()
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "EmailTaken",
+                Description = "邮件地址已由其他用户使用"
+            });
+        }
     }
 }

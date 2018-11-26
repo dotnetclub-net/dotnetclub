@@ -1,16 +1,13 @@
-﻿@using Discussion.Core.Models
+﻿@using Discussion.Core.Mvc
 @using Discussion.Core.Utilities
 @using Discussion.Web.Services.UserManagement.Avatar
 @inject IUserAvatarService AvatarService
-@model User
 @{
     Layout = "_UserLayout.cshtml";
     ViewData["Title"] = "手机验证";
 
-    var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
-    var canModifyPhoneNumber = Model.PhoneNumberId.HasValue &&
-                               Model.VerifiedPhoneNumber.CreatedAtUtc < sevenDaysAgo &&
-                               Model.VerifiedPhoneNumber.ModifiedAtUtc < sevenDaysAgo;
+    var user = Context.DiscussionUser();
+    var canModifyPhoneNumber = user.CanModifyPhoneNumberNow();
 }
 
 
@@ -20,9 +17,9 @@
         <label>
             用户名
         </label>
-        <div>@Model.UserName</div>
+        <div>@user.UserName</div>
     </fieldset>
-    <fieldset class="form-group edit-phone-number @(Model.PhoneNumberId.HasValue ? "hide" : "show")">
+    <fieldset class="form-group edit-phone-number @(user.PhoneNumberId.HasValue ? "hide" : "show")">
         <label for="VerifiedPhoneNumber_PhoneNumber">
             手机号码
         </label>
@@ -49,18 +46,18 @@
         </div>
     </fieldset>
     <button id="btn-verify" class="btn btn-default verification-submit">验证</button>
-    <fieldset class="form-group has-phone-number @(Model.PhoneNumberId.HasValue ? "show" : "hide")">
+    <fieldset class="form-group has-phone-number @(user.PhoneNumberId.HasValue ? "show" : "hide")">
         <label>
             手机号码
         </label>
         <div>
             <input type="text"
                    class="form-control"
-                   value="@StringUtility.MaskPhoneNumber(Model.VerifiedPhoneNumber?.PhoneNumber)"
+                   value="@StringUtility.MaskPhoneNumber(user.VerifiedPhoneNumber?.PhoneNumber)"
                    title="@(canModifyPhoneNumber ? "" : "上次验证七天以后，才可以修改已验证的手机号")" disabled="disabled" />
         </div>
         <div class="verify-palette">
-            <span class="verified-at" data-last-verified-at="@Html.Timestamp(Model.VerifiedPhoneNumber?.VerifiedTime)"></span> 已验证
+            <span class="verified-at" data-last-verified-at="@Html.Timestamp(user.VerifiedPhoneNumber?.VerifiedTime)"></span> 已验证
             @if (canModifyPhoneNumber)
             {
                 <a class="link change-phone-number">修改手机号</a>

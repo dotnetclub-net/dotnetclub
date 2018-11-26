@@ -281,12 +281,13 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var token = generatedUrl["token"].ToString();
 
             CreateUser("email@taken.com", confirmed: true);
-            await userCtrl.ConfirmEmail(token);
-            
+            var viewResult = await userCtrl.ConfirmEmail(token);
+            var isConfirmed = (bool)viewResult.Model;
+
             _theApp.ReloadEntity(user);
             Assert.Equal("email@taken.com", user.EmailAddress);
             Assert.False(user.EmailAddressConfirmed);
-            Assert.False(userCtrl.ModelState.IsValid);
+            Assert.False(isConfirmed);
         }
 
         // QUESTION: should not confirm with used token?

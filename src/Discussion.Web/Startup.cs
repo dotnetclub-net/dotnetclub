@@ -10,7 +10,6 @@ using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
 using Discussion.Web.Models;
 using Discussion.Web.Resources;
-using Discussion.Web.Services;
 using Discussion.Web.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -91,7 +90,7 @@ namespace Discussion.Web
         }
 
         public void Configure(IApplicationBuilder app)
-        {
+        {   
             if (_hostingEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

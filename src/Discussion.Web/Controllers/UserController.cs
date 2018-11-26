@@ -3,15 +3,12 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Discussion.Core.Communication.Email;
 using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
-using Discussion.Web.Services;
 using Discussion.Web.Services.UserManagement;
-using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,8 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Discussion.Web.Controllers
 {
-    // ReSharper disable Mvc.ActionNotResolved
-    // ReSharper disable Mvc.ControllerNotResolved
     
     [Route("user")]
     [Authorize]
@@ -67,7 +62,7 @@ namespace Discussion.Web.Controllers
                 return View("Settings", user);
             }
 
-            var identityResult = await _userService.UpdateUserInfo(userSettingsViewModel, user);
+            var identityResult = await _userService.UpdateUserInfoAsync(user, userSettingsViewModel);
             if (identityResult.Succeeded)
             {
                 return RedirectToAction("Settings");
@@ -86,7 +81,7 @@ namespace Discussion.Web.Controllers
             try
             {
                 var user = HttpContext.DiscussionUser();
-                await _userService.SendEmailConfirmationMail(user, Request.Scheme);
+                await _userService.SendEmailConfirmationMailAsync(user, Request.Scheme);
                 return  ApiResponse.NoContent();
             }
             catch (UserEmailAlreadyConfirmedException ex)
@@ -100,29 +95,19 @@ namespace Discussion.Web.Controllers
         [HttpGet]
         [Route("confirm-email")]
         [AllowAnonymous]
-        public async Task<ActionResult> ConfirmEmail(string token)
+        public async Task<ViewResult> ConfirmEmail(string token)
         {
+            var currentUser = HttpContext.DiscussionUser();
             var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
-            var hasErrors = tokenInEmail == null;
-            if (!hasErrors)
+            if (tokenInEmail == null || tokenInEmail.UserId != currentUser.Id)
             {
-                var user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
-                var identityResult = await _userManager.ConfirmEmailAsync(user, tokenInEmail.Token);
-                hasErrors = !identityResult.Succeeded;
-                if (!hasErrors && _userService.IsEmailTakenOtherUser(user.Id, user.EmailAddress))
-                {
-                    hasErrors = true;
-                    user.EmailAddressConfirmed = false;
-                    await _userManager.UpdateAsync(user);
-                }
+                return View(false);
             }
 
-            if (hasErrors)
-            {
-                ModelState.AddModelError("token", "无法确认邮件地址");
-            }
-            return View(); 
+            var result = await _userService.ConfirmEmailAsync(currentUser, tokenInEmail);
+            return View(result.Succeeded); 
         }
+        
 
         [Route("change-password")]
         public IActionResult ChangePassword()
@@ -156,9 +141,7 @@ namespace Discussion.Web.Controllers
         [Route("phone-number-verification")]
         public IActionResult VerifyPhoneNumber([FromForm] string code)
         {
-            var user = HttpContext.DiscussionUser();
-            _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
-            return View(user);
+            return View();
         }
 
         [HttpPost]

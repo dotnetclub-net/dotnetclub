@@ -7,10 +7,11 @@ namespace Discussion.Web.Services.UserManagement
 {
     public interface IUserService
     {
-        Task<IdentityResult> UpdateUserInfo(UserSettingsViewModel userSettingsViewModel, User user);
+        Task<IdentityResult> UpdateUserInfoAsync(User user, UserSettingsViewModel userSettingsViewModel);
 
-        Task SendEmailConfirmationMail(User user, string urlProtocol);
+        Task SendEmailConfirmationMailAsync(User user, string urlProtocol);
+
+        Task<IdentityResult> ConfirmEmailAsync(User user, UserEmailToken tokenInEmail);
         
-        bool IsEmailTakenOtherUser(int thisUserId, string checkingEmail);
     }
 }

@@ -1,7 +1,9 @@
 ﻿@using Discussion.Core.Mvc
+@model bool
 
 @{
-    var message = ViewContext.ModelState.IsValid ? "邮件地址已确认" : "无法确认邮件地址";
+    var emailConfirmed = Model;
+    var message = emailConfirmed ? "邮件地址已确认" : "无法确认邮件地址";
     ViewData["Title"] = message;
 }
 
