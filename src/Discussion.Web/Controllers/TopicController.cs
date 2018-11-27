@@ -8,6 +8,8 @@ using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Pagination;
 using Discussion.Web.Models;
+using Discussion.Web.Services.TopicManagement;
+using Discussion.Web.Services.UserManagement.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Discussion.Web.Controllers
@@ -16,14 +18,12 @@ namespace Discussion.Web.Controllers
     {
         private const int PageSize = 20;
         private readonly IRepository<Topic> _topicRepo;
-        private readonly IRepository<Reply> _replyRepo;
-        private readonly SiteSettings _settings;
+        private readonly ITopicService _topicService;
 
-        public TopicController(IRepository<Topic> topicRepo, IRepository<Reply> replyRepo, SiteSettings settings)
+        public TopicController(IRepository<Topic> topicRepo, ITopicService topicService)
         {
             _topicRepo = topicRepo;
-            _replyRepo = replyRepo;
-            _settings = settings;
+            _topicService = topicService;
         }
 
 
@@ -44,25 +44,12 @@ namespace Discussion.Web.Controllers
         [Route("/topics/{id}")]
         public ActionResult Index(int id)
         {
-            var topic = _topicRepo.All()
-                .Where(t => t.Id == id)
-                .Include(t => t.Author)
-                .SingleOrDefault();
-
-            if (topic == null)
+            var showModel = _topicService.ViewTopic(id);
+            if (showModel == null)
             {
                 return NotFound();
             }
 
-            var replies = _replyRepo.All()
-                                        .Where(c => c.TopicId == id)
-                                        .OrderBy(c => c.CreatedAtUtc)
-                                        .Include(r => r.Author)
-                                        .ToList();
-            var showModel = TopicViewModel.CreateFrom(topic, replies);
-
-            topic.ViewCount++;
-            _topicRepo.Update(topic);
             return View(showModel);
         }
 
@@ -78,32 +65,20 @@ namespace Discussion.Web.Controllers
         [Route("/topics")]
         public ActionResult CreateTopic(TopicCreationModel model)
         {
-            var currentUser = HttpContext.DiscussionUser();
-            if (_settings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
-            {
-                return BadRequest();
-            }
-            
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            // ReSharper disable once PossibleInvalidOperationException
-            var topic = new Topic
+            try
             {
-                Title = model.Title,
-                Content = model.Content,
-                Type = model.Type.Value,
-                CreatedBy = currentUser.Id,
-                CreatedAtUtc = DateTime.UtcNow
-            };
-
-            _topicRepo.Save(topic);
-            
-            // ReSharper disable Mvc.ActionNotResolved
-            // ReSharper disable Mvc.ControllerNotResolved
-            return RedirectToAction("Index", new { topic.Id });
+                var topic = _topicService.CreateTopic(model);
+                return RedirectToAction("Index", new { topic.Id });
+            }
+            catch (UserVerificationRequiredException)
+            {
+                return BadRequest();
+            }
         }
     }
 }

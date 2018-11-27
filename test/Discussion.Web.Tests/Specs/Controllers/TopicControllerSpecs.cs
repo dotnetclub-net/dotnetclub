@@ -9,6 +9,8 @@ using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Models;
+using Discussion.Web.Services;
+using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -133,11 +135,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_not_create_topic_if_require_verified_phone_number_but_user_has_no()
         {
-            _app.MockUser();
+            var user = _app.MockUser();
             var topicRepo = new Mock<IRepository<Topic>>();
+            var userMock = new Mock<ICurrentUser>();
+            userMock.SetupGet(u => u.DiscussionUser).Returns(user);
+
             var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
+            var topicService = new DefaultTopicService(siteSettings, userMock.Object, topicRepo.Object, null);
             
-            var topicController = new TopicController(topicRepo.Object, new Mock<IRepository<Reply>>().Object, siteSettings);
+            var topicController = new TopicController(topicRepo.Object, topicService);
             topicController.ControllerContext.HttpContext = new DefaultHttpContext
             {
                 User = _app.User,

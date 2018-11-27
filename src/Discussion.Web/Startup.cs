@@ -10,6 +10,8 @@ using Discussion.Core.Mvc;
 using Discussion.Migrations.Supporting;
 using Discussion.Web.Models;
 using Discussion.Web.Resources;
+using Discussion.Web.Services;
+using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -69,6 +71,7 @@ namespace Discussion.Web
             services.AddEmailServices(_appConfiguration);
             services.AddSmsServices(_appConfiguration);
 
+            services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
             
@@ -84,6 +87,8 @@ namespace Discussion.Web
             services.AddScoped<IPhoneNumberVerificationService, DefaultPhoneNumberVerificationService>();
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
+
+            services.AddScoped<ITopicService, DefaultTopicService>();
 
             var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));
             if (siteSettingsSection != null)
