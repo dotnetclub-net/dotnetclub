@@ -141,10 +141,16 @@ namespace Discussion.Tests.Common
             return loggerProvider?.LogItems;
         }
 
-        public static User CreateUser(this TestApplication app, string username, string password = null, string displayName = null)
+        public static User CreateUser(this TestApplication app, string username = null, string password = null, string displayName = null)
         {
             var actualPassword = string.IsNullOrEmpty(password) ? StringUtility.Random() : password;
             var userManager = app.GetService<UserManager<User>>();
+
+            if (username == null)
+            {
+                username = StringUtility.Random();
+            }
+            
             var user = new User
             {
                 UserName = username,

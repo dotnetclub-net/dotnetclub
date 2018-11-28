@@ -7,6 +7,7 @@ using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Models;
+using Discussion.Web.Tests.Fixtures;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,20 +19,23 @@ namespace Discussion.Web.Tests.Specs.Controllers
     [Collection("WebSpecs")]
     public class ReplyControllerSpecs
     {
+        // ReSharper disable PossibleInvalidOperationException
+        
         private readonly TestDiscussionWebApp _app;
-
         public ReplyControllerSpecs(TestDiscussionWebApp app)
         {
             _app = app.Reset();
         }
 
+        
         [Fact]
         public void should_add_reply()
         {
             // Arrange
-            _app.MockUser();
-            var (topic, userId) = CreateTopic(_app);
-
+            var user = _app.MockUser();
+            var topic = _app.NewTopic().WithAuthor(user).Create();
+            
+            
             // Act
             var replyController = _app.CreateController<ReplyController>();
             replyController.Reply(topic.Id, new ReplyCreationModel
@@ -46,7 +50,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                         .ToList();
             replies.Count.ShouldEqual(1);
             replies[0].TopicId.ShouldEqual(topic.Id);
-            replies[0].CreatedBy.ShouldEqual(userId);
+            replies[0].CreatedBy.ShouldEqual(user.Id);
             replies[0].Content.ShouldEqual("my reply");
 
             var dbContext = _app.GetService<ApplicationDbContext>();
@@ -54,27 +58,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topic.ReplyCount.ShouldEqual(1);
             topic.LastRepliedUser.ShouldNotBeNull();
             topic.LastRepliedAt.ShouldNotBeNull();
-            // ReSharper disable once PossibleInvalidOperationException
             var span = DateTime.UtcNow - topic.LastRepliedAt.Value;
             Assert.True(span.TotalSeconds > 0);
             Assert.True(span.TotalSeconds < 10);
         }
 
         [Fact]
-        public void should_not_add_reply_when_model_state_invalid()
+        public void should_not_add_reply_when_no_content()
         {
             // Arrange
-            _app.MockUser();
-            var (topic, _) = CreateTopic(_app);
-
+            var topic = _app.NewTopic().WithAuthor(_app.MockUser()).Create();
             var replyController = _app.CreateController<ReplyController>();
-            replyController.ModelState.AddModelError("Content", "必须填写回复内容");
 
             // Act
-            var replyResult = replyController.Reply(topic.Id, new ReplyCreationModel
-            {
-                Content = "my reply"
-            });
+            var model = new ReplyCreationModel { Content = string.Empty };
+            replyController.TryValidateModel(model);
+            var replyResult = replyController.Reply(topic.Id, model);
 
             // Assert
             var statusCodeResult = replyResult as BadRequestObjectResult;
@@ -89,8 +88,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_not_add_reply_if_require_verified_phone_number_but_user_has_no()
         {
-            _app.MockUser();
-            var (topic, _) = CreateTopic(_app);
+            var topic = _app.NewTopic().WithAuthor(_app.MockUser()).Create();
             var replyRepo = new Mock<IRepository<Reply>>();
             var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
 
@@ -122,21 +120,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var statusCodeResult = replyResult as BadRequestObjectResult;
             Assert.NotNull(statusCodeResult);
             Assert.Equal(400, statusCodeResult.StatusCode);
-        }
-
-        internal static (Topic, int) CreateTopic(TestDiscussionWebApp app)
-        {
-            // ReSharper disable once PossibleInvalidOperationException
-            var userId = app.User.ExtractUserId().Value;
-            var topic = new Topic
-            {
-                Title = "test topic",
-                Content = "topic content",
-                CreatedBy = userId,
-                Type = TopicType.Discussion
-            };
-            app.GetService<IRepository<Topic>>().Save(topic);
-            return (topic, userId);
         }
     }
 }

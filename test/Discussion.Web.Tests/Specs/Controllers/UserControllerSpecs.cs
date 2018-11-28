@@ -38,6 +38,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _theApp.DeleteAll<User>();
         }
 
+        #region Update Profile
+        
         [Fact]
         public async Task should_update_display_name()
         {
@@ -99,6 +101,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.Equal(user.UserName, user.DisplayName);
         }
 
+        #endregion
+  
+        #region Change Password
+
         [Fact]
         public async Task should_update_password()
         {
@@ -121,7 +127,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         [Fact]
-        public async Task should_not_update_password_with_invalid_wrong_password()
+        public async Task should_not_update_password_with_wrong_password()
         {
             var user = _theApp.MockUser();
             var viewModel = new ChangePasswordViewModel
@@ -140,7 +146,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
             Assert.False(passwordChanged);
         }
-        
+
+        #endregion
         
         #region Email Settings
 
@@ -422,9 +429,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.NotNull(user.PhoneNumberId);
         }
         
-        
-        // todo: should be able to change phone number after 7 days
-        // todo: should be able to send code after 2 mins
         // *todo: should auto invalid after 1 year
         
         #endregion
