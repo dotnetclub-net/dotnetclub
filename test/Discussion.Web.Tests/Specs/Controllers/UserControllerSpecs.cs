@@ -264,13 +264,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var generatedUrl = userCtrl.GetFakeRouter().GetGeneratedUrl;
             var token = generatedUrl["token"].ToString();
-            var result = await userCtrl.ConfirmEmail(token);
+            var viewResult = await userCtrl.ConfirmEmail(token);
             
             _theApp.ReloadEntity(user);
             Assert.Equal("one@changing.com", user.EmailAddress);
             Assert.True(user.EmailAddressConfirmed);
             
-            var viewResult = result as ViewResult;
             Assert.NotNull(viewResult);
             Assert.True(userCtrl.ModelState.IsValid);
             Assert.True(string.IsNullOrEmpty(viewResult.ViewName));

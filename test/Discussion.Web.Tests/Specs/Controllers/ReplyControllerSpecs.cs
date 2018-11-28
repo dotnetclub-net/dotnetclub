@@ -11,6 +11,7 @@ using Discussion.Web.Tests.Fixtures;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -92,7 +93,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var replyRepo = new Mock<IRepository<Reply>>();
             var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
 
-            var replyController = new ReplyController(replyRepo.Object, _app.GetService<IRepository<Topic>>(), siteSettings);
+            var replyController = new ReplyController(replyRepo.Object, _app.GetService<IRepository<Topic>>(), siteSettings, NullLogger<ReplyController>.Instance);
             replyController.ControllerContext.HttpContext = new DefaultHttpContext
             {
                 User = _app.User,

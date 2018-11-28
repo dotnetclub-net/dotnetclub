@@ -1,11 +1,14 @@
 using System;
 using Discussion.Core.Data;
+using Discussion.Core.Logging;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Web.Models;
+using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Discussion.Web.Controllers
 {
@@ -13,15 +16,17 @@ namespace Discussion.Web.Controllers
     {
         private readonly IRepository<Reply> _replyRepo;
         private readonly IRepository<Topic> _topicRepo;
-        private SiteSettings _siteSettings;
+        private readonly SiteSettings _siteSettings;
+        private readonly ILogger<ReplyController> _logger;
 
         public ReplyController(IRepository<Reply> replyRepo, 
             IRepository<Topic> topicRepo,
-            SiteSettings siteSettings)
+            SiteSettings siteSettings, ILogger<ReplyController> logger)
         {
             _replyRepo = replyRepo;
             _topicRepo = topicRepo;
             _siteSettings = siteSettings;
+            _logger = logger;
         }
 
         [Route("/topics/{topicId}/replies")]
@@ -33,6 +38,8 @@ namespace Discussion.Web.Controllers
 
             if (_siteSettings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
             {
+                var ex = new UserVerificationRequiredException();
+                _logger.LogWarning($"添加回复失败：{currentUser.UserName}：{ex.Message}");
                 return BadRequest();
             }
             
@@ -44,6 +51,7 @@ namespace Discussion.Web.Controllers
 
             if (!ModelState.IsValid)
             {
+                _logger.LogModelState("添加回复", ModelState, currentUser.UserName);
                 return BadRequest(ModelState);
             }
 
@@ -60,6 +68,8 @@ namespace Discussion.Web.Controllers
             topic.LastRepliedUser = currentUser;
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
+            
+            _logger.LogInformation($"添加回复成功：{currentUser.UserName}：(topicId: {topic.Id} replyId: {reply.Id})");
             return NoContent();
         }
     }

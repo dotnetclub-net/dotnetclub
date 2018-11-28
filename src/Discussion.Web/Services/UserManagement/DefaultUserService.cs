@@ -82,7 +82,7 @@ namespace Discussion.Web.Services.UserManagement
         {
             if (user.EmailAddressConfirmed)
             {
-                throw new UserEmailAlreadyConfirmedException();
+                throw new UserEmailAlreadyConfirmedException(user.UserName);
             }
             
             var tokenString = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -100,17 +100,22 @@ namespace Discussion.Web.Services.UserManagement
             await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
         }
 
-        public async Task<IdentityResult> ConfirmEmailAsync(User user, UserEmailToken tokenInEmail)
+        public async Task<IdentityResult> ConfirmEmailAsync(UserEmailToken tokenInEmail)
         {
-            if (IsEmailTakenByAnotherUser(user.Id, user.EmailAddress))
+            var user = _userRepo.Get(tokenInEmail.UserId);
+            var identityResult = await _userManager.ConfirmEmailAsync(user, tokenInEmail.Token);
+            if (!identityResult.Succeeded)
             {
-                return EmailTakenResult();
+                return identityResult;
             }
             
-            var identityResult = await _userManager.ConfirmEmailAsync(user, tokenInEmail.Token);
-            return identityResult.Succeeded
-                ? await _userManager.UpdateAsync(user)
-                : identityResult;
+            if (IsEmailTakenByAnotherUser(tokenInEmail.UserId, user.EmailAddress))
+            {
+                user.EmailAddressConfirmed = false;
+                _userRepo.Update(user);
+                return EmailTakenResult();
+            }
+            return identityResult;
         }
 
         public async Task SendPhoneNumberVerificationCodeAsync(User user, string phoneNumber)

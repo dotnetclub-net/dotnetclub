@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Logging;
 
 namespace Discussion.Web.Controllers
 {
@@ -22,12 +23,14 @@ namespace Discussion.Web.Controllers
         private readonly IFileSystem _fileSystem;
         private readonly IRepository<FileRecord> _fileRepo;
         private readonly IContentTypeProvider _contentTypeProvider;
+        private readonly ILogger<CommonController> _logger;
 
-        public CommonController(IFileSystem fileSystem, IRepository<FileRecord> fileRepo, IContentTypeProvider contentTypeProvider)
+        public CommonController(IFileSystem fileSystem, IRepository<FileRecord> fileRepo, IContentTypeProvider contentTypeProvider, ILogger<CommonController> logger)
         {
             _fileSystem = fileSystem;
             _fileRepo = fileRepo;
             _contentTypeProvider = contentTypeProvider;
+            _logger = logger;
         }
         
         [HttpPost("md2html")]
@@ -50,6 +53,7 @@ namespace Discussion.Web.Controllers
                 || preventedFileNameChars.Any(category.Contains)
                 || file == null || file.Length < 1)
             {
+                _logger.LogWarning("上传文件失败：空文件，或不正确的参数");
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }
 
@@ -82,6 +86,7 @@ namespace Discussion.Web.Controllers
                 ? await storageFile.GetPublicUrlAsync(TimeSpan.MaxValue)
                 : Url.Action("DownloadFile", "Common", new {id = fileRecord.Id}, Request.Scheme);
 
+            _logger.LogInformation($"上传文件成功：{fileRecord.OriginalName}, {fileRecord.Size} bytes, {fileRecord.StoragePath}, (id: {fileRecord.Id})");
             return ApiResponse.ActionResult(new
             {
                 FileId = fileRecord.Id,

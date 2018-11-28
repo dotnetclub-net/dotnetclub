@@ -13,6 +13,7 @@ using Discussion.Web.Tests.Fixtures;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -152,7 +153,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             userMock.SetupGet(u => u.DiscussionUser).Returns(user);
 
             var topicService = new DefaultTopicService(siteSettings, userMock.Object, topicRepo.Object, null);
-            var topicController = new TopicController(topicRepo.Object, topicService)
+            var topicController = new TopicController(topicRepo.Object, topicService, NullLogger<TopicController>.Instance)
             {
                 ControllerContext =
                 {
