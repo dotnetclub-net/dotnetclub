@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
@@ -74,6 +75,7 @@ namespace Discussion.Web
             services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
+            services.AddSingleton<HttpMessageInvoker>(new HttpClient());
             
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
                 .AddScoped(sp =>

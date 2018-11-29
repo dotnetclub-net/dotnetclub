@@ -25,15 +25,15 @@ namespace Discussion.Core.Communication.Email.DeliveryMethods
 
             using (var client = new SmtpClient())
             {
-                client.Connect(_emailSendingOptions.ServerHost, _emailSendingOptions.ServerSslPort, useSsl: true);
+                await client.ConnectAsync(_emailSendingOptions.ServerHost, _emailSendingOptions.ServerSslPort, useSsl: true);
                 if (!string.IsNullOrEmpty(_emailSendingOptions.LoginName)
                     && !string.IsNullOrEmpty(_emailSendingOptions.Password))
                 {
-                    client.Authenticate(_emailSendingOptions.LoginName, _emailSendingOptions.Password);
+                    await client.AuthenticateAsync(_emailSendingOptions.LoginName, _emailSendingOptions.Password);
                 }
 
                 await client.SendAsync(mimeMessage);
-                client.Disconnect(true);
+                var _ = client.DisconnectAsync(true);
             }
         }
     }
