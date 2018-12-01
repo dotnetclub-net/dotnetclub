@@ -6,6 +6,7 @@ using Discussion.Core;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Time;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -55,9 +56,9 @@ namespace Discussion.Admin
             {
                 configuration.RootPath = "ClientApp/dist";
             });
-            
-            services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
 
+            services.AddSingleton<IClock, SystemClock>();
+            services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
             services.AddScoped<IAdminUserService, AdminUserServiceImpl>();
         }
 

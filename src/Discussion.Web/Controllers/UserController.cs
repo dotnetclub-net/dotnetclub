@@ -162,7 +162,7 @@ namespace Discussion.Web.Controllers
             }
             catch(PhoneNumberVerificationFrequencyExceededException)
             {
-                _logger.LogWarning($"发送手机验证短信失败：{user.UserName}：超出限制");
+                _logger.LogWarning($"发送手机验证短信失败：{user.UserName}：超出调用限制");
                 return badRequestResponse;                
             }
                 
