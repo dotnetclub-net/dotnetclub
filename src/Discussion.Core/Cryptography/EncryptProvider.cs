@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace Discussion.Core.Utilities
+namespace Discussion.Core.Cryptography
 {
     public class EncryptProvider
     {

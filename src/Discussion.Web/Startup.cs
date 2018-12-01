@@ -1,10 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Communication.Sms;
+using Discussion.Core.Cryptography;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
@@ -25,6 +28,7 @@ using Discussion.Web.Services.UserManagement.Avatar;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.Services.UserManagement.Identity;
 using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
@@ -61,6 +65,7 @@ namespace Discussion.Web
             services.AddLogging();
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
 
+            services.ConfigureDataProtection(_appConfiguration);
             services.AddMvc(options =>
             {
                 options.ModelBindingMessageProvider.UseTranslatedResources();

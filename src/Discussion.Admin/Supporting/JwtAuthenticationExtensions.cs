@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-using Discussion.Core.Utilities;
+using Discussion.Core.Cryptography;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
