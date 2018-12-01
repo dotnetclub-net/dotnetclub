@@ -1,3 +1,4 @@
+using System;
 using Discussion.Core.Models;
 using Discussion.Web.Resources;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +8,8 @@ namespace Discussion.Web.Services.UserManagement.Identity
 {
     public static class ServiceExtensions
     {
+        private const string EmailConfirmationTokenProviderName = "EmailConfirmation";
+        
         public static void AddIdentityServices(this IServiceCollection services)
         {
             services.AddAuthorization();
@@ -15,7 +18,8 @@ namespace Discussion.Web.Services.UserManagement.Identity
                 .AddRoleStore<NullRoleStore>()
                 .AddClaimsPrincipalFactory<DiscussionUserClaimsPrincipalFactory>()
                 .AddErrorDescriber<ResourceBasedIdentityErrorDescriber>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddTokenProvider<EmailConfirmationTokenProvider<User>>(EmailConfirmationTokenProviderName);
             services.AddScoped<UserManager<User>, EmailAddressAwareUserManager<User>>();
             services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
             services.Configure<IdentityOptions>(options =>
@@ -27,8 +31,16 @@ namespace Discussion.Web.Services.UserManagement.Identity
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
-                options.User.RequireUniqueEmail = false; // 不但会检查 Email 的唯一性，还会要求 Email 必填
+                options.User.RequireUniqueEmail = false; // 如果设置为 true，则不但会检查 Email 的唯一性，还会要求 Email 必填
+                
+                options.Tokens.EmailConfirmationTokenProvider = EmailConfirmationTokenProviderName;
             });
+            
+            services.Configure<EmailConfirmationTokenOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromDays(7);
+            });
+
         }
     }
 }

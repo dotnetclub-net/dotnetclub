@@ -99,7 +99,7 @@ namespace Discussion.Web.Services.UserManagement
                 new {token = tokenInEmail.EncodeAsUrlQueryString()},
                 protocol: urlProtocol);
 
-            var emailBody = _confirmationEmailBuilder.BuildEmailBody(callbackUrl);
+            var emailBody = _confirmationEmailBuilder.BuildEmailBody(user.DisplayName, callbackUrl);
             await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
         }
 

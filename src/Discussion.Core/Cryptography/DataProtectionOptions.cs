@@ -17,14 +17,13 @@ namespace Discussion.Core.Cryptography
         public static void ConfigureDataProtection(this IServiceCollection services, IConfiguration appConfiguration)
         {
             var optionsSection = appConfiguration.GetSection(nameof(DataProtectionOptions));
-            if (optionsSection == null)
+            var options = optionsSection?.Get<DataProtectionOptions>();
+            if (options == null)
             {
                 return;
             }
 
-            var options = optionsSection.Get<DataProtectionOptions>();
             var dataProtection = services.AddDataProtection();
-
             if (!string.IsNullOrEmpty(options.ApplicationName))
             {
                 dataProtection.SetApplicationName(options.ApplicationName);
