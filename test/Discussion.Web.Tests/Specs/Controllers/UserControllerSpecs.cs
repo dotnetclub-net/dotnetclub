@@ -506,7 +506,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var mailSender = new Mock<IEmailDeliveryMethod>();
             if (willBeCalled)
             {
-                mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), "dotnet club 用户邮件地址确认", It.IsAny<string>()))
+                mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
             }

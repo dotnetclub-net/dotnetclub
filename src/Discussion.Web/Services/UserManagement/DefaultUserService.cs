@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Time;
 using Discussion.Core.Utilities;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.Services.UserManagement.Exceptions;
@@ -23,6 +24,7 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IConfirmationEmailBuilder _confirmationEmailBuilder;
         private readonly IPhoneNumberVerificationService _phoneNumberVerificationService;
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
+        private readonly IClock _clock;
 
         public DefaultUserService(IRepository<User> userRepo, 
             UserManager<User> userManager, 
@@ -30,7 +32,7 @@ namespace Discussion.Web.Services.UserManagement
             IUrlHelper urlHelper, 
             IConfirmationEmailBuilder confirmationEmailBuilder, 
             IPhoneNumberVerificationService phoneNumberVerificationService, 
-            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo)
+            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock)
         {
             _userRepo = userRepo;
             _userManager = userManager;
@@ -39,6 +41,7 @@ namespace Discussion.Web.Services.UserManagement
             _confirmationEmailBuilder = confirmationEmailBuilder;
             _phoneNumberVerificationService = phoneNumberVerificationService;
             _verifiedPhoneNumberRepo = verifiedPhoneNumberRepo;
+            _clock = clock;
         }
 
         public async Task<IdentityResult> UpdateUserInfoAsync(User user, UserSettingsViewModel userSettingsViewModel)
@@ -120,7 +123,7 @@ namespace Discussion.Web.Services.UserManagement
 
         public async Task SendPhoneNumberVerificationCodeAsync(User user, string phoneNumber)
         {
-            if (!user.CanModifyPhoneNumberNow() || 
+            if (!user.CanModifyPhoneNumberNow(_clock) || 
                 _phoneNumberVerificationService.IsFrequencyExceededForUser(user.Id))
             {
                 throw new PhoneNumberVerificationFrequencyExceededException();
@@ -145,7 +148,7 @@ namespace Discussion.Web.Services.UserManagement
             else
             {
                 user.VerifiedPhoneNumber.PhoneNumber = validatedPhoneNumber;
-                user.VerifiedPhoneNumber.ModifiedAtUtc = DateTime.UtcNow;
+                user.VerifiedPhoneNumber.ModifiedAtUtc = _clock.Now.UtcDateTime;
                 _verifiedPhoneNumberRepo.Update(user.VerifiedPhoneNumber);
             }
             _userRepo.Update(user);

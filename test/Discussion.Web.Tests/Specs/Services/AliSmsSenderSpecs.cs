@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Sms.SmsSenders;
+using Discussion.Core.Time;
 using Discussion.Core.Utilities;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -56,7 +57,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 return JsonResponse(response);
             });
 
-            var smsSender = new AliyunSmsSender(optionsMock.Object, client);
+            var smsSender = new AliyunSmsSender(optionsMock.Object, client, new SystemClock());
             return (smsSender, client);
         }
 

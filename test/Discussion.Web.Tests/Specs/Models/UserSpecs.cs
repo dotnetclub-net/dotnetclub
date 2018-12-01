@@ -1,17 +1,27 @@
 using System;
 using Discussion.Core.Models;
+using Discussion.Core.Time;
+using Moq;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Models
 {
     public class UserSpecs
     {
+        private readonly IClock _clock;
+        public UserSpecs()
+        {
+            var mockClock = new Mock<IClock>();
+            mockClock.SetupGet(t => t.Now).Returns(new DateTimeOffset(DateTime.UtcNow, TimeSpan.Zero));
+            _clock = mockClock.Object;
+        }
+        
         [Fact]
         public void should_modify_phone_number_if_not_verified()
         {
             var user = new User();
 
-            Assert.True(user.CanModifyPhoneNumberNow());
+            Assert.True(user.CanModifyPhoneNumberNow(_clock));
         }
         
         [Fact]
@@ -19,7 +29,7 @@ namespace Discussion.Web.Tests.Specs.Models
         {
             var user = CreateVerifiedUser(DateTime.UtcNow.AddDays(-3), null);
 
-            Assert.False(user.CanModifyPhoneNumberNow());
+            Assert.False(user.CanModifyPhoneNumberNow(_clock));
         }
 
         [Fact]
@@ -27,7 +37,7 @@ namespace Discussion.Web.Tests.Specs.Models
         {
             var user = CreateVerifiedUser(DateTime.UtcNow.AddDays(-8), DateTime.UtcNow.AddDays(-3));
 
-            Assert.False(user.CanModifyPhoneNumberNow());
+            Assert.False(user.CanModifyPhoneNumberNow(_clock));
         }
 
         [Fact]
@@ -35,7 +45,7 @@ namespace Discussion.Web.Tests.Specs.Models
         {
             var user = CreateVerifiedUser(DateTime.UtcNow.AddDays(-8), null);
 
-            Assert.True(user.CanModifyPhoneNumberNow());
+            Assert.True(user.CanModifyPhoneNumberNow(_clock));
         }
 
         private static User CreateVerifiedUser(DateTime? initialVerifiedAtUtc, DateTime? updatedAtUtc)

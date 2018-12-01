@@ -3,6 +3,7 @@ using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Time;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
@@ -93,7 +94,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var replyRepo = new Mock<IRepository<Reply>>();
             var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
 
-            var replyController = new ReplyController(replyRepo.Object, _app.GetService<IRepository<Topic>>(), siteSettings, NullLogger<ReplyController>.Instance);
+            var replyController = new ReplyController(replyRepo.Object, 
+                _app.GetService<IRepository<Topic>>(), 
+                siteSettings, 
+                NullLogger<ReplyController>.Instance, 
+                new SystemClock());
             replyController.ControllerContext.HttpContext = new DefaultHttpContext
             {
                 User = _app.User,

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Time;
 using Discussion.Web.Models;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
@@ -15,16 +16,18 @@ namespace Discussion.Web.Services.TopicManagement
         private readonly ICurrentUser _currentUser;
         private readonly IRepository<Topic> _topicRepo;
         private readonly IRepository<Reply> _replyRepo;
+        private readonly IClock _clock;
 
         public DefaultTopicService(SiteSettings settings, 
             ICurrentUser currentUser, 
             IRepository<Topic> topicRepo, 
-            IRepository<Reply> replyRepo)
+            IRepository<Reply> replyRepo, IClock clock)
         {
             _settings = settings;
             _currentUser = currentUser;
             _topicRepo = topicRepo;
             _replyRepo = replyRepo;
+            _clock = clock;
         }
 
         public TopicViewModel ViewTopic(int topicId)
@@ -67,7 +70,7 @@ namespace Discussion.Web.Services.TopicManagement
                 Content = model.Content,
                 Type = model.Type.Value,
                 CreatedBy = user.Id,
-                CreatedAtUtc = DateTime.UtcNow
+                CreatedAtUtc = _clock.Now.UtcDateTime
             };
             _topicRepo.Save(topic);
 

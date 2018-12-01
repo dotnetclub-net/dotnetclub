@@ -1,13 +1,14 @@
 ﻿@using Discussion.Core.Mvc
 @using Discussion.Core.Utilities
 @using Discussion.Web.Services.UserManagement.Avatar
+@inject Discussion.Core.Time.IClock clock
 @inject IUserAvatarService AvatarService
 @{
     Layout = "_UserLayout.cshtml";
     ViewData["Title"] = "手机验证";
 
     var user = Context.DiscussionUser();
-    var canModifyPhoneNumber = user.CanModifyPhoneNumberNow();
+    var canModifyPhoneNumber = user.CanModifyPhoneNumberNow(clock);
 }
 
 

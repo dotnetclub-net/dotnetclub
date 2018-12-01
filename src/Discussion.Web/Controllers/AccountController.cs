@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
+using Discussion.Core.Time;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Discussion.Web.Controllers
@@ -18,16 +19,18 @@ namespace Discussion.Web.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IRepository<User> _userRepo;
+        private readonly IClock _clock;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<AccountController> logger, IRepository<User> userRepo)
+            ILogger<AccountController> logger, IRepository<User> userRepo, IClock clock)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _userRepo = userRepo;
+            _clock = clock;
         }
 
         [Route("/signin")]
@@ -76,7 +79,7 @@ namespace Discussion.Web.Controllers
             }
 
             var user = await _userManager.FindByNameAsync(viewModel.UserName);
-            user.LastSeenAt = DateTime.UtcNow;
+            user.LastSeenAt = _clock.Now.UtcDateTime;
             _userRepo.Update(user);
             return RedirectTo(returnUrl);
         }
@@ -116,7 +119,7 @@ namespace Discussion.Web.Controllers
             {
                 UserName = registerModel.UserName,
                 DisplayName = registerModel.UserName,
-                CreatedAtUtc = DateTime.UtcNow
+                CreatedAtUtc = _clock.Now.UtcDateTime
             };
 
             var result = await _userManager.CreateAsync(newUser, registerModel.Password);

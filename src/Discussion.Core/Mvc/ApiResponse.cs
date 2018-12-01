@@ -8,7 +8,7 @@ using Newtonsoft.Json.Serialization;
 namespace Discussion.Core.Mvc
 {
     public class ApiResponse
-    {
+    {   
         public static readonly IContractResolver CamelCaseContractResolver = new CamelCasePropertyNamesContractResolver();
         
         private const char ErrorDelimiter = '\n';

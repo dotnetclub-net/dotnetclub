@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Discussion.Core.Time;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -18,10 +19,12 @@ namespace Discussion.Core.Communication.Sms.SmsSenders
     {
         private readonly HttpMessageInvoker _httpInvoker;
         private readonly AliyunSmsOptions _aliyunSmsOptions;
+        private readonly IClock _clock;
 
-        public AliyunSmsSender(IOptions<AliyunSmsOptions> smsSendingOptions, HttpMessageInvoker httpInvoker)
+        public AliyunSmsSender(IOptions<AliyunSmsOptions> smsSendingOptions, HttpMessageInvoker httpInvoker, IClock clock)
         {
             _httpInvoker = httpInvoker;
+            _clock = clock;
             _aliyunSmsOptions = smsSendingOptions.Value;
             _accessKeyId = _aliyunSmsOptions.AccountKeyId;
             _accessKeySecret = _aliyunSmsOptions.AccessKeySecret;
@@ -110,7 +113,7 @@ namespace Discussion.Core.Communication.Sms.SmsSenders
                 {"SignatureVersion", "1.0"},
                 {"AccessKeyId", _accessKeyId},
                 {"SignatureNonce", nonce},
-                {"Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")},
+                {"Timestamp", _clock.Now.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")},
                 
                 {"Action", "SendSms"},
                 {"RegionId", "cn-hangzhou"}
@@ -174,7 +177,7 @@ namespace Discussion.Core.Communication.Sms.SmsSenders
             
             public AliyunSmsException(Exception exception, 
                 string response, AliyunSmsResponse responseObject)
-                : base($"Failed to request api with action SendSms with response " 
+                : base("Failed to request api with action SendSms with response " 
                        + (response ?? string.Empty),  exception)
             {
                 this.ResponseContent = response;

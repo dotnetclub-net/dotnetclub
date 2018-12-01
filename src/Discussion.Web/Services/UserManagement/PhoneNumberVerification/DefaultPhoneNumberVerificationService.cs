@@ -1,9 +1,9 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Time;
 using Discussion.Core.Utilities;
 
 namespace Discussion.Web.Services.UserManagement.PhoneNumberVerification
@@ -12,24 +12,26 @@ namespace Discussion.Web.Services.UserManagement.PhoneNumberVerification
     {
         private readonly IRepository<PhoneNumberVerificationRecord> _verificationCodeRecordRepo;
         private readonly ISmsSender _smsSender;
+        private readonly IClock _clock;
 
         public DefaultPhoneNumberVerificationService(
             IRepository<PhoneNumberVerificationRecord> verificationCodeRecordRepo, 
-            ISmsSender smsSender)
+            ISmsSender smsSender, IClock clock)
         {
             _verificationCodeRecordRepo = verificationCodeRecordRepo;
             _smsSender = smsSender;
+            _clock = clock;
         }
 
         public bool IsFrequencyExceededForUser(int userId)
         {
-            var today = DateTime.UtcNow.Date;
+            var today = _clock.Now.UtcDateTime.Date;
             var msgSentToday = _verificationCodeRecordRepo
                 .All()
                 .Where(r => r.UserId == userId && r.CreatedAtUtc >= today)
                 .ToList();
             
-            var sentInTwoMinutes = msgSentToday.Any(r => r.CreatedAtUtc > DateTime.UtcNow.AddMinutes(-2));
+            var sentInTwoMinutes = msgSentToday.Any(r => r.CreatedAtUtc > _clock.Now.UtcDateTime.AddMinutes(-2));
 
             return msgSentToday.Count >= 5 || sentInTwoMinutes;
         }
@@ -42,7 +44,7 @@ namespace Discussion.Web.Services.UserManagement.PhoneNumberVerification
             {
                 UserId = userId,
                 Code = verificationCode,
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = _clock.Now.UtcDateTime.AddMinutes(15),
                 PhoneNumber = phoneNumber
             };
             _verificationCodeRecordRepo.Save(record);
@@ -56,7 +58,7 @@ namespace Discussion.Web.Services.UserManagement.PhoneNumberVerification
                 .All()
                 .FirstOrDefault(r => r.UserId == userId 
                                      && r.Code == providedVerificationCode 
-                                     && r.Expires > DateTime.UtcNow);
+                                     && r.Expires > _clock.Now.UtcDateTime);
             return validCode?.PhoneNumber;
         }
     }

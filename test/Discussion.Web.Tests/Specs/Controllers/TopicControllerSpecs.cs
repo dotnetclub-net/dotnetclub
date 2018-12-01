@@ -3,6 +3,7 @@ using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Pagination;
+using Discussion.Core.Time;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
@@ -152,7 +153,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var userMock = new Mock<ICurrentUser>();
             userMock.SetupGet(u => u.DiscussionUser).Returns(user);
 
-            var topicService = new DefaultTopicService(siteSettings, userMock.Object, topicRepo.Object, null);
+            var topicService = new DefaultTopicService(siteSettings, userMock.Object, topicRepo.Object, null, new SystemClock());
             var topicController = new TopicController(topicRepo.Object, topicService, NullLogger<TopicController>.Instance)
             {
                 ControllerContext =

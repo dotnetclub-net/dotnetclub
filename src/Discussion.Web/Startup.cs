@@ -8,6 +8,7 @@ using Discussion.Core.Communication.Sms;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
+using Discussion.Core.Time;
 using Discussion.Migrations.Supporting;
 using Discussion.Web.Models;
 using Discussion.Web.Resources;
@@ -66,7 +67,8 @@ namespace Discussion.Web
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
                 options.Filters.Add(new ApiResponseMvcFilter());
             });
-            
+
+            services.AddSingleton<IClock, SystemClock>();
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
             services.AddIdentityServices();
             services.AddEmailServices(_appConfiguration);

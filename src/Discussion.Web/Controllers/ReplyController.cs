@@ -1,8 +1,8 @@
-using System;
 using Discussion.Core.Data;
 using Discussion.Core.Logging;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Time;
 using Discussion.Web.Models;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
@@ -18,15 +18,17 @@ namespace Discussion.Web.Controllers
         private readonly IRepository<Topic> _topicRepo;
         private readonly SiteSettings _siteSettings;
         private readonly ILogger<ReplyController> _logger;
+        private readonly IClock _clock;
 
         public ReplyController(IRepository<Reply> replyRepo, 
             IRepository<Topic> topicRepo,
-            SiteSettings siteSettings, ILogger<ReplyController> logger)
+            SiteSettings siteSettings, ILogger<ReplyController> logger, IClock clock)
         {
             _replyRepo = replyRepo;
             _topicRepo = topicRepo;
             _siteSettings = siteSettings;
             _logger = logger;
+            _clock = clock;
         }
 
         [Route("/topics/{topicId}/replies")]
@@ -64,7 +66,7 @@ namespace Discussion.Web.Controllers
             _replyRepo.Save(reply);
             
             // ReSharper disable once PossibleNullReferenceException
-            topic.LastRepliedAt = DateTime.UtcNow;
+            topic.LastRepliedAt = _clock.Now.UtcDateTime;
             topic.LastRepliedUser = currentUser;
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
