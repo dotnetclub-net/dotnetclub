@@ -1,6 +1,8 @@
 using Discussion.Core.Communication.Email.DeliveryMethods;
+using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Core.Communication.Email
 {
@@ -12,7 +14,10 @@ namespace Discussion.Core.Communication.Email
             if (configSection != null && !string.IsNullOrEmpty(configSection[nameof(EmailDeliveryOptions.ServerHost)]))
             {
                 services.Configure<EmailDeliveryOptions>(configSection);
-                services.AddTransient<IEmailDeliveryMethod, SmtpEmailEmailDelivery>();
+                services.AddTransient<IEmailDeliveryMethod>(sp =>
+                    new SmtpEmailEmailDelivery(
+                        sp.GetService<IOptions<EmailDeliveryOptions>>(),
+                        new SmtpClient()));
             }
             else
             {

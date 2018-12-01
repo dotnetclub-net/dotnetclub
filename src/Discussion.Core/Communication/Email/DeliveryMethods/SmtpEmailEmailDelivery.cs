@@ -8,9 +8,12 @@ namespace Discussion.Core.Communication.Email.DeliveryMethods
 {
     public class SmtpEmailEmailDelivery: IEmailDeliveryMethod
     {
+        private readonly SmtpClient _smtpClient;
         private readonly EmailDeliveryOptions _emailSendingOptions;
-        public SmtpEmailEmailDelivery(IOptions<EmailDeliveryOptions> emailSendingOptions)
+        
+        public SmtpEmailEmailDelivery(IOptions<EmailDeliveryOptions> emailSendingOptions, SmtpClient smtpClient)
         {
+            _smtpClient = smtpClient;
             _emailSendingOptions = emailSendingOptions.Value;
         }
         
@@ -22,18 +25,17 @@ namespace Discussion.Core.Communication.Email.DeliveryMethods
             mimeMessage.Subject = subject;
             mimeMessage.Body = new TextPart (TextFormat.Html) { Text = message };
 
-
-            using (var client = new SmtpClient())
+            using (_smtpClient)
             {
-                await client.ConnectAsync(_emailSendingOptions.ServerHost, _emailSendingOptions.ServerSslPort, useSsl: true);
+                await _smtpClient.ConnectAsync(_emailSendingOptions.ServerHost, _emailSendingOptions.ServerSslPort, useSsl: true);
                 if (!string.IsNullOrEmpty(_emailSendingOptions.LoginName)
                     && !string.IsNullOrEmpty(_emailSendingOptions.Password))
                 {
-                    await client.AuthenticateAsync(_emailSendingOptions.LoginName, _emailSendingOptions.Password);
+                    await _smtpClient.AuthenticateAsync(_emailSendingOptions.LoginName, _emailSendingOptions.Password);
                 }
 
-                await client.SendAsync(mimeMessage);
-                var _ = client.DisconnectAsync(true);
+                await _smtpClient.SendAsync(mimeMessage);
+                var _ = _smtpClient.DisconnectAsync(true);
             }
         }
     }
