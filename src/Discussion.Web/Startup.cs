@@ -1,16 +1,22 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Discussion.Core;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Communication.Sms;
+using Discussion.Core.Cryptography;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Mvc;
+using Discussion.Core.Time;
 using Discussion.Migrations.Supporting;
 using Discussion.Web.Models;
 using Discussion.Web.Resources;
 using Discussion.Web.Services;
+using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,6 +27,8 @@ using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.UserManagement.Avatar;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.Services.UserManagement.Identity;
+using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
@@ -57,30 +65,39 @@ namespace Discussion.Web
             services.AddLogging();
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
 
+            services.ConfigureDataProtection(_appConfiguration);
             services.AddMvc(options =>
             {
                 options.ModelBindingMessageProvider.UseTranslatedResources();
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
                 options.Filters.Add(new ApiResponseMvcFilter());
             });
-            
+
+            services.AddSingleton<IClock, SystemClock>();
             services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
             services.AddIdentityServices();
             services.AddEmailServices(_appConfiguration);
             services.AddSmsServices(_appConfiguration);
 
-            services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
+            services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
+            services.AddSingleton<HttpMessageInvoker>(new HttpClient());
+            
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
                 .AddScoped(sp =>
                 {
                     var actionAccessor = sp.GetService<IActionContextAccessor>();
                     var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
                     return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);              
-                })
-                .AddScoped<IUserAvatarService, UserAvatarService>();
+                });
+            
+            services.AddScoped<IUserAvatarService, UserAvatarService>();
+            services.AddScoped<IPhoneNumberVerificationService, DefaultPhoneNumberVerificationService>();
+            services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
+
+            services.AddScoped<ITopicService, DefaultTopicService>();
 
             var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));
             if (siteSettingsSection != null)
@@ -91,7 +108,7 @@ namespace Discussion.Web
         }
 
         public void Configure(IApplicationBuilder app)
-        {
+        {   
             if (_hostingEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

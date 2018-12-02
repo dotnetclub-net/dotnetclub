@@ -4,20 +4,27 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Discussion.Core.Time;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Discussion.Core.Communication.Sms.SmsSenders
 {
     public class AliyunSmsSender: ISmsSender
-    {       
+    {
+        private readonly HttpMessageInvoker _httpInvoker;
         private readonly AliyunSmsOptions _aliyunSmsOptions;
+        private readonly IClock _clock;
 
-        public AliyunSmsSender(IOptions<AliyunSmsOptions> smsSendingOptions)
+        public AliyunSmsSender(IOptions<AliyunSmsOptions> smsSendingOptions, HttpMessageInvoker httpInvoker, IClock clock)
         {
+            _httpInvoker = httpInvoker;
+            _clock = clock;
             _aliyunSmsOptions = smsSendingOptions.Value;
             _accessKeyId = _aliyunSmsOptions.AccountKeyId;
             _accessKeySecret = _aliyunSmsOptions.AccessKeySecret;
@@ -25,50 +32,45 @@ namespace Discussion.Core.Communication.Sms.SmsSenders
         
         public async Task SendVerificationCodeAsync(string phoneNumber, string code)
         {
-            await Task.Factory.StartNew(() =>
+            var smsTemplateParams = JsonConvert.SerializeObject(new {code});
+            var parameters = new Dictionary<string, string>
             {
-                var smsTemplateParams = JsonConvert.SerializeObject(new {code});
-                var parameters = new Dictionary<string, string>
-                {
-                    {"PhoneNumbers", phoneNumber},
-                    {"SignName", _aliyunSmsOptions.SmsServiceSignName},
-                    {"TemplateCode", _aliyunSmsOptions.SmsServiceTemplateCode},
-                    {"TemplateParam", smsTemplateParams},
-                    {"OutId", Guid.NewGuid().ToString()}
-                };
-                var signed = SignRequestParameters(parameters);
-                var response = InvokeAliyunSmsAPI(signed);
-                if (response.Code != "OK")
-                {
-                    throw new AliyunSmsException(null, 
-                        response.Code + " " + response.Message, 
-                        response);
-                }
-            });
+                {"PhoneNumbers", phoneNumber},
+                {"SignName", _aliyunSmsOptions.SmsServiceSignName},
+                {"TemplateCode", _aliyunSmsOptions.SmsServiceTemplateCode},
+                {"TemplateParam", smsTemplateParams},
+                {"OutId", Guid.NewGuid().ToString()}
+            };
+            var signed = SignRequestParameters(parameters);
+            
+            var response = await InvokeAliyunSmsApi(signed);
+            if (response.Code != "OK")
+            {
+                throw new AliyunSmsException(null, 
+                    response.Code + " " + response.Message, 
+                    response);
+            }
         }
-
 
         private readonly string _accessKeyId;
         private readonly string _accessKeySecret;
         private const string AliSmsHost = "https://dysmsapi.aliyuncs.com/";
-        
-        
-        AliyunSmsResponse InvokeAliyunSmsAPI(string signedParameters)
+
+
+        async Task<AliyunSmsResponse> InvokeAliyunSmsApi(string signedParameters)
         {
             string responseContent = null;
             AliyunSmsResponse smsResponse = null;
             try
             {
-                var httpClient = new HttpClient();
-                if (httpClient.DefaultRequestHeaders.UserAgent.Count < 1)
+                var request = new HttpRequestMessage(HttpMethod.Post, AliSmsHost)
                 {
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Safari/537.36");
-                }
-
-                var postContent = new StringContent(signedParameters, Encoding.ASCII, "application/x-www-form-urlencoded");
-                var response = httpClient.PostAsync(AliSmsHost, postContent).Result;
-
-                responseContent = response.Content.ReadAsStringAsync().Result;
+                    Content = new StringContent(signedParameters, Encoding.ASCII, "application/x-www-form-urlencoded")
+                };
+                request.Headers.UserAgent.TryParseAdd("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36");
+                
+                var response = await _httpInvoker.SendAsync(request, CancellationToken.None);
+                responseContent = await response.Content.ReadAsStringAsync();
                 smsResponse = JsonConvert.DeserializeObject<AliyunSmsResponse>(responseContent);
                 return smsResponse;
             }
@@ -90,7 +92,7 @@ namespace Discussion.Core.Communication.Sms.SmsSenders
                 }
                 catch
                 {
-                    throw ex;
+                    throw new AliyunSmsException(ex, null, null);
                 }
                     
             }
@@ -111,7 +113,7 @@ namespace Discussion.Core.Communication.Sms.SmsSenders
                 {"SignatureVersion", "1.0"},
                 {"AccessKeyId", _accessKeyId},
                 {"SignatureNonce", nonce},
-                {"Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")},
+                {"Timestamp", _clock.Now.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")},
                 
                 {"Action", "SendSms"},
                 {"RegionId", "cn-hangzhou"}
@@ -175,7 +177,7 @@ namespace Discussion.Core.Communication.Sms.SmsSenders
             
             public AliyunSmsException(Exception exception, 
                 string response, AliyunSmsResponse responseObject)
-                : base($"Failed to request api with action SendSms with response " 
+                : base("Failed to request api with action SendSms with response " 
                        + (response ?? string.Empty),  exception)
             {
                 this.ResponseContent = response;

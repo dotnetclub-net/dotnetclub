@@ -22,71 +22,79 @@ namespace Discussion.Web.Tests.Specs.Controllers
     [Collection("WebSpecs")]
     public class AccountControllerSpecs
     {
-        private readonly TestDiscussionWebApp _theApp;
+        // ReSharper disable PossibleNullReferenceException
+        
+        private readonly TestDiscussionWebApp _app;
         private readonly IRepository<User> _userRepo;
         public AccountControllerSpecs(TestDiscussionWebApp app)
         {
-            _theApp = app.Reset();
-            _userRepo = _theApp.GetService<IRepository<User>>();
+            _app = app.Reset();
+            _userRepo = _app.GetService<IRepository<User>>();
         }
-        
+
+        #region Signin
+         
         [Fact]
         public void should_serve_signin_page_as_view_result()
         {
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            var accountCtrl = _app.CreateController<AccountController>();
 
             IActionResult signinPageResult = accountCtrl.Signin(null);
 
             var viewResult = signinPageResult as ViewResult;
             Assert.NotNull(viewResult);
         }
-        
-        
+       
         [Fact]
         public async Task should_signin_user_and_redirect_when_signin_with_valid_user()
         {
             // Arrange
              ClaimsPrincipal signedInClaimsPrincipal = null;
-             var authService = new Mock<IAuthenticationService>();
-             authService.Setup(auth => auth.SignInAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<ClaimsPrincipal>(), It.IsAny<AuthenticationProperties>()))
-                 .Returns(Task.CompletedTask)
-                 .Callback((HttpContext ctx, string scheme, ClaimsPrincipal claimsPrincipal, AuthenticationProperties props) =>
-                 {
-                     signedInClaimsPrincipal = claimsPrincipal;
-                 })
-                .Verifiable();
-            _theApp.OverrideServices(services => services.AddSingleton(authService.Object));
-            
-            
-            var accountCtrl = _theApp.CreateController<AccountController>();
-            var userRepo = _theApp.GetService<IRepository<User>>();
+             var authService = MockAuthService(principal => signedInClaimsPrincipal = principal);
 
-            const string password = "111111";
-            _theApp.CreateUser("jim", password, "Jim Green");
-            
-            // Act
+            const string password = "111111A";
+            _app.CreateUser("jim", password, "Jim Green");
             var userModel = new UserViewModel
             {
                 UserName = "jim",
                 Password = password
             };
-            var sigininResult = await accountCtrl.DoSignin(userModel, null);
+            
+            // Act
+            var accountCtrl = _app.CreateController<AccountController>();
+            accountCtrl.TryValidateModel(userModel);
+            var signinResult = await accountCtrl.DoSignin(userModel, null);
 
             // Assert
             Assert.True(accountCtrl.ModelState.IsValid);            
-            sigininResult.IsType<RedirectResult>();
+            signinResult.IsType<RedirectResult>();
             
             authService.Verify();
-            var signedInUser = signedInClaimsPrincipal.ToDiscussionUser(userRepo);
-            _theApp.ReloadEntity(signedInUser);
+            var signedInUser = signedInClaimsPrincipal.ToDiscussionUser(_app.GetService<IRepository<User>>());
+            _app.ReloadEntity(signedInUser);
             Assert.Equal("jim", signedInUser.UserName);
             Assert.NotNull(signedInUser.LastSeenAt);
         }
-        
+
+        private Mock<IAuthenticationService> MockAuthService(Action<ClaimsPrincipal> onSignin)
+        {
+            var authService = new Mock<IAuthenticationService>();
+            authService.Setup(auth => auth.SignInAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<ClaimsPrincipal>(),
+                    It.IsAny<AuthenticationProperties>()))
+                .Returns(Task.CompletedTask)
+                .Callback((HttpContext ctx, string scheme, ClaimsPrincipal claimsPrincipal, AuthenticationProperties props) =>
+                {
+                    onSignin(claimsPrincipal);
+                })
+                .Verifiable();
+            _app.OverrideServices(services => services.AddSingleton(authService.Object));
+            return authService;
+        }
+
         [Fact]
         public async Task should_return_signin_view_when_username_does_not_exist()
         {
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            var accountCtrl = _app.CreateController<AccountController>();
             var userModel = new UserViewModel
             {
                 UserName = "jimdoesnotexists",
@@ -108,28 +116,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_return_signin_view_when_incorrect_password()
         {
-            var passwordHasher = _theApp.GetService<IPasswordHasher<User>>();
-            var accountCtrl = _theApp.CreateController<AccountController>();
-            _userRepo.Save(new User
-            {
-                UserName = "jimwrongpwd",
-                DisplayName = "Jim Green",
-                HashedPassword = passwordHasher.HashPassword(null, "11111F"),
-                CreatedAtUtc = DateTime.UtcNow
-            });
+            const string userName = "jimwrongpwd";
+            _app.CreateUser(userName, "11111F");
             var userModel = new UserViewModel
             {
-                UserName = "jimwrongpwd",
+                UserName = userName,
                 Password = "11111f"
             };
             
-            var sigininResult = await accountCtrl.DoSignin(userModel, null);
+            var accountCtrl = _app.CreateController<AccountController>();
+            var signinResult = await accountCtrl.DoSignin(userModel, null);
 
             Assert.False(accountCtrl.HttpContext.IsAuthenticated());
             Assert.False(accountCtrl.ModelState.IsValid);
             Assert.Equal("用户名或密码错误", accountCtrl.ModelState["UserName"].Errors.First().ErrorMessage);
 
-            var viewResult = sigininResult as ViewResult;
+            var viewResult = signinResult as ViewResult;
             Assert.NotNull(viewResult);
             viewResult.ViewName.ShouldEqual("Signin");
         }
@@ -137,20 +139,26 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_return_signin_view_when_invalid_signin_request()
         {
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            var accountCtrl = _app.CreateController<AccountController>();
             accountCtrl.ModelState.AddModelError("UserName", "UserName is required");
 
-            var sigininResult = await accountCtrl.DoSignin(new UserViewModel(), null);
+            var signinResult = await accountCtrl.DoSignin(new UserViewModel(), null);
 
-            var viewResult = sigininResult as ViewResult;
+            var viewResult = signinResult as ViewResult;
             Assert.NotNull(viewResult);
             viewResult.ViewName.ShouldEqual("Signin");
         }
+
+        #endregion
+
+        
+        #region Register
+
         
         [Fact]
-        public void should_return_register_page_as_viewresult()
+        public void should_return_register_page_as_view_result()
         {
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            var accountCtrl = _app.CreateController<AccountController>();
             accountCtrl.ModelState.AddModelError("UserName", "UserName is required");
 
             var registerPage = accountCtrl.Register();
@@ -162,7 +170,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_register_new_user()
         {
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            var accountCtrl = _app.CreateController<AccountController>();
             var userName = "newuser";
             var newUser = new UserViewModel
             {
@@ -175,7 +183,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var registeredUser = _userRepo.All().FirstOrDefault(user => user.UserName == newUser.UserName);
             registeredUser.ShouldNotBeNull();
-            // ReSharper disable once PossibleNullReferenceException
             registeredUser.UserName.ShouldEqual(userName);
             registeredUser.Id.ShouldGreaterThan(0);
         }
@@ -183,7 +190,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_hash_password_for_user()
         {
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            var accountCtrl = _app.CreateController<AccountController>();
             var userName = "user";
             var clearPassword = "password1";
             var newUser = new UserViewModel
@@ -197,7 +204,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var registeredUser = _userRepo.All().FirstOrDefault(user => user.UserName == newUser.UserName);
             registeredUser.ShouldNotBeNull();
-            // ReSharper disable once PossibleNullReferenceException
             registeredUser.UserName.ShouldEqual(userName);
             registeredUser.HashedPassword.ShouldNotEqual(clearPassword);
         }
@@ -205,7 +211,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async Task should_not_register_with_invalid_request()
         {
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            var accountCtrl = _app.CreateController<AccountController>();
             var notToBeCreated = "not-to-be-created";
             var newUser = new UserViewModel
             {
@@ -222,21 +228,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
             
             registerResult.IsType<ViewResult>();
             var viewResult = registerResult as ViewResult;
-            // ReSharper disable once PossibleNullReferenceException
             viewResult.ViewName.ShouldEqual("Register");
         }
         
         [Fact]
         public async Task should_not_register_an_user_with_existing_username()
         {
-            var userName = "someuser";
-            _userRepo.Save(new User
-            {
-                UserName = userName,
-                DisplayName = "old user",
-                CreatedAtUtc = new DateTime(2018, 02, 14)
-            });
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            const string userName = "someuser";
+            _app.CreateUser(userName, displayName: "old user");
+            var accountCtrl = _app.CreateController<AccountController>();
 
             
             var newUser = new UserViewModel
@@ -256,24 +256,26 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             registerResult.IsType<ViewResult>();
             var viewResult = registerResult as ViewResult;
-            // ReSharper disable once PossibleNullReferenceException
             viewResult.ViewName.ShouldEqual("Register");
         }
         
+
+        #endregion
+
         
         [Fact]
-        public async Task should_signout()
+        public async Task should_sign_out()
         {
             var authService = new Mock<IAuthenticationService>();
             authService.Setup(auth => auth.SignOutAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<AuthenticationProperties>())).Returns(Task.CompletedTask).Verifiable();
-            _theApp.OverrideServices(services => services.AddSingleton(authService.Object));
-            _theApp.MockUser();
-            var accountCtrl = _theApp.CreateController<AccountController>();
+            _app.OverrideServices(services => services.AddSingleton(authService.Object));
+            _app.MockUser();
+            var accountCtrl = _app.CreateController<AccountController>();
             
-            var signoutResult = await accountCtrl.DoSignOut();
+            var signOutResult = await accountCtrl.DoSignOut();
 
-            Assert.NotNull(signoutResult);
-            signoutResult.IsType<RedirectResult>();
+            Assert.NotNull(signOutResult);
+            signOutResult.IsType<RedirectResult>();
             authService.Verify();
         }
         

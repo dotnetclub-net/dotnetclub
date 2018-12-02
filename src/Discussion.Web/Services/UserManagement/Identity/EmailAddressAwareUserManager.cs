@@ -60,8 +60,7 @@ namespace Discussion.Web.Services.UserManagement.Identity
 
         private static string ComposePurpose(string emailAddress)
         {
-            var purpose = $"EmailConfirmation;{emailAddress}";
-            return purpose;
+            return $"EmailConfirmation;{emailAddress}";
         }
     }
 }

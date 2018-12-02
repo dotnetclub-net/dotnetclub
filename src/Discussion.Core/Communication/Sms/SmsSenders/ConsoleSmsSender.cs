@@ -19,7 +19,7 @@ Sending SMS to {phoneNumber}
 Message: verification code is {code}
 ========";
             _logger.LogInformation(logMessage);
-            await Task.CompletedTask;    
+            await Task.CompletedTask;
         }
     }
 }

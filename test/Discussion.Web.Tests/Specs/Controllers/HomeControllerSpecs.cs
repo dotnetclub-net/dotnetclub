@@ -3,6 +3,7 @@ using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
@@ -21,7 +22,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_serve_about_page_as_view_result()
         {
-            var homeController = new HomeController();
+            var homeController = new HomeController(NullLogger<HomeController>.Instance);
 
             var aboutResult = homeController.About();
 

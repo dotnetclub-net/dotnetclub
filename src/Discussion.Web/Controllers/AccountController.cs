@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
+using Discussion.Core.Time;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Discussion.Web.Controllers
@@ -18,16 +19,18 @@ namespace Discussion.Web.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IRepository<User> _userRepo;
+        private readonly IClock _clock;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<AccountController> logger, IRepository<User> userRepo)
+            ILogger<AccountController> logger, IRepository<User> userRepo, IClock clock)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _userRepo = userRepo;
+            _clock = clock;
         }
 
         [Route("/signin")]
@@ -57,13 +60,15 @@ namespace Discussion.Web.Controllers
                     viewModel.UserName,
                     viewModel.Password,
                     isPersistent: false,
-                    lockoutOnFailure: true);
+                    lockoutOnFailure: false);
 
-                _logger.LogInformation($"用户 {viewModel.UserName} 尝试登录，结果 {result}");
+                var logLevel = result.Succeeded ? LogLevel.Information : LogLevel.Warning;
+                var resultDesc = result.Succeeded ? "成功" : "失败";
+                _logger.Log(logLevel, $"用户登录{resultDesc}：用户名 {viewModel.UserName}：{result}");
             }
             else
             {
-                _logger.LogInformation($"用户 {viewModel.UserName} 尝试登录，但用户名密码的格式不正确");
+                _logger.LogInformation($"用户登录失败：用户名 {viewModel.UserName}：数据格式不正确。");
             }
 
             if (!result.Succeeded)
@@ -74,7 +79,7 @@ namespace Discussion.Web.Controllers
             }
 
             var user = await _userManager.FindByNameAsync(viewModel.UserName);
-            user.LastSeenAt = DateTime.UtcNow;
+            user.LastSeenAt = _clock.Now.UtcDateTime;
             _userRepo.Update(user);
             return RedirectTo(returnUrl);
         }
@@ -102,31 +107,34 @@ namespace Discussion.Web.Controllers
         
         [HttpPost]
         [Route("/register")]  
-        public async Task<IActionResult> DoRegister(UserViewModel userViewModel)
+        public async Task<IActionResult> DoRegister(UserViewModel registerModel)
         {
             if (!ModelState.IsValid)
             {
+                _logger.LogInformation($"用户注册失败：用户名 {registerModel.UserName}：数据格式不正确。");
                 return View("Register");
             }
 
             var newUser = new User
             {
-                UserName = userViewModel.UserName,
-                DisplayName = userViewModel.UserName,
-                CreatedAtUtc = DateTime.UtcNow
+                UserName = registerModel.UserName,
+                DisplayName = registerModel.UserName,
+                CreatedAtUtc = _clock.Now.UtcDateTime
             };
 
-            var result = await _userManager.CreateAsync(newUser, userViewModel.Password);
+            var result = await _userManager.CreateAsync(newUser, registerModel.Password);
             if (!result.Succeeded)
             {
                 var errorMessage = string.Join(";", result.Errors.Select(err => err.Description));
                 ModelState.AddModelError("UserName", errorMessage);
+                _logger.LogWarning($"用户注册失败：用户名 {registerModel.UserName}：{errorMessage}");
                 return View("Register");
             }
 
+            _logger.LogInformation($"新用户注册：用户名 {registerModel.UserName}");
             await _signInManager.PasswordSignInAsync(
-                userViewModel.UserName,
-                userViewModel.Password,
+                registerModel.UserName,
+                registerModel.Password,
                 isPersistent: false,
                 lockoutOnFailure: true);
             return RedirectTo("/");

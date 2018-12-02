@@ -2,17 +2,19 @@
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
-using Discussion.Core.Mvc;
 using Discussion.Core.Pagination;
-using Discussion.Core.Utilities;
+using Discussion.Core.Time;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Models;
+using Discussion.Web.Services;
+using Discussion.Web.Services.TopicManagement;
+using Discussion.Web.Tests.Fixtures;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -22,62 +24,54 @@ namespace Discussion.Web.Tests.Specs.Controllers
     public class TopicControllerSpecs
     {
         private readonly TestDiscussionWebApp _app;
-        private readonly IRepository<User> _userRepo;
         private readonly User _author;
 
         public TopicControllerSpecs(TestDiscussionWebApp app)
         {
             _app = app.Reset();
             _app.DeleteAll<Topic>();
-            _userRepo = app.GetService<IRepository<User>>();
-            _author = CreateNewUser();
+            _author = _app.CreateUser();
         }
 
+
+        #region List Topics
+        
+        // ReSharper disable PossibleNullReferenceException
+        
         [Fact]
         public void should_serve_topic_list_on_page()
         {
-            var replied = CreateNewUser();
-            var topicItems = new[]
-            {
-                new Topic {Title = "dummy topic 1", Type = TopicType.Discussion, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.UtcNow.AddMinutes(-3)},
-                new Topic {Title = "dummy topic 2", Type = TopicType.Question, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.UtcNow.AddMinutes(-3) },
-                new Topic {Title = "dummy topic 3", Type = TopicType.Job, Author = _author, LastRepliedUser = replied, LastRepliedAt = DateTime.UtcNow.AddMinutes(-3)},
-            };
-            var repo = _app.GetService<IRepository<Topic>>();
-            foreach (var item in topicItems)
-            {
-                repo.Save(item);
-            }
-
+            _app.NewTopic("dummy topic 1").WithReply().Create();
+            _app.NewTopic("dummy topic 2", type: TopicType.Question).WithReply().Create();
+            _app.NewTopic("dummy topic 3", type: TopicType.Job).WithReply().Create();
+            
             var topicController = _app.CreateController<TopicController>();
 
             var topicListResult = topicController.List() as ViewResult;
             var listViewModel = topicListResult.ViewData.Model as Paged<Topic>;
 
-            listViewModel.ShouldNotBeNull();
-            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 1" && t.Type == TopicType.Discussion);
-            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 2" && t.Type == TopicType.Question);
-            listViewModel.Items.ShouldContain(t => t.Title == "dummy topic 3" && t.Type == TopicType.Job);
+            Assert.NotNull(listViewModel);
+            var showedTopics = listViewModel.Items;
             
-            listViewModel.Items.All(t => t.Author != null).ShouldEqual(true);
-            listViewModel.Items.All(t => t.LastRepliedUser != null).ShouldEqual(true);
+            showedTopics.ShouldContain(t => t.Title == "dummy topic 1" && t.Type == TopicType.Discussion);
+            showedTopics.ShouldContain(t => t.Title == "dummy topic 2" && t.Type == TopicType.Question);
+            showedTopics.ShouldContain(t => t.Title == "dummy topic 3" && t.Type == TopicType.Job);
+            
+            showedTopics.All(t => t.Author != null).ShouldEqual(true);
+            showedTopics.All(t => t.LastRepliedUser != null).ShouldEqual(true);
         }
 
         [Fact]
         public void should_calc_topic_list_with_paging()
         {
-            _app.DeleteAll<Topic>();
-            var repo = _app.GetService<IRepository<Topic>>();
             var all = 30;
             do
             {
-                repo.Save(new Topic
-                {
-                    Title = "dummy topic " + all,
-                    Author = _author,
-                    Type = TopicType.Discussion,
-                    CreatedAtUtc = DateTime.Today.AddSeconds(-all)
-                });
+                // ReSharper disable once AccessToModifiedClosure
+                _app.NewTopic("dummy topic " + all)
+                    .WithAuthor(_author)
+                    .With(t => t.CreatedAtUtc = DateTime.Today.AddSeconds(-all))
+                    .Create();
             } while (--all > 0);
 
             var topicController = _app.CreateController<TopicController>();
@@ -96,6 +90,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topicList[9].Title.ShouldEqual("dummy topic 30");
         }
 
+        #endregion
+        
+        #region Create Topics
+        
         [Fact]
         public void should_create_topic()
         {
@@ -133,16 +131,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_not_create_topic_if_require_verified_phone_number_but_user_has_no()
         {
-            _app.MockUser();
             var topicRepo = new Mock<IRepository<Topic>>();
             var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
-            
-            var topicController = new TopicController(topicRepo.Object, new Mock<IRepository<Reply>>().Object, siteSettings);
-            topicController.ControllerContext.HttpContext = new DefaultHttpContext
-            {
-                User = _app.User,
-                RequestServices = _app.ApplicationServices
-            };
+            var topicController = CreateControllerWithSettings(_app.MockUser(), siteSettings, topicRepo);
+
 
             var actionResult = topicController.CreateTopic(
                 new TopicCreationModel
@@ -156,20 +148,36 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topicRepo.VerifyNoOtherCalls();
         }
 
+        private TopicController CreateControllerWithSettings(User user, SiteSettings siteSettings,  Mock<IRepository<Topic>> topicRepo)
+        {
+            var userMock = new Mock<ICurrentUser>();
+            userMock.SetupGet(u => u.DiscussionUser).Returns(user);
+
+            var topicService = new DefaultTopicService(siteSettings, userMock.Object, topicRepo.Object, null, new SystemClock());
+            var topicController = new TopicController(topicRepo.Object, topicService, NullLogger<TopicController>.Instance)
+            {
+                ControllerContext =
+                {
+                    HttpContext = new DefaultHttpContext
+                    {
+                        User = _app.User, RequestServices = _app.ApplicationServices
+                    }
+                }
+            };
+            return topicController;
+        }
+
+        #endregion
+
+        #region Show Topics
+
         [Fact]
         public void should_show_topic_and_update_view_count()
         {
-            _app.MockUser();
-            var topic = new Topic
-            {
-                Title = "dummy topic 1",
-                ViewCount = 4,
-                Type = TopicType.Discussion,
-                CreatedBy = _app.User.ExtractUserId().Value
-            };
-            var repo = _app.GetService<IRepository<Topic>>();
-            repo.Save(topic);
-            _app.Reset();
+            var topic = _app.NewTopic("dummy topic 1")
+                            .WithAuthor(_author)
+                            .With(t => t.ViewCount = 4)
+                            .Create();
 
             var topicController = _app.CreateController<TopicController>();
             var result = topicController.Index(topic.Id) as ViewResult;
@@ -188,19 +196,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_show_topic_with_reply_list()
         {
-            _app.MockUser();
-            // Arrange
-            var topicRepo = _app.GetService<IRepository<Topic>>();
-            var replyRepo = _app.GetService<IRepository<Reply>>();
-
-            var topic = new Topic { Title = "dummy topic 1", Type = TopicType.Discussion, CreatedBy = _app.User.ExtractUserId().Value };
-            topicRepo.Save(topic);
-
-            var replyContent = "reply content ";
-            var replyNew = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = replyContent + "2", TopicId = topic.Id, CreatedBy = _app.User.ExtractUserId().Value };
-            var replyOld = new Reply { CreatedAtUtc = DateTime.Today.AddDays(-1), Content = replyContent + "1", TopicId = topic.Id, CreatedBy = _app.User.ExtractUserId().Value };
-            replyRepo.Save(replyNew);
-            replyRepo.Save(replyOld);
+            var topic = _app.NewTopic().WithAuthor(_author).WithReply("reply content 1").Create();
+            var newReply = new Reply { CreatedAtUtc = DateTime.Today.AddDays(1), Content = "reply content 2", TopicId = topic.Id, CreatedBy = _author.Id };
+            _app.GetService<IRepository<Reply>>().Save(newReply);
             _app.Reset();
 
             // Act
@@ -217,27 +215,13 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topicShown.Replies.ShouldNotBeNull();
 
             topicShown.Replies.Count.ShouldEqual(2);
-            topicShown.Replies[0].Content.ShouldEqual(replyContent + "1");
+            topicShown.Replies[0].Content.ShouldEqual("reply content 1");
             topicShown.Replies[0].TopicId.ShouldEqual(topic.Id);
 
-            topicShown.Replies[1].Content.ShouldEqual(replyContent + "2");
+            topicShown.Replies[1].Content.ShouldEqual("reply content 2");
             topicShown.Replies[1].TopicId.ShouldEqual(topic.Id);
         }
         
-        private User CreateNewUser()
-        {
-            var rand = StringUtility.Random();
-            var user = new User
-            {
-                CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
-                UserName = rand,
-                DisplayName = rand,
-                HashedPassword = "some-password",
-                EmailAddress = $"{rand}@here.com",
-                EmailAddressConfirmed = false
-            };
-            _userRepo.Save(user);
-            return user;
-        }
+        #endregion
     }
 }

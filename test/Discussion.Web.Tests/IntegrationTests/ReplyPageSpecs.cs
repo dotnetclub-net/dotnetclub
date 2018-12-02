@@ -1,4 +1,5 @@
 using Discussion.Tests.Common;
+using Discussion.Web.Tests.Fixtures;
 using Discussion.Web.Tests.Specs.Controllers;
 using Xunit;
 using static Discussion.Tests.Common.SigninRequirement;
@@ -18,8 +19,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         [Fact]
         public void should_reply_a_topic_by_an_authorized_user()
         {
-            _app.MockUser();
-            var (topic, _) = ReplyControllerSpecs.CreateTopic(_app);
+            var topic = _app.NewTopic().Create();
 
             _app.ShouldPost($"/topics/{topic.Id}/replies",
                 new

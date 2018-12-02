@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using Discussion.Core.Time;
 
 namespace Discussion.Core.Models
 {
@@ -19,6 +20,19 @@ namespace Discussion.Core.Models
         [ForeignKey("PhoneNumberId")]
         public VerifiedPhoneNumber VerifiedPhoneNumber { get; set; }
         public int? PhoneNumberId { get; set; }
+
+
+        public bool CanModifyPhoneNumberNow(IClock clock)
+        {
+            if (PhoneNumberId == null)
+            {
+                return true;
+            }
+            
+            var sevenDaysAgo = clock.Now.UtcDateTime.AddDays(-7);
+            return VerifiedPhoneNumber.CreatedAtUtc < sevenDaysAgo
+                   && VerifiedPhoneNumber.ModifiedAtUtc < sevenDaysAgo;
+        }
     }
 
 

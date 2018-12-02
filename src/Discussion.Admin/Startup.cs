@@ -3,9 +3,11 @@ using Discussion.Admin.Services;
 using Discussion.Admin.Services.Impl;
 using Discussion.Admin.Supporting;
 using Discussion.Core;
+using Discussion.Core.Cryptography;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Time;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -41,8 +43,11 @@ namespace Discussion.Admin
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IClock, SystemClock>();
+            services.ConfigureDataProtection(_appConfiguration);
             services.AddJwtAuthentication(_appConfiguration);
             services.AddIdentityCore<AdminUser>();
+            
             services.AddMvc(options => { options.Filters.Add(typeof(ApiResponseMvcFilter)); })
                 .AddJsonOptions(options =>
                 {
@@ -55,9 +60,8 @@ namespace Discussion.Admin
             {
                 configuration.RootPath = "ClientApp/dist";
             });
-            
-            services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
 
+            services.AddDataServices(_appConfiguration, _loggerFactory.CreateLogger<Startup>());
             services.AddScoped<IAdminUserService, AdminUserServiceImpl>();
         }
 

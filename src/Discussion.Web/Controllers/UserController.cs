@@ -1,26 +1,20 @@
-using System;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Discussion.Core.Communication.Email;
-using Discussion.Core.Communication.Sms;
-using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
-using Discussion.Core.Utilities;
-using Discussion.Web.Services;
 using Discussion.Web.Services.UserManagement;
-using Discussion.Web.Services.UserManagement.EmailConfirmation;
+using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Discussion.Core.Logging;
 
 namespace Discussion.Web.Controllers
 {
-    // ReSharper disable Mvc.ActionNotResolved
-    // ReSharper disable Mvc.ControllerNotResolved
     
     [Route("user")]
     [Authorize]
@@ -29,25 +23,14 @@ namespace Discussion.Web.Controllers
         public const string ConfigKeyRequireUserPhoneNumberVerified = "RequireUserPhoneNumberVerified"; 
         
         private readonly UserManager<User> _userManager;
-        private readonly IRepository<User> _userRepo;
-        private readonly IRepository<PhoneNumberVerificationRecord> _verificationCodeRecordRepo;
-        private readonly IRepository<VerifiedPhoneNumber> _phoneNumberRepo;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly ISmsSender _smsSender;
         private readonly IUserService _userService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(UserManager<User> userManager, 
-            IRepository<User> userRepo, ISmsSender smsSender,
-            IRepository<PhoneNumberVerificationRecord> verificationCodeRecordRepo,
-            ApplicationDbContext dbContext, IRepository<VerifiedPhoneNumber> phoneNumberRepo, IUserService userService)
+        public UserController(UserManager<User> userManager, IUserService userService, ILogger<UserController> logger)
         {
             _userManager = userManager;
-            _userRepo = userRepo;
-            _smsSender = smsSender;
-            _verificationCodeRecordRepo = verificationCodeRecordRepo;
-            _dbContext = dbContext;
-            _phoneNumberRepo = phoneNumberRepo;
             _userService = userService;
+            _logger = logger;
         }
 
         
@@ -61,20 +44,24 @@ namespace Discussion.Web.Controllers
         [Route("settings")]
         public async Task<IActionResult> DoSettings(UserSettingsViewModel userSettingsViewModel)
         {
+            const string action = "更新个人信息";
             var user = HttpContext.DiscussionUser();
             if (!ModelState.IsValid)
             {
+                _logger.LogModelState(action, ModelState, user.UserName);
                 return View("Settings", user);
             }
 
-            var identityResult = await _userService.UpdateUserInfo(userSettingsViewModel, user);
+            var identityResult = await _userService.UpdateUserInfoAsync(user, userSettingsViewModel);
             if (identityResult.Succeeded)
             {
+                _logger.LogIdentityResult(action, identityResult, user.UserName);
                 return RedirectToAction("Settings");
             }
 
             var msg = string.Join(";", identityResult.Errors.Select(e => e.Description));
             ModelState.AddModelError(string.Empty, msg);
+            _logger.LogIdentityResult(action, identityResult, user.UserName);
             return View("Settings", user);
         }
 
@@ -86,42 +73,33 @@ namespace Discussion.Web.Controllers
             try
             {
                 var user = HttpContext.DiscussionUser();
-                await _userService.SendEmailConfirmationMail(user, Request.Scheme);
+                await _userService.SendEmailConfirmationMailAsync(user, Request.Scheme);
+                _logger.LogInformation($"发送确认邮件成功：{user.UserName}");
                 return  ApiResponse.NoContent();
             }
             catch (UserEmailAlreadyConfirmedException ex)
             {
+                _logger.LogWarning($"发送确认邮件失败：{ex.UserName}：{ex.Message}");
                 return ApiResponse.Error(ex.Message);
             }
-
         }
 
 
         [HttpGet]
         [Route("confirm-email")]
         [AllowAnonymous]
-        public async Task<ActionResult> ConfirmEmail(string token)
+        public async Task<ViewResult> ConfirmEmail(string token)
         {
             var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
-            var hasErrors = tokenInEmail == null;
-            if (!hasErrors)
+            if (tokenInEmail == null)
             {
-                var user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
-                var identityResult = await _userManager.ConfirmEmailAsync(user, tokenInEmail.Token);
-                hasErrors = !identityResult.Succeeded;
-                if (!hasErrors && _userService.IsEmailTakenOtherUser(user.Id, user.EmailAddress))
-                {
-                    hasErrors = true;
-                    user.EmailAddressConfirmed = false;
-                    await _userManager.UpdateAsync(user);
-                }
+                _logger.LogWarning("确认邮件地址失败：无法识别提供的 token");
+                return View(false);
             }
 
-            if (hasErrors)
-            {
-                ModelState.AddModelError("token", "无法确认邮件地址");
-            }
-            return View(); 
+            var result = await _userService.ConfirmEmailAsync(tokenInEmail);
+            _logger.LogIdentityResult("确认邮件地址", result);
+            return View(result.Succeeded); 
         }
 
         [Route("change-password")]
@@ -135,20 +113,26 @@ namespace Discussion.Web.Controllers
         public async Task<IActionResult> DoChangePassword(ChangePasswordViewModel viewModel)
         {
             var getActionName = "ChangePassword";
+            var user = HttpContext.DiscussionUser();
             if (!ModelState.IsValid)
             {
+                _logger.LogModelState("修改密码", ModelState, user.UserName);
                 return View(getActionName, viewModel);
             }
             
-            var user = HttpContext.DiscussionUser();
             var changeResult = await _userManager.ChangePasswordAsync(user, viewModel.OldPassword, viewModel.NewPassword);
             if (!changeResult.Succeeded)
             {
                 ModelState.Clear();
-                ModelState.AddModelError(string.Empty, changeResult.Errors.ToList().First().Description);
+                changeResult.Errors.ToList().ForEach(err =>
+                {
+                    ModelState.AddModelError(err.Code, err.Description);    
+                });
+                _logger.LogIdentityResult("修改密码", changeResult, user.UserName);
                 return View(getActionName, viewModel);
             }
 
+            _logger.LogIdentityResult("修改密码", changeResult, user.UserName);
             return RedirectToAction(getActionName);
         }
 
@@ -156,48 +140,32 @@ namespace Discussion.Web.Controllers
         [Route("phone-number-verification")]
         public IActionResult VerifyPhoneNumber([FromForm] string code)
         {
-            var user = HttpContext.DiscussionUser();
-            _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
-            return View(user);
+            return View();
         }
 
         [HttpPost]
         [Route("phone-number-verification/send-code")]
         public async Task<ApiResponse> SendPhoneNumberVerificationCode([FromForm] string phoneNumber)
         {
+            var user = HttpContext.DiscussionUser();
+            var badRequestResponse = ApiResponse.NoContent(HttpStatusCode.BadRequest);
             if (string.IsNullOrEmpty(phoneNumber) || !Regex.IsMatch(phoneNumber, "\\d{11}"))
             {
-                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+                _logger.LogWarning($"发送手机验证短信失败：{user.UserName}：号码 {phoneNumber} 不正确");
+                return badRequestResponse;
             }
-            
-            var user = HttpContext.DiscussionUser();
-            _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
-            var today = DateTime.UtcNow.Date;
 
-            var msgSentToday = _verificationCodeRecordRepo
-                .All()
-                .Where(r => r.UserId == user.Id && r.CreatedAtUtc >= today)
-                .ToList();
-            var sentInTwoMinutes = msgSentToday.Any(r => r.CreatedAtUtc > DateTime.UtcNow.AddMinutes(-2));
-            
-            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
-            var verifiedNotLongerThan7Days = user.VerifiedPhoneNumber != null && (user.VerifiedPhoneNumber.CreatedAtUtc > sevenDaysAgo || user.VerifiedPhoneNumber.CreatedAtUtc > sevenDaysAgo);
-            if (msgSentToday.Count >= 5 || sentInTwoMinutes || verifiedNotLongerThan7Days)
+            try
             {
-                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+                await _userService.SendPhoneNumberVerificationCodeAsync(user, phoneNumber);
+                _logger.LogInformation($"发送手机验证短信成功：{user.UserName}");
             }
-            
-            var verificationCode = StringUtility.RandomNumbers(length:6);
-            var record = new PhoneNumberVerificationRecord
+            catch(PhoneNumberVerificationFrequencyExceededException)
             {
-                // ReSharper disable PossibleInvalidOperationException
-                UserId = User.ExtractUserId().Value,
-                Code = verificationCode,
-                Expires = DateTime.UtcNow.AddMinutes(15),
-                PhoneNumber = phoneNumber
-            };
-            _verificationCodeRecordRepo.Save(record);
-            await _smsSender.SendVerificationCodeAsync(phoneNumber, verificationCode);
+                _logger.LogWarning($"发送手机验证短信失败：{user.UserName}：超出调用限制");
+                return badRequestResponse;                
+            }
+                
             return ApiResponse.NoContent();
         }
 
@@ -206,30 +174,21 @@ namespace Discussion.Web.Controllers
         public ApiResponse DoVerifyPhoneNumber([FromForm] string code)
         {
             var user = HttpContext.DiscussionUser();
-            var validCode = _verificationCodeRecordRepo
-                .All()
-                .FirstOrDefault(r => r.UserId == user.Id && r.Code == code && r.Expires > DateTime.UtcNow);
 
-            if (validCode == null)
+            try
             {
+                _userService.VerifyPhoneNumberByCode(user, code);
+                _logger.LogInformation($"验证手机号码成功：{user.UserName}");
+            }
+            catch (PhoneNumberVerificationCodeInvalidException)
+            {
+                _logger.LogWarning($"验证手机号码失败：{user.UserName}：验证码不正确或已过期");
                 return ApiResponse.Error("code", "验证码不正确或已过期");
             }
-
-            _dbContext.Entry(user).Reference(u => u.VerifiedPhoneNumber).Load();
-            if (user.VerifiedPhoneNumber == null)
-            {
-                user.VerifiedPhoneNumber = new VerifiedPhoneNumber{ PhoneNumber =  validCode.PhoneNumber };
-                _phoneNumberRepo.Save(user.VerifiedPhoneNumber);
-            }
-            else
-            {
-                user.VerifiedPhoneNumber.PhoneNumber = validCode.PhoneNumber;
-                user.VerifiedPhoneNumber.ModifiedAtUtc = DateTime.UtcNow;
-                _phoneNumberRepo.Update(user.VerifiedPhoneNumber);
-            }
-            _userRepo.Update(user);
             
             return ApiResponse.NoContent();
         }
+
+
     }
 }

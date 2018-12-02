@@ -5,6 +5,7 @@ using System.Security.Principal;
 using Discussion.Admin.Supporting;
 using Discussion.Admin.ViewModels;
 using Discussion.Core.Models;
+using Discussion.Core.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -16,18 +17,21 @@ namespace Discussion.Admin.Services.Impl
     {
         private readonly JwtIssuerOptions _jwtOptions;
         private readonly IPasswordHasher<AdminUser> _passwordHasher;
+        private readonly IClock _clock;
 
         public AdminUserServiceImpl(IOptions<JwtIssuerOptions> jwtOptions, 
-            IPasswordHasher<AdminUser> passwordHasher)
+            IPasswordHasher<AdminUser> passwordHasher, IClock clock)
         {
             _passwordHasher = passwordHasher;
             _jwtOptions = jwtOptions.Value;
+            _clock = clock;
         }
 
         
         public IssuedToken IssueJwtToken(AdminUser adminUser)
         {
             var bearerIdentity = new GenericIdentity(adminUser.Username, JwtBearerDefaults.AuthenticationScheme);
+            var utcNow = _clock.Now.UtcDateTime;
             var identity = new ClaimsIdentity(
                 bearerIdentity,
                 new[]
@@ -36,7 +40,7 @@ namespace Discussion.Admin.Services.Impl
 
                     new Claim(JwtRegisteredClaimNames.Sub, adminUser.Username),
                     new Claim(JwtRegisteredClaimNames.Jti, _jwtOptions.JtiGenerator()),
-                    new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(_jwtOptions.IssuedAt).ToString(), ClaimValueTypes.Integer64),
+                    new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(utcNow).ToString(), ClaimValueTypes.Integer64),
                 });
             
             var handler = new JwtSecurityTokenHandler();
@@ -46,9 +50,9 @@ namespace Discussion.Admin.Services.Impl
                 Issuer = _jwtOptions.Issuer,
                 Audience = _jwtOptions.Audience,
                 SigningCredentials = _jwtOptions.SigningCredentials,
-                NotBefore = _jwtOptions.NotBefore,
+                NotBefore = utcNow,
                 Subject = identity,
-                Expires = _jwtOptions.Expiration,
+                Expires = utcNow.Add(_jwtOptions.ValidFor),
             });
 
             var encodedJwt = handler.WriteToken(securityToken);

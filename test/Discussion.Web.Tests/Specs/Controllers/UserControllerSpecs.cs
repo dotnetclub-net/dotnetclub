@@ -38,6 +38,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _theApp.DeleteAll<User>();
         }
 
+        #region Update Profile
+        
         [Fact]
         public async Task should_update_display_name()
         {
@@ -99,6 +101,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.Equal(user.UserName, user.DisplayName);
         }
 
+        #endregion
+  
+        #region Change Password
+
         [Fact]
         public async Task should_update_password()
         {
@@ -121,7 +127,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         [Fact]
-        public async Task should_not_update_password_with_invalid_wrong_password()
+        public async Task should_not_update_password_with_wrong_password()
         {
             var user = _theApp.MockUser();
             var viewModel = new ChangePasswordViewModel
@@ -140,7 +146,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
             Assert.False(passwordChanged);
         }
-        
+
+        #endregion
         
         #region Email Settings
 
@@ -257,13 +264,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var generatedUrl = userCtrl.GetFakeRouter().GetGeneratedUrl;
             var token = generatedUrl["token"].ToString();
-            var result = await userCtrl.ConfirmEmail(token);
+            var viewResult = await userCtrl.ConfirmEmail(token);
             
             _theApp.ReloadEntity(user);
             Assert.Equal("one@changing.com", user.EmailAddress);
             Assert.True(user.EmailAddressConfirmed);
             
-            var viewResult = result as ViewResult;
             Assert.NotNull(viewResult);
             Assert.True(userCtrl.ModelState.IsValid);
             Assert.True(string.IsNullOrEmpty(viewResult.ViewName));
@@ -281,12 +287,13 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var token = generatedUrl["token"].ToString();
 
             CreateUser("email@taken.com", confirmed: true);
-            await userCtrl.ConfirmEmail(token);
-            
+            var viewResult = await userCtrl.ConfirmEmail(token);
+            var isConfirmed = (bool)viewResult.Model;
+
             _theApp.ReloadEntity(user);
             Assert.Equal("email@taken.com", user.EmailAddress);
             Assert.False(user.EmailAddressConfirmed);
-            Assert.False(userCtrl.ModelState.IsValid);
+            Assert.False(isConfirmed);
         }
 
         // QUESTION: should not confirm with used token?
@@ -421,9 +428,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.NotNull(user.PhoneNumberId);
         }
         
-        
-        // todo: should be able to change phone number after 7 days
-        // todo: should be able to send code after 2 mins
         // *todo: should auto invalid after 1 year
         
         #endregion
@@ -502,7 +506,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var mailSender = new Mock<IEmailDeliveryMethod>();
             if (willBeCalled)
             {
-                mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), "dotnet club 用户邮件地址确认", It.IsAny<string>()))
+                mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
             }
@@ -519,7 +523,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 .Verifiable();
             
             _theApp.OverrideServices(services => services.AddSingleton(smsSender.Object));
-//            ReplacableServiceProvider.Replace(services => services.AddSingleton(smsSender.Object));
             return smsSender;
         }
 

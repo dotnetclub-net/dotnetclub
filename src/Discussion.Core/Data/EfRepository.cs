@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Discussion.Core.Models;
+using Discussion.Core.Time;
 using Microsoft.EntityFrameworkCore;
 
 namespace Discussion.Core.Data
@@ -19,10 +20,12 @@ namespace Discussion.Core.Data
     {
         private readonly ApplicationDbContext _context;
         private readonly DbSet<T> _entities;
+        private readonly IClock _clock;
 
-        public EfRepository(ApplicationDbContext context)
+        public EfRepository(ApplicationDbContext context, IClock clock)
         {
             this._context = context;
+            _clock = clock;
             _entities = context.Set<T>();
         }
         
@@ -45,7 +48,7 @@ namespace Discussion.Core.Data
 
             if (entity.CreatedAtUtc == Entity.EntityInitialDate)
             {
-                entity.CreatedAtUtc = DateTime.UtcNow;    
+                entity.CreatedAtUtc = _clock.Now.UtcDateTime;    
             }
 
             _entities.Add(entity);
@@ -60,7 +63,7 @@ namespace Discussion.Core.Data
             }
             if (entity.ModifiedAtUtc == Entity.EntityInitialDate)
             {
-                entity.ModifiedAtUtc = DateTime.UtcNow;    
+                entity.ModifiedAtUtc = _clock.Now.UtcDateTime;    
             }
             
             _context.SaveChanges();

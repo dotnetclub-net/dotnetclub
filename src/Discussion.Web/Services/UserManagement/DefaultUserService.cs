@@ -1,10 +1,14 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Time;
 using Discussion.Core.Utilities;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
+using Discussion.Web.Services.UserManagement.Exceptions;
+using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,21 +22,29 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IUrlHelper _urlHelper;
         private readonly IEmailDeliveryMethod _emailDeliveryMethod;
         private readonly IConfirmationEmailBuilder _confirmationEmailBuilder;
+        private readonly IPhoneNumberVerificationService _phoneNumberVerificationService;
+        private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
+        private readonly IClock _clock;
 
         public DefaultUserService(IRepository<User> userRepo, 
             UserManager<User> userManager, 
             IEmailDeliveryMethod emailDeliveryMethod, 
             IUrlHelper urlHelper, 
-            IConfirmationEmailBuilder confirmationEmailBuilder)
+            IConfirmationEmailBuilder confirmationEmailBuilder, 
+            IPhoneNumberVerificationService phoneNumberVerificationService, 
+            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock)
         {
             _userRepo = userRepo;
             _userManager = userManager;
             _emailDeliveryMethod = emailDeliveryMethod;
             _urlHelper = urlHelper;
             _confirmationEmailBuilder = confirmationEmailBuilder;
+            _phoneNumberVerificationService = phoneNumberVerificationService;
+            _verifiedPhoneNumberRepo = verifiedPhoneNumberRepo;
+            _clock = clock;
         }
 
-        public async Task<IdentityResult> UpdateUserInfo(UserSettingsViewModel userSettingsViewModel, User user)
+        public async Task<IdentityResult> UpdateUserInfoAsync(User user, UserSettingsViewModel userSettingsViewModel)
         {
             var updateEmailResult = await UpdateEmail(userSettingsViewModel, user);
             if (!updateEmailResult.Succeeded)
@@ -55,29 +67,25 @@ namespace Discussion.Web.Services.UserManagement
         {
             var existingEmail = user.EmailAddress?.Trim();
             var newEmail = userSettingsViewModel.EmailAddress?.Trim();
+            
             var emailNotChanged = existingEmail.IgnoreCaseEqual(newEmail);
             if (emailNotChanged)
             {
                 return IdentityResult.Success;
             }
             
-            var emailTaken = IsEmailTakenOtherUser(user.Id, newEmail);
-            if (emailTaken)
-            {
-                return IdentityResult.Failed(new IdentityError
-                {
-                    Code = "EmailTaken",
-                    Description = "邮件地址已由其他用户使用"
-                });
-            }
-            return await _userManager.SetEmailAsync(user, newEmail);
+            var emailTaken = IsEmailTakenByAnotherUser(user.Id, newEmail);
+            
+            return emailTaken 
+                ? EmailTakenResult()
+                : await _userManager.SetEmailAsync(user, newEmail);
         }
 
-        public async Task SendEmailConfirmationMail(User user, string urlProtocol)
+        public async Task SendEmailConfirmationMailAsync(User user, string urlProtocol)
         {
             if (user.EmailAddressConfirmed)
             {
-                throw new UserEmailAlreadyConfirmedException();
+                throw new UserEmailAlreadyConfirmedException(user.UserName);
             }
             
             var tokenString = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -91,11 +99,62 @@ namespace Discussion.Web.Services.UserManagement
                 new {token = tokenInEmail.EncodeAsUrlQueryString()},
                 protocol: urlProtocol);
 
-            var emailBody = _confirmationEmailBuilder.BuildEmailBody(callbackUrl);
+            var emailBody = _confirmationEmailBuilder.BuildEmailBody(user.DisplayName, callbackUrl);
             await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
         }
 
-        public bool IsEmailTakenOtherUser(int thisUserId, string checkingEmail)
+        public async Task<IdentityResult> ConfirmEmailAsync(UserEmailToken tokenInEmail)
+        {
+            var user = _userRepo.Get(tokenInEmail.UserId);
+            var identityResult = await _userManager.ConfirmEmailAsync(user, tokenInEmail.Token);
+            if (!identityResult.Succeeded)
+            {
+                return identityResult;
+            }
+            
+            if (IsEmailTakenByAnotherUser(tokenInEmail.UserId, user.EmailAddress))
+            {
+                user.EmailAddressConfirmed = false;
+                _userRepo.Update(user);
+                return EmailTakenResult();
+            }
+            return identityResult;
+        }
+
+        public async Task SendPhoneNumberVerificationCodeAsync(User user, string phoneNumber)
+        {
+            if (!user.CanModifyPhoneNumberNow(_clock) || 
+                _phoneNumberVerificationService.IsFrequencyExceededForUser(user.Id))
+            {
+                throw new PhoneNumberVerificationFrequencyExceededException();
+            }
+
+            await _phoneNumberVerificationService.SendVerificationCodeAsync(user.Id, phoneNumber);
+        }
+
+        public void VerifyPhoneNumberByCode(User user, string verificationCode)
+        {
+            var validatedPhoneNumber = _phoneNumberVerificationService.GetVerifiedPhoneNumberByCode(user.Id, verificationCode);
+            if (validatedPhoneNumber == null)
+            {
+                throw new PhoneNumberVerificationCodeInvalidException();
+            }
+
+            if (user.VerifiedPhoneNumber == null)
+            {
+                user.VerifiedPhoneNumber = new VerifiedPhoneNumber{ PhoneNumber =  validatedPhoneNumber };
+                _verifiedPhoneNumberRepo.Save(user.VerifiedPhoneNumber);
+            }
+            else
+            {
+                user.VerifiedPhoneNumber.PhoneNumber = validatedPhoneNumber;
+                user.VerifiedPhoneNumber.ModifiedAtUtc = _clock.Now.UtcDateTime;
+                _verifiedPhoneNumberRepo.Update(user.VerifiedPhoneNumber);
+            }
+            _userRepo.Update(user);
+        }
+
+        private bool IsEmailTakenByAnotherUser(int thisUserId, string checkingEmail)
         {
             if (string.IsNullOrWhiteSpace(checkingEmail))
             {
@@ -109,5 +168,13 @@ namespace Discussion.Web.Services.UserManagement
                           && u.EmailAddress.ToLower() == checkingEmail.ToLower());
         }
 
+        private static IdentityResult EmailTakenResult()
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "EmailTaken",
+                Description = "邮件地址已由其他用户使用"
+            });
+        }
     }
 }

@@ -2,6 +2,6 @@ namespace Discussion.Web.Services.UserManagement.EmailConfirmation
 {
     public interface IConfirmationEmailBuilder
     {
-        string BuildEmailBody(string callbackUrl);
+        string BuildEmailBody(string displayName, string callbackUrl);
     }
 }
