@@ -46,9 +46,9 @@
 
 @section Tail{
     <script>
-        $(document).ready(function() {
-            var replyUrl = '/topics/' + parseInt('@Model.Id') + '/replies';
-            var previewApi = '/api/common/md2html?maxHeadingLevel=3';
+        $(function() {
+            var replyUrl = '@Url.Action("Reply", "Reply", new {topicId = Model.Id})';
+            var previewApi = '@Url.Action("RenderMarkdown", "Common", new {maxHeadingLevel = 3})';
             var app = window.DiscussionApp;
             var previewSelectors = {
                 tabPreview: '#tab-preview',

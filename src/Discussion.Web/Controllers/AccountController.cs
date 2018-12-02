@@ -68,7 +68,7 @@ namespace Discussion.Web.Controllers
             }
             else
             {
-                _logger.LogInformation($"用户登录失败：用户名 {viewModel.UserName}：数据格式不正确。");
+                _logger.LogWarning($"用户登录失败：用户名 {viewModel.UserName}：数据格式不正确。");
             }
 
             if (!result.Succeeded)
