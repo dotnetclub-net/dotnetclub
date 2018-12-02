@@ -11,7 +11,8 @@ import '../lib/node_modules/prismjs';
 
 import * as utils from './functions'
 import * as mdeditor from './markdown-editor'
+import * as topic from './topic'
 
 
 window.jQuery = window.$ = jQuery;
-window.DiscussionApp = { utils, mdeditor  };
+window.DiscussionApp = { utils, mdeditor, topic  };
