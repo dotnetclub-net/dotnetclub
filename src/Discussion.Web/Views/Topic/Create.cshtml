@@ -31,6 +31,7 @@
 @section Tail{
     <script>
         window.createTopicUrl = "@Url.Action("CreateTopic")";
+        window.uploadUrl = '@Url.Action("UploadFile", "Common", new {category = "topic"})';
         window.DiscussionApp.mdeditor.setupEditor();
     </script>
 }

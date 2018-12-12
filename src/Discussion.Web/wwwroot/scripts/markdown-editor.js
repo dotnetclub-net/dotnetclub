@@ -12,6 +12,7 @@
 import filterTags from './editor/html-tag-filter';
 import * as InsertCode from './editor/insert-code';
 import * as MD from './editor/markdown-support'
+import * as imageUploader from './editor/image-uploader'
 
 
 export function setupEditor() {
@@ -88,8 +89,7 @@ function defaultEditorOptions(){
             {title: 'PowerShell', value: 'ps1'},
             {title: 'Shell', value: 'sh'},
             {title: 'Java', value: 'java'},
-            {title: 'Python', value: 'py'},
-            {title: 'Ruby', value: 'rb'}
+            {title: 'Python', value: 'py'}
         ],
         placeholder: '正文',
         height: 300,
@@ -134,6 +134,13 @@ function defaultEditorOptions(){
                     });
                     editor.invoke('editor.focus');
                 }
+            },
+            onImageUpload: function(files) {
+                var editor = $(this).data('summernote');
+                
+                imageUploader.onImageSelected(files[0], function(url){
+                    editor.invoke('insertImage', url);
+                });
             }
         },
         buttons:{
