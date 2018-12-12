@@ -13,6 +13,7 @@ import filterTags from './editor/html-tag-filter';
 import * as InsertCode from './editor/insert-code';
 import * as MD from './editor/markdown-support'
 import * as imageUploader from './editor/image-uploader'
+import * as imageResizing from './editor/image-resize'
 
 
 export function setupEditor() {
@@ -137,23 +138,36 @@ function defaultEditorOptions(){
             },
             onImageUpload: function(files) {
                 var editor = $(this).data('summernote');
+                if(editor.options.maximumImageFileSize < files[0].size){
+                    console.log('所选择的图片文件超过了 ' + editor.options.maximumImageFileSize + ' 字节');
+                    alert('图片文件太大了，无法上传');
+                    return;
+                }
                 
                 imageUploader.onImageSelected(files[0], function(url){
-                    editor.invoke('insertImage', url);
+                    editor.invoke('insertImage', url, function(){ /*no-op fn to prevent auto set width*/ });
                 });
             }
         },
         buttons:{
             insertCode: InsertCode.insertCodeButton,
             markdown: MD.viewMarkdownButton
-        }
+        },
+        popover: {
+            codeLang : [
+                ['codeLang', ['chooseCodeLanguage']]
+            ],
+            image: [
+                ['imagesize', ['imageSizeSmall', 'imageSizeMiddle', 'imageSizeRaw']]
+            ],
+        },
+        disableResizeImage: true,
+        maximumImageFileSize: 2 * 1024 * 1024  /* 2M */
     });
     options.modules.markdownCodeView = MD.MarkdownCodeViewModule;
     options.modules.codePopover = InsertCode.CodePopoverModule;
     options.modules.preventToolsInCodeBlocks = InsertCode.PreventToolsInCodeBlocks;
-    options.popover.codeLang = [
-        ['codeLang', ['chooseCodeLanguage']]
-    ];
+    options.modules.imageResizing = imageResizing.ImageResizingPopoverModule;
 
     return options;
 }
