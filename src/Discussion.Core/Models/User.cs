@@ -10,7 +10,10 @@ namespace Discussion.Core.Models
         public string DisplayName { get; set; }
         public string EmailAddress { get; set; }
 
-        public int AvatarFileId { get; set; }
+        [ForeignKey("AvatarFileId")]
+        public FileRecord AvatarFile { get; set; }
+        public int? AvatarFileId { get; set; }
+        
         public string HashedPassword { get; set; }
         public DateTime? LastSeenAt { get; set; }
         

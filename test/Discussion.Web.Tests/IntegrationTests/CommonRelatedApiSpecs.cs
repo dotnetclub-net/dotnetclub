@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -74,7 +75,10 @@ namespace Discussion.Web.Tests.IntegrationTests
             mockFileSystem.Setup(fs => fs.GetFileAsync("file-path")).Returns(Task.FromResult(mockFile.Object));
             
             var mockRepo = new Mock<IRepository<FileRecord>>();
-            mockRepo.Setup(repo => repo.Get(42)).Returns(new FileRecord {StoragePath = "file-path", OriginalName = "file.txt"});
+            mockRepo.Setup(repo => repo.All()).Returns(new []
+            {
+                new FileRecord {StoragePath = "file-path", Slug = "file-guid", OriginalName = "file.txt"}
+            }.AsQueryable());
             
             _app.OverrideServices(services =>
             {
@@ -83,7 +87,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             });
             
             
-            _app.Path("/api/common/download/42")
+            _app.Path("/api/common/download/file-guid?download=true")
                 .Get()
                 .ShouldSuccess(_app.NoUser())
                 .WithResponse(res =>

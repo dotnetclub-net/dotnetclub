@@ -43,6 +43,7 @@ namespace Discussion.Core.Mvc
             
             return userRepo.All()
                 .Include(u => u.VerifiedPhoneNumber)
+                .Include(u => u.AvatarFile)
                 .FirstOrDefault(u => u.Id == userId);
         }
 

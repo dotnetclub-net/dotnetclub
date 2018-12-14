@@ -35,6 +35,7 @@ namespace Discussion.Web.Services.TopicManagement
             var topic = _topicRepo.All()
                 .Where(t => t.Id == topicId)
                 .Include(t => t.Author)
+                    .ThenInclude(u => u.AvatarFile)
                 .SingleOrDefault();
             
             if (topic == null)
@@ -46,6 +47,7 @@ namespace Discussion.Web.Services.TopicManagement
                 .Where(c => c.TopicId == topicId)
                 .OrderBy(c => c.CreatedAtUtc)
                 .Include(r => r.Author)
+                    .ThenInclude(u => u.AvatarFile)
                 .ToList();
 
             // todo:   _eventBus.Publish(new TopicViewedEvent{ TopicId = topicId });

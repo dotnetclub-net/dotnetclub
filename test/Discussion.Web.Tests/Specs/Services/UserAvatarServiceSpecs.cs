@@ -28,13 +28,12 @@ namespace Discussion.Web.Tests.Specs.Services
         [Fact]
         public void should_generate_avatar_from_user_set_avatar()
         {
-            var user = new User();
-            user.AvatarFileId = 12;
+            var user = new User {AvatarFileId = 12, AvatarFile = new FileRecord() {Id = 12, Slug = "file-hash"}};
 
-            var userAvatarService = new UserAvatarService(CreateMockUrlHelper(user.AvatarFileId));
+            var userAvatarService = new UserAvatarService(CreateMockUrlHelper(user.AvatarFile.Slug));
             var avatarUrl = userAvatarService.GetUserAvatarUrl(user);
             
-            Assert.Equal("http://download/12", avatarUrl);
+            Assert.Equal("http://download/file-hash", avatarUrl);
         }
         
         [Fact]
@@ -65,11 +64,11 @@ namespace Discussion.Web.Tests.Specs.Services
         }
 
 
-        private static IUrlHelper CreateMockUrlHelper(int? fileId = null)
+        private static IUrlHelper CreateMockUrlHelper(string slug = null)
         {
             var urlHelper = new Mock<IUrlHelper>();
             urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>()))
-                .Returns("http://download/" + fileId ?? "0");
+                .Returns("http://download/" + slug ?? "file");
             return urlHelper.Object;
         }
 

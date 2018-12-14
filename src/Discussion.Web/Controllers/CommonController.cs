@@ -75,7 +75,8 @@ namespace Discussion.Web.Controllers
                 Size = file.Length,
                 OriginalName = file.FileName,
                 StoragePath = subPath,
-                Category = category
+                Category = category,
+                Slug = Guid.NewGuid().ToString("N")
             };
             _fileRepo.Save(fileRecord);
             
@@ -84,7 +85,7 @@ namespace Discussion.Web.Controllers
             // ReSharper disable Mvc.ControllerNotResolved
             var fileUrl = _fileSystem.SupportGeneratingPublicUrl 
                 ? await storageFile.GetPublicUrlAsync(TimeSpan.MaxValue)
-                : Url.Action("DownloadFile", "Common", new {id = fileRecord.Id}, Request.Scheme);
+                : Url.Action("DownloadFile", "Common", new {slug = fileRecord.Slug}, Request.Scheme);
 
             _logger.LogInformation($"上传文件成功：{fileRecord.OriginalName}, {fileRecord.Size} bytes, {fileRecord.StoragePath}, (id: {fileRecord.Id})");
             return ApiResponse.ActionResult(new
@@ -94,11 +95,11 @@ namespace Discussion.Web.Controllers
             });
         }
 
-        [HttpGet("download/{id}")]
+        [HttpGet("download/{slug}")]
         [AllowAnonymous]
-        public async Task<IActionResult> DownloadFile(int id)
+        public async Task<IActionResult> DownloadFile(string slug, [FromQuery] bool? download)
         {
-            var fileRecord = _fileRepo.Get(id);
+            var fileRecord = _fileRepo.All().FirstOrDefault(f => f.Slug.ToLower() == slug.ToLower());
             if (fileRecord == null)
             {
                 return NotFound();
@@ -116,9 +117,10 @@ namespace Discussion.Web.Controllers
             }
 
             var buffered = new BufferedStream(await file.OpenReadAsync(), 8 * 1024);
+            var shouldDownload = download.HasValue && download.Value;
             return new FileStreamResult(buffered, contentType)
             {
-                FileDownloadName =  fileRecord.OriginalName
+                FileDownloadName =  shouldDownload ? fileRecord.OriginalName : null
             };  
         }
     }

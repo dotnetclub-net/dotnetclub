@@ -28,7 +28,7 @@ namespace Discussion.Web.Services.UserManagement.Avatar
             {
                 // ReSharper disable Mvc.ActionNotResolved
                 // ReSharper disable Mvc.ControllerNotResolved
-                return _urlHelper.Action("DownloadFile", "Common", new {id = user.AvatarFileId});
+                return _urlHelper.Action("DownloadFile", "Common", new {slug = user.AvatarFile.Slug});
             }
 
             if (user.EmailAddressConfirmed)
