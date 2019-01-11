@@ -4,6 +4,7 @@ import {Paged, Paging, TopicSummary} from './topic';
 import {ApiResponse} from "../../api-response";
 import {STChange, STColumn, STPage} from "@delon/abc";
 import {NzMessageService} from "ng-zorro-antd";
+import {Router} from "@angular/router";
 
 
 @Component({
@@ -24,16 +25,16 @@ export class TopicListComponent implements OnInit {
     front: false
   };
   columns: STColumn[] = [
-    { title: '编号', index: 'id', width: '5%',
+    { title: '编号', index: 'id', width: '10%',
       format: (topic: TopicSummary) => {
-        return `<a href="https://${this.dotnetClubHostName}/topics/${topic.id}" target="_blank">${topic.id}</a>`
+        return `<a href="https://${this.dotnetClubHostName}/topics/${topic.id}" target="_blank">${topic.id}</a>`;
       }
     },
-    { title: '标题', index: 'title', width: '60%'},
+    { title: '标题', index: 'title', width: '60%' },
     {
       title: '作者',
       index: 'author.displayName',
-      width: '20%'
+      width: '15%'
     },
     {
       title: '操作',
@@ -53,11 +54,17 @@ export class TopicListComponent implements OnInit {
     },
   ];
 
-  constructor(private httpClient: _HttpClient, private msg: NzMessageService) { }
+  constructor(private httpClient: _HttpClient, private msg: NzMessageService, private router: Router) { }
 
-  listChange( event: STChange){
+  dispatchClick( event: STChange ){
     if(event.pi !== this.paging.currentPage){
       this.getTopics(event.pi);
+    }
+
+    if( event.click ){
+      const index = event.click.index;
+      const clickedTopic = this.topics[index];
+      this.router.navigate(['/topics', clickedTopic.id]);
     }
   }
 

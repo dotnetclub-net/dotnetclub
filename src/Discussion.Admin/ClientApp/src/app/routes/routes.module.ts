@@ -18,6 +18,7 @@ import { Exception500Component } from './exception/500.component';
 
 // dotnetclub components
 import { TopicListComponent } from './topic-management/topic-list.component';
+import { TopicDetailComponent } from './topic-management/topic-detail.component';
 
 
 
@@ -28,6 +29,7 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent, data: { title: '管理面板' } },
+      { path: 'topics/:id', component: TopicDetailComponent, data: { title: '话题详情'} },
       { path: 'topics', component: TopicListComponent, data: { title: '话题管理'} },
     ]
   },
@@ -57,7 +59,8 @@ const COMPONENTS = [
   Exception404Component,
   Exception500Component,
 
-  TopicListComponent
+  TopicListComponent,
+  TopicDetailComponent
 ];
 const COMPONENTS_NOROUNT = [];
 

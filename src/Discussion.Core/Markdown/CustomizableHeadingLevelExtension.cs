@@ -5,7 +5,7 @@ using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
 
-namespace Discussion.Web.Services.Markdown
+namespace Discussion.Core.Markdown
 {
     public class CustomizableHeadingLevelExtension : IMarkdownExtension
     {

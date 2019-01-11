@@ -1,5 +1,5 @@
-﻿using Discussion.Tests.Common.AssertionExtensions;
-using Discussion.Web.Services.Markdown;
+﻿using Discussion.Core.Markdown;
+using Discussion.Tests.Common.AssertionExtensions;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Services

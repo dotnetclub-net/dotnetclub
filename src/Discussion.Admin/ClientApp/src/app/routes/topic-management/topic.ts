@@ -1,20 +1,40 @@
-export class Topic {
-  id: number;
-  title: string;
-  content: string;
-}
 
 export class TopicSummary {
   id: number;
   title: string;
   createdAt: Date;
-  author: TopicAuthorSummary;
+  author: AuthorSummary;
+  viewCount: number;
+  replyCount: number;
 }
 
-export class TopicAuthorSummary {
+export class AuthorSummary {
   id: number;
   displayName: string;
 }
+
+export class TopicDetail extends  TopicSummary {
+  markdownContent :string;
+  htmlContent : string;
+}
+
+export class Reply {
+  id: number;
+  markdownContent :string;
+  htmlContent : string;
+  author: AuthorSummary
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 export class Paged<T> {

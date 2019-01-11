@@ -6,6 +6,6 @@
       [columns]="columns" [data]="topics"
       [loading]="loading"
       [page]="stPagingOptions" [pi]="paging.currentPage" [ps]="paging.pageSize" [total]="paging.itemCount"
-      (change)="listChange($event)">
+      (change)="dispatchClick($event)">
   </st>
 </nz-card>

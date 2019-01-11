@@ -1,6 +1,6 @@
 namespace Discussion.Admin.ViewModels
 {
-    public class UserSummery
+    public class UserSummary
     {
         public int Id { get; set; }
         public string DisplayName { get; set; }

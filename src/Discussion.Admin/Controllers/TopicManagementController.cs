@@ -2,14 +2,15 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
-using System.Threading.Tasks;
 using Discussion.Admin.ViewModels;
 using Discussion.Core.Data;
+using Discussion.Core.Markdown;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Discussion.Admin.Controllers
 {
@@ -18,10 +19,12 @@ namespace Discussion.Admin.Controllers
     {
         const int TopicPageSize = 20;
         private readonly IRepository<Topic> _topicRepo;
+        private readonly IRepository<Reply> _replyRepo;
 
-        public TopicManagementController(IRepository<Topic> topicRepo)
+        public TopicManagementController(IRepository<Topic> topicRepo, IRepository<Reply> replyRepo)
         {
             _topicRepo = topicRepo;
+            _replyRepo = replyRepo;
         }
 
         [Route("api/topics")]
@@ -31,6 +34,33 @@ namespace Discussion.Admin.Controllers
                             .OrderByDescending(topic => topic.Id)
                             .Page(SummarizeTopic(), 
                                   TopicPageSize, page);
+        }
+        
+        [Route("api/topics/{id}")]
+        public ApiResponse ShowDetail(int id)
+        {
+            var topic = _topicRepo.All()
+                .Where(t => t.Id == id)
+                    .Include(t => t.Author)
+                .SingleOrDefault();
+
+            if (topic == null)
+            {
+                return ApiResponse.NoContent(HttpStatusCode.NotFound);
+            }
+
+
+            return ApiResponse.ActionResult(new {
+                Author = new UserSummary
+                {
+                    Id = topic.Author.Id,
+                    DisplayName = topic.Author.DisplayName
+                },
+                CreatedAt = topic.CreatedAtUtc,
+                Title = topic.Title,
+                MarkdownContent = topic.Content,
+                HtmlContent = topic.Content.MdToHtml()
+            });
         }
         
         [Route("api/topics/{id}")]
@@ -44,6 +74,8 @@ namespace Discussion.Admin.Controllers
             }
             
             _topicRepo.Delete(topic);
+            var replies = _replyRepo.All().Where(r => r.Id == id).ToList();
+            replies.ForEach(_replyRepo.Delete);
             return ApiResponse.NoContent();
         }
 
@@ -54,7 +86,9 @@ namespace Discussion.Admin.Controllers
             {
                 Id = topic.Id,
                 Title = topic.Title,
-                Author = new UserSummery
+                ViewCount = topic.ViewCount,
+                ReplyCount = topic.ReplyCount,
+                Author = new UserSummary
                 {
                     Id = topic.Author.Id,
                     DisplayName = topic.Author.DisplayName

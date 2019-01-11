@@ -1,0 +1,46 @@
+<page-header *ngIf="!topic" [title]="'话题详情'"></page-header>
+<page-header *ngIf="!!topic" [title]="topic.title"></page-header>
+
+
+<div *ngIf="!!topic" >
+  <nz-card [nzBordered]="false" class="topic-content">
+    <div [innerHTML]="topic.htmlContent"></div>
+  </nz-card>
+
+  <nz-card [nzBordered]="false" class="topic-reply-list">
+    <h2>回复列表</h2>
+    <nz-list *ngIf="!!replies" [nzDataSource]="replies" [nzRenderItem]="topicItemTemplate">
+      <ng-template #topicItemTemplate let-reply>
+        <nz-list-item [nzContent]="nzContent" [nzActions]="[delete]">
+          <ng-template #nzContent>
+            <div class="width-md">
+              <div class="d-flex text-grey-dark">
+                <div class="flex-1">
+                  作者
+                  <p>{{reply.author.displayName}}</p>
+                </div>
+                <div>
+                  <div [innerHTML]="reply.htmlContent"></div>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+          <ng-template #delete>
+            <a (click)="deleteReply(reply.id)">删除</a>
+          </ng-template>
+        </nz-list-item>
+      </ng-template>
+    </nz-list>
+    <div *ngIf="!!replies && !replies.length" class="no-replies">
+      没有回复
+    </div>
+  </nz-card>
+
+  <div class="topic-operations">
+    <button (click)="deleteTopic(topic.id, topic.title)">删除话题</button>
+  </div>
+</div>
+
+<div *ngIf="!topic">
+  加载中...
+</div>
