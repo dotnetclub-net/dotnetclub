@@ -6,6 +6,9 @@
 
 @{
     ViewData["Title"] = Model.Topic.Title;
+    
+    ViewData["Keyword"] = Html.DescribeTopicType(Model.Topic.Type) + Model.Topic.Title;
+    ViewData["Description"] = Model.Topic.Content.Length > 100 ? Model.Topic.Content.Substring(0, 100) + "..." : Model.Topic.Content;
 }
 
 <div class="row">
