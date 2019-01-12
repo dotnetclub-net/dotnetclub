@@ -1,4 +1,5 @@
-﻿@model Discussion.Core.ViewModels.UserViewModel
+﻿@inject Discussion.Core.Models.SiteSettings SiteSettings
+@model Discussion.Core.ViewModels.UserViewModel
 @{
     ViewData["Title"] = "用户注册";
 }
@@ -9,36 +10,43 @@
         <div class="panel-heading">
             用户注册
         </div>
-
         <div class="panel-body">
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <form class="register-form login-form"
-                  asp-controller="Account" asp-action="DoRegister" 
-                  method="post">
-                <fieldset>
-                    <label>
-                        <span>@Html.DisplayNameFor(m => m.UserName)</span>
-                        @Html.TextBoxFor(m => m.UserName, new {autofocus = "true", autocomplete = "off", maxlength=20})
-                    </label>
-                </fieldset>
-                <fieldset>
-                    <label>
-                        <span>@Html.DisplayNameFor(m => m.Password)</span>
-                        @Html.PasswordFor(m => m.Password, new {autocomplete = "off", maxlength=20})
-                    </label>
-                </fieldset>
-                <fieldset>
-                    <label>
-                        <span>确认密码</span>
-                        <input id="Password-Confirmation" type="password" class="password-confirmation" autocomplete="false" maxlength="20"/>
-                    </label>
-                </fieldset>
-                <br/>
-                <button class="btn btn-default signin-button">
-                    <span class="glyphicon glyphicon-user">注册</span>
-                </button>
-            </form>
+            @if (SiteSettings.CanRegisterNewUsers())
+            {
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <form class="register-form login-form"
+                      asp-controller="Account" asp-action="DoRegister"
+                      method="post">
+                    <fieldset>
+                        <label>
+                            <span>@Html.DisplayNameFor(m => m.UserName)</span>
+                            @Html.TextBoxFor(m => m.UserName, new {autofocus = "true", autocomplete = "off", maxlength = 20})
+                        </label>
+                    </fieldset>
+                    <fieldset>
+                        <label>
+                            <span>@Html.DisplayNameFor(m => m.Password)</span>
+                            @Html.PasswordFor(m => m.Password, new {autocomplete = "off", maxlength = 20})
+                        </label>
+                    </fieldset>
+                    <fieldset>
+                        <label>
+                            <span>确认密码</span>
+                            <input id="Password-Confirmation" type="password" class="password-confirmation" autocomplete="false" maxlength="20"/>
+                        </label>
+                    </fieldset>
+                    <br/>
+                    <button class="btn btn-default signin-button">
+                        <span class="glyphicon glyphicon-user">注册</span>
+                    </button>
+                </form>
+            }
+            else
+            {
+                <h3>当前暂不允许注册新的用户，请稍后再来。</h3>
+            }
         </div>
+
     </div>
 </div>
 

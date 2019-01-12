@@ -24,5 +24,10 @@ namespace Discussion.Core.Models
         
         public string HeaderLink4Text {get;set;}
         public string HeaderLink4Url {get;set;}
+
+
+        public bool CanCreateNewTopics() => !this.IsReadonly && this.EnableNewTopicCreation;
+        public bool CanAddNewReplies() => !this.IsReadonly && this.EnableNewReplyCreation;
+        public bool CanRegisterNewUsers() => !this.IsReadonly && this.EnableNewUserRegistration;
     }
 }

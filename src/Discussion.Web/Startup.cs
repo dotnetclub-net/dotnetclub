@@ -95,7 +95,8 @@ namespace Discussion.Web
             services.AddScoped<IUserService, DefaultUserService>();
 
             services.AddScoped<ITopicService, DefaultTopicService>();
-            services.AddSingleton(sp =>
+            // todo: cache site settings!
+            services.AddScoped(sp =>
             {
                 var configured = sp.GetService<IRepository<SiteSettings>>().All().FirstOrDefault();
                 return configured ??

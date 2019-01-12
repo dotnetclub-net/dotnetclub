@@ -37,6 +37,13 @@ namespace Discussion.Web.Controllers
         {
             var currentUser = HttpContext.DiscussionUser();
 
+            if (!_siteSettings.CanAddNewReplies())
+            {
+                var ex = new FeatureDisabledException();
+                _logger.LogWarning($"添加回复失败：{currentUser.UserName}：{ex.Message}");
+                return BadRequest();
+            }
+
             if (_siteSettings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
             {
                 var ex = new UserVerificationRequiredException();

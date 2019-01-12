@@ -79,12 +79,15 @@
                     }
                     else
                     {
-                        @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
-                        <span>&nbsp;</span>
+                        if (SiteSettings.CanRegisterNewUsers())
+                        {
+                            @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
+                            <span>&nbsp;</span>
+                        }
                         @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
                     }
                 </div>
-                <a class="navbar-brand" href="/">dotnetClub</a>
+                <a class="navbar-brand" href="/">dotnet club</a>
             </div>
             <div id="main-navigation" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
@@ -128,8 +131,11 @@
                     }
                     else
                     {
-                        @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
-                        <span>&nbsp;</span>
+                        if (SiteSettings.CanRegisterNewUsers())
+                        {
+                            @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
+                            <span>&nbsp;</span>
+                        }
                         @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
                     }
                 </div>

@@ -57,6 +57,11 @@ namespace Discussion.Web.Services.TopicManagement
 
         public Topic CreateTopic(TopicCreationModel model)
         {
+            if (!_settings.CanCreateNewTopics())
+            {
+                throw new FeatureDisabledException();
+            }
+            
             var user = _currentUser.DiscussionUser;
             if (_settings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue)
             {

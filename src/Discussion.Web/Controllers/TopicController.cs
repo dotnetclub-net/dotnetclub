@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
@@ -82,7 +83,7 @@ namespace Discussion.Web.Controllers
                 _logger.LogInformation($"创建话题成功：{userName}：{topic.Title}(id: {topic.Id})");
                 return RedirectToAction("Index", new { topic.Id });
             }
-            catch (UserVerificationRequiredException ex)
+            catch (InvalidOperationException ex)
             {
                 _logger.LogWarning($"创建话题失败：{userName}：{ex.Message}");
                 return BadRequest();

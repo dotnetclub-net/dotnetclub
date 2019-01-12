@@ -42,7 +42,7 @@
     <partial name="./Partial/_ReplyList.cshtml" for="@Model" />
 }
 
-@if (Context.IsAuthenticated())
+@if (Context.IsAuthenticated() && SiteSettings.CanAddNewReplies())
 {
     <partial name="./Partial/_NewReply.cshtml" for="@Model" />
 }

@@ -67,8 +67,6 @@ namespace Discussion.Admin.Controllers
                 _settingsRepo.Update(existingSettings);
             }
             
-            
-            // todo: update to site!
             return ApiResponse.NoContent();
         }
     }

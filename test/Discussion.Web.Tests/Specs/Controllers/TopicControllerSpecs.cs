@@ -146,6 +146,26 @@ namespace Discussion.Web.Tests.Specs.Controllers
             actionResult.IsType<BadRequestResult>();
             topicRepo.VerifyNoOtherCalls();
         }
+ 
+        [Fact]
+        public void should_not_create_topic_if_site_settings_disabled_creation()
+        {
+            var topicRepo = new Mock<IRepository<Topic>>();
+            var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = false, EnableNewTopicCreation = false};
+            var topicController = CreateControllerWithSettings(_app.MockUser(), siteSettings, topicRepo);
+
+
+            var actionResult = topicController.CreateTopic(
+                new TopicCreationModel
+                {
+                    Title = "first topic you created",
+                    Content = "some content",
+                    Type = TopicType.Job
+                });
+            
+            actionResult.IsType<BadRequestResult>();
+            topicRepo.VerifyNoOtherCalls();
+        }
 
         private TopicController CreateControllerWithSettings(User user, SiteSettings siteSettings,  Mock<IRepository<Topic>> topicRepo)
         {

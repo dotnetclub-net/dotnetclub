@@ -110,6 +110,30 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         [Fact]
+        public void should_not_add_reply_if_reply_disabled()
+        {
+            var topic = _app.NewTopic().WithAuthor(_app.MockUser()).Create();
+            var replyRepo = new Mock<IRepository<Reply>>();
+            var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = false, EnableNewReplyCreation =  false};
+
+            var replyController = new ReplyController(replyRepo.Object, 
+                _app.GetService<IRepository<Topic>>(), 
+                siteSettings, 
+                NullLogger<ReplyController>.Instance, 
+                new SystemClock());
+            replyController.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = _app.User,
+                RequestServices = _app.ApplicationServices
+            };
+
+            var actionResult = replyController.Reply(topic.Id, new ReplyCreationModel { Content = "some content"});
+            
+            actionResult.IsType<BadRequestResult>();
+            replyRepo.VerifyNoOtherCalls();
+        }
+        
+        [Fact]
         public void should_not_add_reply_when_topic_id_does_not_exist()
         {
             _app.MockUser();

@@ -11,11 +11,9 @@
     var nextDisabled = Model.Paging.HasNextPage ? "" : "disabled";
 
     var user = Context.DiscussionUser();
-    var canCreateTopic = user != null;
-    if (canCreateTopic && SiteSettings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue)
-    {
-        canCreateTopic = false;
-    }
+    var siteCanCreateTopic = SiteSettings.CanCreateNewTopics();
+    var userCanCreateTopic = user != null && (!SiteSettings.RequireUserPhoneNumberVerified || user.PhoneNumberId.HasValue);
+    var canCreateTopic = siteCanCreateTopic && userCanCreateTopic;
 }
 
 
