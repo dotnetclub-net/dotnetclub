@@ -68,6 +68,11 @@ export class StartupService {
             text: '话题管理',
             link: '/topics',
             icon: 'anticon anticon-solution'
+          },
+          {
+            text: '用户管理',
+            link: '/users',
+            icon: 'anticon anticon-team'
           }
         ]
       }

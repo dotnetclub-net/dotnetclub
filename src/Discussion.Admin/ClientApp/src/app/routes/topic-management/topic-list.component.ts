@@ -1,10 +1,11 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import {Paged, Paging, TopicSummary} from './topic';
+import {TopicSummary} from './topic';
 import {ApiResponse} from "../../api-response";
 import {STChange, STColumn, STPage} from "@delon/abc";
 import {NzMessageService} from "ng-zorro-antd";
 import {Router} from "@angular/router";
+import {Paged, Paging} from "@core/pagination";
 
 
 @Component({
@@ -43,7 +44,7 @@ export class TopicListComponent implements OnInit {
         {
           text: '删除',
           click: (topic: TopicSummary) => {
-            if(!window.confirm(`确实要删除话题 ${topic.title} 吗？`)){
+            if(!window.confirm('确定要删除话题吗？\n' + topic.title)){
               return;
             }
 
@@ -96,7 +97,7 @@ export class TopicListComponent implements OnInit {
       .subscribe((data: ApiResponse) => {
         if(data.code === 200){
           this.msg.success(`已删除 ${topicTitle}`);
-          this.getTopics(0);
+          this.getTopics(1);
         }else{
           this.msg.error(data.errorMessage);
         }

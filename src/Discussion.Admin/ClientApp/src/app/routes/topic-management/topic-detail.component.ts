@@ -1,6 +1,6 @@
-import {Component, NgZone, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import {Paged, Reply, TopicDetail } from './topic';
+import { Reply, TopicDetail } from './topic';
 import {ApiResponse} from "../../api-response";
 import {NzMessageService} from "ng-zorro-antd";
 import {ActivatedRoute, Router} from '@angular/router';
@@ -75,7 +75,6 @@ export class TopicDetailComponent implements OnInit {
     if(!window.confirm('确定要删除这条回复吗？')){
       return;
     }
-
 
     this._httpClient.delete(`api/topics/${this.topicId}/replies/${replyId}`)
       .subscribe((data: ApiResponse) => {

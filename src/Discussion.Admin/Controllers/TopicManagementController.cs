@@ -51,7 +51,7 @@ namespace Discussion.Admin.Controllers
 
 
             return ApiResponse.ActionResult(new {
-                Author = new UserSummary
+                Author = new AuthorSummary
                 {
                     Id = topic.Author.Id,
                     DisplayName = topic.Author.DisplayName
@@ -90,7 +90,7 @@ namespace Discussion.Admin.Controllers
                 Title = topic.Title,
                 ViewCount = topic.ViewCount,
                 ReplyCount = topic.ReplyCount,
-                Author = new UserSummary
+                Author = new AuthorSummary
                 {
                     Id = topic.Author.Id,
                     DisplayName = topic.Author.DisplayName

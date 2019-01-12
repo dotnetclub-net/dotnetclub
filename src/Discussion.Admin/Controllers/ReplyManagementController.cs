@@ -45,7 +45,7 @@ namespace Discussion.Admin.Controllers
                         TopicId = topicId,
                         MarkdownContent = r.Content,
                         HtmlContent = r.Content.MdToHtml(),
-                        Author = new UserSummary
+                        Author = new AuthorSummary
                         {
                             Id = r.Author.Id,
                             DisplayName = r.Author.DisplayName

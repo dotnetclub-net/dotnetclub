@@ -4,7 +4,7 @@ namespace Discussion.Admin.ViewModels
     {
         public int Id { get; set; }
         public string Title { get; set; }
-        public UserSummary Author { get; set; }
+        public AuthorSummary Author { get; set; }
         public int ViewCount { get; set; }
         public int ReplyCount { get; set; }
     }
