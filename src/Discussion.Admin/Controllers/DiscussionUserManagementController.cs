@@ -1,8 +1,7 @@
 using System;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Net;
-using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text;
 using Discussion.Admin.ViewModels;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -10,18 +9,23 @@ using Discussion.Core.Mvc;
 using Discussion.Core.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Discussion.Admin.Controllers
 {
     [Authorize]
-    public class DiscussionUserManagementController: ControllerBase
+    public class DiscussionUserManagementController: ControllerBase, IDisposable
     {
         const int PageSize = 20;
         private readonly IRepository<User> _userRepo;
+        private readonly SiteSettings _settings;
+        private readonly MD5 _md5;
 
-        public DiscussionUserManagementController(IRepository<User> userRepo)
+        public DiscussionUserManagementController(IRepository<User> userRepo, IRepository<SiteSettings> settingsRepo)
         {
+            _md5 = MD5.Create();
             _userRepo = userRepo;
+            _settings = settingsRepo.All().FirstOrDefault() ?? new SiteSettings();
         }
 
         [Route("api/discussion-users")]
@@ -29,8 +33,8 @@ namespace Discussion.Admin.Controllers
         {
             return _userRepo.All()
                 .OrderByDescending(user => user.Id)
-                .Page(SummarizeUser(), 
-                    PageSize, page);
+                    .Include(user => user.AvatarFile)
+                .Page(SummarizeUser(), PageSize, page);
         }
 
         [Route("api/discussion-users/{id}")]
@@ -54,15 +58,54 @@ namespace Discussion.Admin.Controllers
             throw new System.NotImplementedException();
         }
 
-        private Expression<Func<User,UserSummary>> SummarizeUser()
+        private Func<User,UserSummary> SummarizeUser()
         {
             return user => new UserSummary
             {
                 Id = user.Id,
                 LoginName = user.UserName,
                 CreatedAt = user.CreatedAtUtc,
-                DisplayName = user.DisplayName
+                DisplayName = user.DisplayName,
+                AvatarUrl = GetUserAvatarUrl(user)
             };
+        }
+
+
+
+        public string GetUserAvatarUrl(User user)
+        {
+            const string defaultAvatarPath = "/assets/default-avatar.jpg";
+            if (user == null)
+            {
+                return null;
+            }
+
+            if (user.AvatarFileId > 0)
+            {
+                return $"https://{_settings.PublicHostName}/api/common/download/{user.AvatarFile.Slug}";
+            }
+
+            if (user.EmailAddressConfirmed)
+            {
+                var hash = Md5Hash(user.EmailAddress);
+                return $"https://www.gravatar.com/avatar/{hash}?size=160";
+            }
+
+            return $"https://{_settings.PublicHostName}{defaultAvatarPath}";
+        }
+
+
+        private string Md5Hash(string emailAddress)
+        {
+            var bytes = _md5.ComputeHash(Encoding.ASCII.GetBytes(emailAddress));
+            return bytes
+                .Select(x => x.ToString("x2"))
+                .Aggregate(string.Concat);
+        }
+
+        void IDisposable.Dispose()
+        {
+            _md5.Dispose();
         }
     }
 }
