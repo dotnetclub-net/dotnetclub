@@ -49,7 +49,8 @@ namespace Discussion.Admin.Controllers
                         {
                             Id = r.Author.Id,
                             DisplayName = r.Author.DisplayName
-                        }
+                        },
+                        CreatedAt = r.CreatedAtUtc
                     })
                 .ToList();
             return ApiResponse.ActionResult(replies);
@@ -72,6 +73,17 @@ namespace Discussion.Admin.Controllers
             }
             
             _replyRepo.Delete(reply);
+
+
+            topic.ReplyCount = _replyRepo.All().Count(r => r.TopicId == topicId);
+            var latestReply = _replyRepo.All()
+                .Where(r => r.TopicId == topicId)
+                .OrderByDescending(r => r.CreatedAtUtc)
+                .FirstOrDefault();
+                
+            topic.LastRepliedBy = latestReply?.CreatedBy;
+            topic.LastRepliedAt = latestReply?.CreatedAtUtc;            
+            _topicRepo.Update(topic);
             return ApiResponse.NoContent();
         }
     }

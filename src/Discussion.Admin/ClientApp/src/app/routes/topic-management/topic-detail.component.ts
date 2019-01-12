@@ -9,6 +9,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 @Component({
   selector: 'app-topic-detail',
   templateUrl: './topic-detail.component.html',
+  styleUrls: ['./topic-detail.component.less'],
 })
 
 

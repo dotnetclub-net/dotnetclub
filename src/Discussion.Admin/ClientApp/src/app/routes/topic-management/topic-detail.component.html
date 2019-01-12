@@ -3,6 +3,15 @@
 
 
 <div *ngIf="!!topic" >
+  <nz-card [nzBordered]="false">
+    <ul class="meta-item-list">
+      <li>作者：{{ topic.author.displayName }}（用户id: {{ topic.author.id }}）</li>
+      <li>创建于：{{ topic.createdAt }}</li>
+      <li>浏览数：{{ topic.viewCount }}</li>
+      <li>回复数：{{ topic.replyCount }}</li>
+    </ul>
+  </nz-card>
+
   <nz-card [nzBordered]="false" class="topic-content">
     <div [innerHTML]="topic.htmlContent"></div>
   </nz-card>
@@ -11,22 +20,20 @@
     <h2>回复列表</h2>
     <nz-list *ngIf="!!replies" [nzDataSource]="replies" [nzRenderItem]="topicItemTemplate">
       <ng-template #topicItemTemplate let-reply>
-        <nz-list-item [nzContent]="nzContent" [nzActions]="[delete]">
+        <nz-list-item [nzContent]="nzContent">
           <ng-template #nzContent>
-            <div class="width-md">
-              <div class="d-flex text-grey-dark">
-                <div class="flex-1">
-                  作者
-                  <p>{{reply.author.displayName}}</p>
-                </div>
-                <div>
+              <div nz-col nzSpan="4">
+                <p>作者：{{reply.author.displayName}}</p>
+                <p>创建于：{{reply.createdAt}}</p>
+              </div>
+              <div nz-col nzSpan="16">
+                <div class="reply-content">
                   <div [innerHTML]="reply.htmlContent"></div>
                 </div>
               </div>
-            </div>
-          </ng-template>
-          <ng-template #delete>
-            <a (click)="deleteReply(reply.id)">删除</a>
+              <div nz-col nzSpan="2">
+                <a (click)="deleteReply(reply.id)">删除</a>
+              </div>
           </ng-template>
         </nz-list-item>
       </ng-template>

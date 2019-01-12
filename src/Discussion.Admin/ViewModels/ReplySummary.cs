@@ -1,3 +1,5 @@
+using System;
+
 namespace Discussion.Admin.ViewModels
 {
     public class ReplySummary
@@ -8,5 +10,7 @@ namespace Discussion.Admin.ViewModels
 
         public UserSummary Author { get; set; }
         public int Id { get; set; }
+        
+        public DateTime CreatedAt { get; set; }
     }
 }

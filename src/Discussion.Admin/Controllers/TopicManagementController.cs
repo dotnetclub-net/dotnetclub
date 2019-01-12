@@ -59,7 +59,9 @@ namespace Discussion.Admin.Controllers
                 CreatedAt = topic.CreatedAtUtc,
                 Title = topic.Title,
                 MarkdownContent = topic.Content,
-                HtmlContent = topic.Content.MdToHtml()
+                HtmlContent = topic.Content.MdToHtml(),
+                ViewCount = topic.ViewCount,
+                ReplyCount = topic.ReplyCount
             });
         }
         
