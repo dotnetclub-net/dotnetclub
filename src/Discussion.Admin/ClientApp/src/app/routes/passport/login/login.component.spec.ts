@@ -66,13 +66,21 @@ describe('Component: UserLogin', () => {
       errorMessage: null
     });
 
-    mockedHttp.expectOne(req => {
-      expect(req.url).toEqual('api/account/user');
-      expect(req.headers.get('Authorization')).toEqual(`Bearer ${dummyValidToken}`);
-      return true;
+    var remainingRequests = ['api/settings', 'api/account/user'];
+    mockedHttp.match(req => {
+      var found = remainingRequests.indexOf(req.url);
+      if(found > -1){
+        remainingRequests.splice(found, 1);
+
+        expect(req.headers.get('Authorization')).toEqual(`Bearer ${dummyValidToken}`);
+        return true;
+      }
+
+      return false;
     });
 
     mockedHttp.verify();
+    expect(remainingRequests.length).toEqual(0);
 
     const tokenObj:ITokenModel = getService(TokenService).get();
     expect(tokenObj).not.toBeNull();
