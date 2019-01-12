@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import { _HttpClient } from '@delon/theme';
+import {_HttpClient, SettingsService} from '@delon/theme';
 import {TopicSummary} from './topic';
 import {ApiResponse} from "../../api-response";
 import {STChange, STColumn, STPage} from "@delon/abc";
@@ -15,7 +15,7 @@ import {Paged, Paging} from "@core/pagination";
 
 
 export class TopicListComponent implements OnInit {
-  dotnetClubHostName: string = "localhost:5021";
+  dotnetClubHostName: string;
 
   topics: TopicSummary[] = [];
   paging: Paging = new Paging();
@@ -55,7 +55,10 @@ export class TopicListComponent implements OnInit {
     },
   ];
 
-  constructor(private httpClient: _HttpClient, private msg: NzMessageService, private router: Router) { }
+  constructor(private httpClient: _HttpClient, private msg: NzMessageService,
+              private router: Router, private settingsService : SettingsService) {
+    this.dotnetClubHostName = settingsService.app.clubHostName;
+  }
 
   dispatchClick( event: STChange ){
     if(event.pi !== this.paging.currentPage){
