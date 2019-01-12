@@ -20,6 +20,7 @@ import { Exception500Component } from './exception/500.component';
 import { TopicListComponent } from './topic-management/topic-list.component';
 import { TopicDetailComponent } from './topic-management/topic-detail.component';
 import {UserListComponent} from "./user-management/user-list.component";
+import {SiteSettingsComponent} from "./site-management/site-settings.component";
 
 
 
@@ -33,6 +34,7 @@ const routes: Routes = [
       { path: 'topics/:id', component: TopicDetailComponent, data: { title: '话题详情'} },
       { path: 'topics', component: TopicListComponent, data: { title: '话题管理'} },
       { path: 'users', component: UserListComponent, data: { title: '用户管理'} },
+      { path: 'site-settings', component: SiteSettingsComponent, data: { title: '站点设置'} },
     ]
   },
   {
@@ -64,7 +66,9 @@ const COMPONENTS = [
   TopicListComponent,
   TopicDetailComponent,
 
-  UserListComponent
+  UserListComponent,
+
+  SiteSettingsComponent
 ];
 const COMPONENTS_NOROUNT = [];
 

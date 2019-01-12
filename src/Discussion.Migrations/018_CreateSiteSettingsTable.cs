@@ -23,20 +23,20 @@ namespace Discussion.Migrations
                 .WithColumn("EnableNewReplyCreation").AsBoolean()
                 .WithColumn("IsReadonly").AsBoolean()
 
-                .WithColumn("FooterNoticeLeft").AsString()
-                .WithColumn("FooterNoticeRight").AsString()
+                .WithColumn("FooterNoticeLeft").AsString().Nullable()
+                .WithColumn("FooterNoticeRight").AsString().Nullable()
 
-                .WithColumn("HeaderLink1Text").AsString()
-                .WithColumn("HeaderLink1Url").AsString()
+                .WithColumn("HeaderLink1Text").AsString().Nullable()
+                .WithColumn("HeaderLink1Url").AsString().Nullable()
 
-                .WithColumn("HeaderLink2Text").AsString()
-                .WithColumn("HeaderLink2Url").AsString()
+                .WithColumn("HeaderLink2Text").AsString().Nullable()
+                .WithColumn("HeaderLink2Url").AsString().Nullable()
 
-                .WithColumn("HeaderLink3Text").AsString()
-                .WithColumn("HeaderLink3Url").AsString()
+                .WithColumn("HeaderLink3Text").AsString().Nullable()
+                .WithColumn("HeaderLink3Url").AsString().Nullable()
 
-                .WithColumn("HeaderLink4Text").AsString()
-                .WithColumn("HeaderLink4Url").AsString();
+                .WithColumn("HeaderLink4Text").AsString().Nullable()
+                .WithColumn("HeaderLink4Url").AsString().Nullable();
         }
     }
 }

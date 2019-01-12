@@ -73,6 +73,11 @@ export class StartupService {
             text: '用户管理',
             link: '/users',
             icon: 'anticon anticon-team'
+          },
+          {
+            text: '站点设置',
+            link: '/site-settings',
+            icon: 'anticon anticon-setting'
           }
         ]
       }

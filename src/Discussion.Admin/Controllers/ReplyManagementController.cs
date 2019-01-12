@@ -24,6 +24,7 @@ namespace Discussion.Admin.Controllers
         }
 
         [Route("api/topics/{topicId}/replies")]
+        [HttpGet]
         public ApiResponse TopicReplies(int topicId)
         {
             var topic = _topicRepo.Get(topicId);

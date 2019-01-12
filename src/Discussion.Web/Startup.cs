@@ -98,7 +98,13 @@ namespace Discussion.Web
             services.AddSingleton(sp =>
             {
                 var configured = sp.GetService<IRepository<SiteSettings>>().All().FirstOrDefault();
-                return configured ?? new SiteSettings();
+                return configured ??
+                       new SiteSettings
+                       {
+                           EnableNewReplyCreation = true,
+                           EnableNewTopicCreation = true,
+                           EnableNewUserRegistration = true
+                       };
             });
         }
 

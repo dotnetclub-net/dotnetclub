@@ -28,6 +28,7 @@ namespace Discussion.Admin.Controllers
         }
 
         [Route("api/topics")]
+        [HttpGet]
         public Paged<TopicItemSummary> List(int? page = 1)
         {
             return _topicRepo.All()
