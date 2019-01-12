@@ -67,8 +67,6 @@ export class StartupService {
             email: 'admin@dotnetclub.net'
           };
           this.settingService.setUser(user);
-        }else{
-          reject(userResponse.message);
         }
 
         const app: any = {
@@ -84,16 +82,14 @@ export class StartupService {
           }
 
           app.clubHostName = siteSettings.publicHostName;
-        }else{
-          reject(settingsResponse.message);
         }
 
         this.settingService.setApp(app);
         this.titleService.suffix = app.name;
         this.aclService.setFull(true);
+      });
 
-        resolve({});
-      }, reject);
+    resolve({});
   }
 
   load(): Promise<any> {
