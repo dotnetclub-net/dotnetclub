@@ -7,7 +7,6 @@ using Discussion.Core.Time;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Models;
 using Discussion.Web.Services;
 using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.Tests.Fixtures;

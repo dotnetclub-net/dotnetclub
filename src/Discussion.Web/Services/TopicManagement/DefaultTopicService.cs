@@ -1,9 +1,7 @@
-using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Time;
-using Discussion.Web.Models;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.EntityFrameworkCore;

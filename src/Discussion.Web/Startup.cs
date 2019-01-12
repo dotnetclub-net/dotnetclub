@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Encodings.Web;
@@ -10,10 +9,10 @@ using Discussion.Core.Communication.Sms;
 using Discussion.Core.Cryptography;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
+using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Time;
 using Discussion.Migrations.Supporting;
-using Discussion.Web.Models;
 using Discussion.Web.Resources;
 using Discussion.Web.Services;
 using Discussion.Web.Services.TopicManagement;
@@ -28,11 +27,9 @@ using Discussion.Web.Services.UserManagement.Avatar;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.Services.UserManagement.Identity;
 using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.Options;
 
 namespace Discussion.Web
 {
@@ -98,13 +95,11 @@ namespace Discussion.Web
             services.AddScoped<IUserService, DefaultUserService>();
 
             services.AddScoped<ITopicService, DefaultTopicService>();
-
-            var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));
-            if (siteSettingsSection != null)
+            services.AddSingleton(sp =>
             {
-                services.Configure<SiteSettings>(siteSettingsSection);
-            }
-            services.AddSingleton(sp => sp.GetService<IOptions<SiteSettings>>().Value);
+                var configured = sp.GetService<IRepository<SiteSettings>>().All().FirstOrDefault();
+                return configured ?? new SiteSettings();
+            });
         }
 
         public void Configure(IApplicationBuilder app)

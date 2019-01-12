@@ -3,7 +3,6 @@ using Discussion.Core.Logging;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Time;
-using Discussion.Web.Models;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
