@@ -83,16 +83,15 @@
         </label>
       </se>
       <se>
-        <label nz-checkbox [(ngModel)]="siteSettings.enableNewReplyCreation" name="enableNewReplyCreation">
-          <span>允许添加新回复</span>
-        </label>
-      </se>
-      <se>
         <label nz-checkbox [(ngModel)]="siteSettings.enableNewTopicCreation" name="enableNewTopicCreation">
           <span>允许添加新话题</span>
         </label>
       </se>
-
+      <se>
+        <label nz-checkbox [(ngModel)]="siteSettings.enableNewReplyCreation" name="enableNewReplyCreation">
+          <span>允许添加新回复</span>
+        </label>
+      </se>
 
       <se>
         <button nz-button nzType="primary" [disabled]="settingsForm.invalid" (click)="updateSettings()" >保存</button>

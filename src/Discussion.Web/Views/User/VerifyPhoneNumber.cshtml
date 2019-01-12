@@ -12,60 +12,58 @@
 }
 
 
-<div class="panel panel-body panel-user-settings">
-    <h3>手机验证</h3>
-    <fieldset class="form-group">
-        <label>
-            用户名
-        </label>
-        <div>@user.UserName</div>
-    </fieldset>
-    <fieldset class="form-group edit-phone-number @(user.PhoneNumberId.HasValue ? "hide" : "show")">
-        <label for="VerifiedPhoneNumber_PhoneNumber">
-            手机号码
-        </label>
-        <div>
-            <input type="number" class="form-control" autofocus
-                   id="VerifiedPhoneNumber_PhoneNumber" name="VerifiedPhoneNumber_PhoneNumber"/>
-        </div>
-        <div rel="verification" class="verify-palette">
-            <a data-status="send" class="verification-operation link">发送验证短信</a>
-            <a data-status="re-send" class="verification-operation link">再次发送</a>
-            <span data-status="sending" class="verification-operation">正在发送验证短信</span>
-            <span data-status="sent" class="verification-operation">
-                验证短信已发出，<span data-status="sent-1">请查收短信，尽快输入验证码</span><span data-status="sent-2" class="countdown"></span><span data-status="sent-2"> 秒后可再次发送</span>
-            </span>
-            <span data-status="error" class="verification-operation">无法发送验证短信，请稍后再试</span>
-        </div>
-    </fieldset>
-    <fieldset class="form-group verification-submit">
-        <label for="VerificationCode">
-            验证码
-        </label>
-        <div>
-            <input type="number" name="VerificationCode" id="VerificationCode" class="form-control"/>
-        </div>
-    </fieldset>
-    <button id="btn-verify" class="btn btn-default verification-submit">验证</button>
-    <fieldset class="form-group has-phone-number @(user.PhoneNumberId.HasValue ? "show" : "hide")">
-        <label>
-            手机号码
-        </label>
-        <div>
-            <input type="text"
-                   class="form-control"
-                   value="@StringUtility.MaskPhoneNumber(user.VerifiedPhoneNumber?.PhoneNumber)"
-                   title="@(canModifyPhoneNumber ? "" : "上次验证七天以后，才可以修改已验证的手机号")" disabled="disabled" />
-        </div>
-        <div class="verify-palette">
-            <span class="verified-at" data-last-verified-at="@Html.Timestamp(user.VerifiedPhoneNumber?.VerifiedTime)"></span> 已验证
-            @if (canModifyPhoneNumber)
-            {
-                <a class="link change-phone-number">修改手机号</a>
-            }
-        </div>
-    </fieldset>
-</div>
+<h3>手机验证</h3>
+<fieldset class="form-group">
+    <label>
+        用户名
+    </label>
+    <div>@user.UserName</div>
+</fieldset>
+<fieldset class="form-group edit-phone-number @(user.PhoneNumberId.HasValue ? "hide" : "show")">
+    <label for="VerifiedPhoneNumber_PhoneNumber">
+        手机号码
+    </label>
+    <div>
+        <input type="number" class="form-control" autofocus
+               id="VerifiedPhoneNumber_PhoneNumber" name="VerifiedPhoneNumber_PhoneNumber"/>
+    </div>
+    <div rel="verification" class="verify-palette">
+        <a data-status="send" class="verification-operation link">发送验证短信</a>
+        <a data-status="re-send" class="verification-operation link">再次发送</a>
+        <span data-status="sending" class="verification-operation">正在发送验证短信</span>
+        <span data-status="sent" class="verification-operation">
+            验证短信已发出，<span data-status="sent-1">请查收短信，尽快输入验证码</span><span data-status="sent-2" class="countdown"></span><span data-status="sent-2"> 秒后可再次发送</span>
+        </span>
+        <span data-status="error" class="verification-operation">无法发送验证短信，请稍后再试</span>
+    </div>
+</fieldset>
+<fieldset class="form-group verification-submit">
+    <label for="VerificationCode">
+        验证码
+    </label>
+    <div>
+        <input type="number" name="VerificationCode" id="VerificationCode" class="form-control"/>
+    </div>
+</fieldset>
+<button id="btn-verify" class="btn btn-default verification-submit">验证</button>
+<fieldset class="form-group has-phone-number @(user.PhoneNumberId.HasValue ? "show" : "hide")">
+    <label>
+        手机号码
+    </label>
+    <div>
+        <input type="text"
+               class="form-control"
+               value="@StringUtility.MaskPhoneNumber(user.VerifiedPhoneNumber?.PhoneNumber)"
+               title="@(canModifyPhoneNumber ? "" : "上次验证七天以后，才可以修改已验证的手机号")" disabled="disabled" />
+    </div>
+    <div class="verify-palette">
+        <span class="verified-at" data-last-verified-at="@Html.Timestamp(user.VerifiedPhoneNumber?.VerifiedTime)"></span> 已验证
+        @if (canModifyPhoneNumber)
+        {
+            <a class="link change-phone-number">修改手机号</a>
+        }
+    </div>
+</fieldset>
 
 
 

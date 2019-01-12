@@ -53,13 +53,10 @@ namespace Discussion.Web.Tests.StartupSpecs
         [Fact]
         public async Task should_use_mvc()
         {
-            HttpContext httpContext = null;
             await server.SendAsync(ctx =>
             {
-                httpContext = ctx;
                 ctx.Request.Path = "/";
             });
-            
 
             var logs = _app.GetLogs();
             logs.ShouldNotBeNull();
@@ -70,11 +67,9 @@ namespace Discussion.Web.Tests.StartupSpecs
         public async Task should_use_static_files()
         {
             var staticFile = IntegrationTests.NotFoundSpecs.NotFoundStaticFile;
-            HttpContext httpContext = null;
             
             await server.SendAsync(ctx =>
             {
-                httpContext = ctx;
                 ctx.Request.Method = "GET";
                 ctx.Request.Path = staticFile;
             });
@@ -83,7 +78,6 @@ namespace Discussion.Web.Tests.StartupSpecs
             logs.ShouldNotBeNull();
             logs.ShouldContain(item => item.Category.StartsWith("Microsoft.AspNetCore.StaticFiles"));
         }
-        
         
         [Fact]
         public void should_use_temporary_database_when_no_database_connection_string_specified()

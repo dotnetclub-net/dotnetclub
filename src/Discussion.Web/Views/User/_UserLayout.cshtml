@@ -1,5 +1,8 @@
+@using Discussion.Core.Mvc
+@inject Discussion.Core.Models.SiteSettings SiteSettings
 @{
     Layout = "../Shared/_Layout.cshtml";
+    var suggestVerifying = SiteSettings.RequireUserPhoneNumberVerified && !Context.DiscussionUser().PhoneNumberId.HasValue;
 }
 
 @section Head{
@@ -29,7 +32,23 @@
         </div>
     </div>
     <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8 no-padding pull-left">
+        <div class="panel panel-body panel-user-settings">
+        @if (SiteSettings.IsReadonly)
+        {
+            <div class="text-danger">
+                <h4>当前站点处于维护期间，暂时无法保存你的设置信息，敬请谅解。</h4>     
+            </div>
+        }
+            
+        @if (suggestVerifying)
+        {
+            <div class="text-danger">
+                <p>在验证实名手机号之前，不能创建话题、添加回复。@Html.ActionLink("现在验证", "VerifyPhoneNumber", "User") </p>     
+            </div>
+        }
+            
         @RenderBody()
+        </div>
     </div>
 </div>
 

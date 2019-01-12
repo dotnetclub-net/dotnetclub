@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Encodings.Web;
@@ -123,7 +124,16 @@ namespace Discussion.Web
                     app.UseHsts();
                 }
             }
-            
+
+            app.Use(async (ctx, next) =>
+            {
+                var readonlyDataSettings = ctx.RequestServices.GetService<IReadonlyDataSettings>() as ReadonlyDataSettings; 
+                Debug.Assert(readonlyDataSettings != null, nameof(readonlyDataSettings) + " != null");
+                
+                var siteSettings = ctx.RequestServices.GetService<SiteSettings>();
+                readonlyDataSettings.IsReadonly = siteSettings.IsReadonly;
+                await next();
+            });
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseStaticFiles();

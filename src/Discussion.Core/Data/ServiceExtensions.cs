@@ -15,6 +15,7 @@ namespace Discussion.Core.Data
     public static class ServiceExtensions
     {
         public const string ConfigKeyConnectionString = "sqliteConnectionString";
+        public const string ConfigKeyIgnoreReadOnlySettings = "ignoreReadOnlySettings";
         
         public static void AddDataServices(this IServiceCollection services, IConfiguration appConfiguration, ILogger logger)
         {
@@ -30,6 +31,7 @@ namespace Discussion.Core.Data
             {
                 useSqlite(options);
             });
+            services.AddScoped(typeof(IReadonlyDataSettings), typeof(ReadonlyDataSettings));
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
         }
 

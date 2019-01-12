@@ -21,11 +21,14 @@ namespace Discussion.Core.Data
         private readonly ApplicationDbContext _context;
         private readonly DbSet<T> _entities;
         private readonly IClock _clock;
+        private readonly IReadonlyDataSettings _readonlyDataSettings;
 
-        public EfRepository(ApplicationDbContext context, IClock clock)
+        public EfRepository(ApplicationDbContext context, IClock clock, IReadonlyDataSettings readonlyDataSettings)
         {
             this._context = context;
             _clock = clock;
+            _readonlyDataSettings = readonlyDataSettings;
+            
             _entities = context.Set<T>();
         }
         
@@ -41,6 +44,11 @@ namespace Discussion.Core.Data
 
         public void Save(T entity)
         {
+            if (_readonlyDataSettings.IsReadonly)
+            {
+                return;
+            }
+            
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
@@ -57,6 +65,11 @@ namespace Discussion.Core.Data
 
         public void Update(T entity)
         {
+            if (_readonlyDataSettings.IsReadonly)
+            {
+                return;
+            }
+            
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
@@ -71,6 +84,11 @@ namespace Discussion.Core.Data
 
         public void Delete(T entity)
         {
+            if (_readonlyDataSettings.IsReadonly)
+            {
+                return;
+            }
+            
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
