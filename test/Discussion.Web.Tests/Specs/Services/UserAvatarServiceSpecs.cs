@@ -22,7 +22,7 @@ namespace Discussion.Web.Tests.Specs.Services
             var user = new User();
 
             var services = CreateServices(CreateMockUrlHelper());
-            var avatarUrl = services.GetService<IUserAvatarService>().GetUserAvatarUrl(user);
+            var avatarUrl = services.GetService<IAvatarUrlService>().GetAvatarUrl(user);
             
             Assert.Equal("/assets/default-avatar.jpg", avatarUrl);
         }
@@ -33,7 +33,7 @@ namespace Discussion.Web.Tests.Specs.Services
             var user = new User {AvatarFileId = 12, AvatarFile = new FileRecord() {Id = 12, Slug = "file-hash"}};
 
             var services = CreateServices(CreateMockUrlHelper(user.AvatarFile.Slug));
-            var avatarUrl = services.GetService<IUserAvatarService>().GetUserAvatarUrl(user);
+            var avatarUrl = services.GetService<IAvatarUrlService>().GetAvatarUrl(user);
             
             Assert.Equal("http://download/file-hash", avatarUrl);
         }
@@ -48,7 +48,7 @@ namespace Discussion.Web.Tests.Specs.Services
             };
 
             var services = CreateServices(CreateMockUrlHelper());
-            var avatarUrl = services.GetService<IUserAvatarService>().GetUserAvatarUrl(user);
+            var avatarUrl = services.GetService<IAvatarUrlService>().GetAvatarUrl(user);
 
             var hash = Md5Hash(user.EmailAddress);
             Assert.Equal($"https://www.gravatar.com/avatar/{hash}?size=160", avatarUrl);
@@ -79,7 +79,7 @@ namespace Discussion.Web.Tests.Specs.Services
             var services = new ServiceCollection();
             
             services.AddScoped(sp => urlHelper);
-            services.AddSingleton<IUserAvatarService, UserAvatarService>();
+            services.AddSingleton<IAvatarUrlService, DispatchAvatarUrlService>();
             services.AddScoped<IUserAvatarUrlGenerator<DefaultAvatar>, DefaultAvatarUrlGenerator>();
             services.AddScoped<IUserAvatarUrlGenerator<StorageFileAvatar>, StorageFileAvatarUrlGenerator>();
             services.AddScoped<IUserAvatarUrlGenerator<GravatarAvatar>, GravatarAvatarUrlGenerator>();

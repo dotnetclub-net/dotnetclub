@@ -37,7 +37,7 @@ namespace Discussion.Admin.Controllers
             var replies = _replyRepo.All()
                 .Where(c => c.TopicId == topicId)
                 .OrderBy(c => c.CreatedAtUtc)
-                    .Include(r => r.Author)
+                    .Include(r => r.CreatedByUser)
                 .ToList()
                 .Select(r =>
                     new ReplySummary
@@ -48,8 +48,8 @@ namespace Discussion.Admin.Controllers
                         HtmlContent = r.Content.MdToHtml(),
                         Author = new AuthorSummary
                         {
-                            Id = r.Author.Id,
-                            DisplayName = r.Author.DisplayName
+                            Id = r.CreatedByUser.Id,
+                            DisplayName = r.CreatedByUser.DisplayName
                         },
                         CreatedAt = r.CreatedAtUtc
                     })

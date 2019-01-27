@@ -44,7 +44,7 @@ namespace Discussion.Web.Services.TopicManagement
             var replies = _replyRepo.All()
                 .Where(c => c.TopicId == topicId)
                 .OrderBy(c => c.CreatedAtUtc)
-                .Include(r => r.Author)
+                .Include(r => r.CreatedByUser)
                     .ThenInclude(u => u.AvatarFile)
                 .ToList();
 

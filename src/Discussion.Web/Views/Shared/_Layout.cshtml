@@ -1,7 +1,7 @@
 ﻿@using Discussion.Core.Mvc
 @using Discussion.Web.Services.UserManagement.Avatar
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
-@inject IUserAvatarService AvatarService
+@inject IAvatarUrlService AvatarUrlService
 @inject Discussion.Core.Models.SiteSettings SiteSettings
 
 @{
@@ -62,7 +62,7 @@
                     {
                         <div class="dropdown">
                             <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
+                                <img src="@AvatarUrlService.GetAvatarUrl(Context.DiscussionUser())" class="avatar"/>
                                 <span class="caret"></span>
                             </div>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
@@ -114,7 +114,7 @@
                     {
                         <div class="dropdown">
                             <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
+                                <img src="@AvatarUrlService.GetAvatarUrl(Context.DiscussionUser())" class="avatar"/>
                                 <span class="caret"></span>
                             </div>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">

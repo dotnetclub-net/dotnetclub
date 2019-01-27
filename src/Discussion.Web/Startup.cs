@@ -92,7 +92,7 @@ namespace Discussion.Web
                     return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);              
                 });
             
-            services.AddSingleton<IUserAvatarService, UserAvatarService>();
+            services.AddSingleton<IAvatarUrlService, DispatchAvatarUrlService>();
             services.AddScoped<IUserAvatarUrlGenerator<DefaultAvatar>, DefaultAvatarUrlGenerator>();
             services.AddScoped<IUserAvatarUrlGenerator<StorageFileAvatar>, StorageFileAvatarUrlGenerator>();
             services.AddScoped<IUserAvatarUrlGenerator<GravatarAvatar>, GravatarAvatarUrlGenerator>();

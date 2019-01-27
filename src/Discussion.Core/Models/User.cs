@@ -6,7 +6,7 @@ using IUserAvatar = Discussion.Core.Models.UserAvatar.IUserAvatar;
 
 namespace Discussion.Core.Models
 {
-    public class User : Entity, IUser
+    public class User : Entity, IUser, IAuthor
     {
         public string UserName { get; set; }
         public string DisplayName { get; set; }

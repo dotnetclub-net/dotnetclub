@@ -1,6 +1,6 @@
 ﻿@using Discussion.Core.Models
 @using Discussion.Web.Services.UserManagement.Avatar
-@inject IUserAvatarService AvatarService
+@inject IAvatarUrlService AvatarUrlService
 @inject Discussion.Core.Models.SiteSettings SiteSettings
 @model User
 @{
@@ -23,7 +23,7 @@
     <fieldset>
         <div class="user-avatar-wrapper">
             <div class="inner-square">
-                <img src="@AvatarService.GetUserAvatarUrl(Model)" title="点击更改头像" class="user-avatar"/>
+                <img src="@AvatarUrlService.GetAvatarUrl(Model)" title="点击更改头像" class="user-avatar"/>
             </div>
             <span class="avatar-note">点击更改头像，请使用 240x240 方形图片</span>
             

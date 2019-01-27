@@ -2,7 +2,7 @@
 @using Discussion.Core.Mvc
 @using Discussion.Web.Services.UserManagement.Avatar
 @inject Discussion.Core.Models.SiteSettings SiteSettings
-@inject IUserAvatarService AvatarService
+@inject IAvatarUrlService AvatarUrlService
 @model TopicViewModel
 
 @{
@@ -17,7 +17,7 @@
 <div class="row">
     <article class="panel panel-topic-detail col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <header class="topic-meta">
-            <img src="@AvatarService.GetUserAvatarUrl(Model.Topic.Author)" class="topic-author-avatar"/>
+            <img src="@AvatarUrlService.GetAvatarUrl(Model.Topic.Author)" class="topic-author-avatar"/>
             <h1> @Model.Topic.Title </h1>
             <div>
                 <span class="meta-item author">

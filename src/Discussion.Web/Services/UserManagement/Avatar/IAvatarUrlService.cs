@@ -2,8 +2,8 @@ using Discussion.Core.Models;
 
 namespace Discussion.Web.Services.UserManagement.Avatar
 {
-    public interface IUserAvatarService
+    public interface IAvatarUrlService
     {
-        string GetUserAvatarUrl(User user);
+        string GetAvatarUrl(IAuthor one);
     }
 }

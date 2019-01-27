@@ -5,10 +5,13 @@ namespace Discussion.Core.Models
     public class Reply : Entity
     {
         public int TopicId { get; set; }
-        public int CreatedBy { get; set; }
-        public string Content { get; set; }
 
         [ForeignKey("CreatedBy")]
-        public User Author { get; set; }
+        public User CreatedByUser { get; set; }
+        public int CreatedBy { get; set; }
+        
+        public string Content { get; set; }
+
+        public IAuthor Author { get; set; }
     }
 }

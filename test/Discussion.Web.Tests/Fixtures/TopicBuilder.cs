@@ -53,7 +53,7 @@ namespace Discussion.Web.Tests.Fixtures
             _topic.LastRepliedAt = DateTime.UtcNow.AddMinutes(-3);
             _replies.Add(new Reply
             {
-                Author = user,
+                CreatedByUser = user,
                 Content = content ?? "dummy reply " + StringUtility.Random(20)
             });
             return this;
@@ -77,7 +77,7 @@ namespace Discussion.Web.Tests.Fixtures
             
             if (_replies.Count > 0)
             {
-                _topic.LastRepliedUser = _replies.LastOrDefault(r => r.Author != null)?.Author ?? someUser;
+                _topic.LastRepliedUser = _replies.LastOrDefault(r => r.CreatedByUser != null)?.CreatedByUser ?? someUser;
             }
             
             
@@ -87,7 +87,7 @@ namespace Discussion.Web.Tests.Fixtures
             _replies.ForEach(reply =>
             {
                 reply.TopicId = _topic.Id;
-                reply.Author = _topic.Author ?? someUser;
+                reply.CreatedByUser = _topic.Author ?? someUser;
                 replyRepo.Save(reply);
             });
             return _topic;
