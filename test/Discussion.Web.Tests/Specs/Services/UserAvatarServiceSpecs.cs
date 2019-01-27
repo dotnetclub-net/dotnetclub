@@ -1,26 +1,28 @@
+using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Discussion.Core.Models;
+using Discussion.Core.Models.UserAvatar;
 using Discussion.Web.Services.UserManagement.Avatar;
+using Discussion.Web.Services.UserManagement.Avatar.UrlGenerators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Services
 {
-    [Collection("WebSpecs")]
     public class UserAvatarServiceSpecs
     {
-
         [Fact]
         public void should_generate_default_avatar()
         {
             var user = new User();
 
-            var userAvatarService = new UserAvatarService(CreateMockUrlHelper());
-            var avatarUrl = userAvatarService.GetUserAvatarUrl(user);
+            var services = CreateServices(CreateMockUrlHelper());
+            var avatarUrl = services.GetService<IUserAvatarService>().GetUserAvatarUrl(user);
             
             Assert.Equal("/assets/default-avatar.jpg", avatarUrl);
         }
@@ -30,8 +32,8 @@ namespace Discussion.Web.Tests.Specs.Services
         {
             var user = new User {AvatarFileId = 12, AvatarFile = new FileRecord() {Id = 12, Slug = "file-hash"}};
 
-            var userAvatarService = new UserAvatarService(CreateMockUrlHelper(user.AvatarFile.Slug));
-            var avatarUrl = userAvatarService.GetUserAvatarUrl(user);
+            var services = CreateServices(CreateMockUrlHelper(user.AvatarFile.Slug));
+            var avatarUrl = services.GetService<IUserAvatarService>().GetUserAvatarUrl(user);
             
             Assert.Equal("http://download/file-hash", avatarUrl);
         }
@@ -45,8 +47,8 @@ namespace Discussion.Web.Tests.Specs.Services
                 EmailAddress = "someone@someplace.com"
             };
 
-            var userAvatarService = new UserAvatarService(CreateMockUrlHelper());
-            var avatarUrl = userAvatarService.GetUserAvatarUrl(user);
+            var services = CreateServices(CreateMockUrlHelper());
+            var avatarUrl = services.GetService<IUserAvatarService>().GetUserAvatarUrl(user);
 
             var hash = Md5Hash(user.EmailAddress);
             Assert.Equal($"https://www.gravatar.com/avatar/{hash}?size=160", avatarUrl);
@@ -70,6 +72,20 @@ namespace Discussion.Web.Tests.Specs.Services
             urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>()))
                 .Returns("http://download/" + slug ?? "file");
             return urlHelper.Object;
+        }
+
+        private static IServiceProvider CreateServices(IUrlHelper urlHelper)
+        {
+            var services = new ServiceCollection();
+            
+            services.AddScoped(sp => urlHelper);
+            services.AddSingleton<IUserAvatarService, UserAvatarService>();
+            services.AddScoped<IUserAvatarUrlGenerator<DefaultAvatar>, DefaultAvatarUrlGenerator>();
+            services.AddScoped<IUserAvatarUrlGenerator<StorageFileAvatar>, StorageFileAvatarUrlGenerator>();
+            services.AddScoped<IUserAvatarUrlGenerator<GravatarAvatar>, GravatarAvatarUrlGenerator>();
+
+            return services.BuildServiceProvider();
+
         }
 
         

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using Discussion.Core.Models.UserAvatar;
 using Discussion.Core.Time;
+using IUserAvatar = Discussion.Core.Models.UserAvatar.IUserAvatar;
 
 namespace Discussion.Core.Models
 {
@@ -24,6 +26,20 @@ namespace Discussion.Core.Models
         public VerifiedPhoneNumber VerifiedPhoneNumber { get; set; }
         public int? PhoneNumberId { get; set; }
 
+        public IUserAvatar GetAvatar()
+        {
+            if (AvatarFileId > 0)
+            {
+                return new StorageFileAvatar {  StorageFileSlug = AvatarFile.Slug };
+            }
+
+            if (EmailAddressConfirmed)
+            {
+                return new GravatarAvatar { EmailAddress = EmailAddress };
+            }
+
+            return new DefaultAvatar();
+        }
 
         public bool CanModifyPhoneNumberNow(IClock clock)
         {
@@ -37,7 +53,6 @@ namespace Discussion.Core.Models
                    && VerifiedPhoneNumber.ModifiedAtUtc < sevenDaysAgo;
         }
     }
-
 
     public interface IUser
     {

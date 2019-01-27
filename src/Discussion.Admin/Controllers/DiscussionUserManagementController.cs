@@ -5,6 +5,7 @@ using System.Text;
 using Discussion.Admin.ViewModels;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
+using Discussion.Core.Models.UserAvatar;
 using Discussion.Core.Mvc;
 using Discussion.Core.Pagination;
 using Microsoft.AspNetCore.Authorization;
@@ -74,24 +75,24 @@ namespace Discussion.Admin.Controllers
 
         public string GetUserAvatarUrl(User user)
         {
-            const string defaultAvatarPath = "/assets/default-avatar.jpg";
             if (user == null)
             {
                 return null;
             }
 
-            if (user.AvatarFileId > 0)
+            var avatar = user.GetAvatar();
+            if (avatar is StorageFileAvatar fileAvatar)
             {
-                return $"https://{_settings.PublicHostName}/api/common/download/{user.AvatarFile.Slug}";
+                return $"https://{_settings.PublicHostName}/api/common/download/{fileAvatar.StorageFileSlug}";
             }
 
-            if (user.EmailAddressConfirmed)
+            if (avatar is GravatarAvatar gravatarAvatar)
             {
-                var hash = Md5Hash(user.EmailAddress);
+                var hash = Md5Hash(gravatarAvatar.EmailAddress);
                 return $"https://www.gravatar.com/avatar/{hash}?size=160";
             }
 
-            return $"https://{_settings.PublicHostName}{defaultAvatarPath}";
+            return $"https://{_settings.PublicHostName}/assets/default-avatar.jpg";
         }
 
 

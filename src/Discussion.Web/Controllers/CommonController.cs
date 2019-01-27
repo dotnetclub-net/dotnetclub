@@ -95,10 +95,10 @@ namespace Discussion.Web.Controllers
             });
         }
 
-        [HttpGet("download/{slug}")]
+        [HttpGet("download/{slug}", Name = "")]
         [AllowAnonymous]
         public async Task<IActionResult> DownloadFile(string slug, [FromQuery] bool? download)
-        {
+        {   
             var fileRecord = _fileRepo.All().FirstOrDefault(f => f.Slug.ToLower() == slug.ToLower());
             if (fileRecord == null)
             {

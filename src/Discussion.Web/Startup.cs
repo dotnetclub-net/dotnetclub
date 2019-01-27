@@ -11,6 +11,7 @@ using Discussion.Core.Cryptography;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Models;
+using Discussion.Core.Models.UserAvatar;
 using Discussion.Core.Mvc;
 using Discussion.Core.Time;
 using Discussion.Migrations.Supporting;
@@ -25,6 +26,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.UserManagement.Avatar;
+using Discussion.Web.Services.UserManagement.Avatar.UrlGenerators;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.Services.UserManagement.Identity;
 using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
@@ -90,7 +92,10 @@ namespace Discussion.Web
                     return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);              
                 });
             
-            services.AddScoped<IUserAvatarService, UserAvatarService>();
+            services.AddSingleton<IUserAvatarService, UserAvatarService>();
+            services.AddScoped<IUserAvatarUrlGenerator<DefaultAvatar>, DefaultAvatarUrlGenerator>();
+            services.AddScoped<IUserAvatarUrlGenerator<StorageFileAvatar>, StorageFileAvatarUrlGenerator>();
+            services.AddScoped<IUserAvatarUrlGenerator<GravatarAvatar>, GravatarAvatarUrlGenerator>();
             services.AddScoped<IPhoneNumberVerificationService, DefaultPhoneNumberVerificationService>();
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
