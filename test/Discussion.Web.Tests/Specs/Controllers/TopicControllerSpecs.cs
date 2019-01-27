@@ -56,8 +56,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             showedTopics.ShouldContain(t => t.Title == "dummy topic 2" && t.Type == TopicType.Question);
             showedTopics.ShouldContain(t => t.Title == "dummy topic 3" && t.Type == TopicType.Job);
             
-            showedTopics.All(t => t.Author != null).ShouldEqual(true);
-            showedTopics.All(t => t.LastRepliedUser != null).ShouldEqual(true);
+            showedTopics.All(t => t.CreatedByUser != null).ShouldEqual(true);
+            showedTopics.All(t => t.LastRepliedByUser != null).ShouldEqual(true);
         }
 
         [Fact]

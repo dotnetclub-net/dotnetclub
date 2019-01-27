@@ -11,11 +11,11 @@ namespace Discussion.Core.Models
         public TopicType Type { get; set; }
 
         [ForeignKey("CreatedBy")]
-        public User Author { get; set; }
+        public User CreatedByUser { get; set; }
         public int CreatedBy { get; set; }
 
         [ForeignKey("LastRepliedBy")]
-        public User LastRepliedUser { get; set; }
+        public User LastRepliedByUser { get; set; }
         public int? LastRepliedBy { get; set; }
         public DateTime? LastRepliedAt { get; set; }
 

@@ -42,7 +42,7 @@ namespace Discussion.Admin.Controllers
         {
             var topic = _topicRepo.All()
                 .Where(t => t.Id == id)
-                    .Include(t => t.Author)
+                    .Include(t => t.CreatedByUser)
                 .SingleOrDefault();
 
             if (topic == null)
@@ -54,8 +54,8 @@ namespace Discussion.Admin.Controllers
             return ApiResponse.ActionResult(new {
                 Author = new AuthorSummary
                 {
-                    Id = topic.Author.Id,
-                    DisplayName = topic.Author.DisplayName
+                    Id = topic.CreatedByUser.Id,
+                    DisplayName = topic.CreatedByUser.DisplayName
                 },
                 CreatedAt = topic.CreatedAtUtc,
                 Title = topic.Title,
@@ -93,8 +93,8 @@ namespace Discussion.Admin.Controllers
                 ReplyCount = topic.ReplyCount,
                 Author = new AuthorSummary
                 {
-                    Id = topic.Author.Id,
-                    DisplayName = topic.Author.DisplayName
+                    Id = topic.CreatedByUser.Id,
+                    DisplayName = topic.CreatedByUser.DisplayName
                 }
             };
         }

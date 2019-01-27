@@ -73,7 +73,7 @@ namespace Discussion.Web.Controllers
             
             // ReSharper disable once PossibleNullReferenceException
             topic.LastRepliedAt = _clock.Now.UtcDateTime;
-            topic.LastRepliedUser = currentUser;
+            topic.LastRepliedByUser = currentUser;
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
             

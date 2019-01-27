@@ -32,7 +32,7 @@ namespace Discussion.Web.Services.TopicManagement
         {
             var topic = _topicRepo.All()
                 .Where(t => t.Id == topicId)
-                .Include(t => t.Author)
+                .Include(t => t.CreatedByUser)
                     .ThenInclude(u => u.AvatarFile)
                 .SingleOrDefault();
             

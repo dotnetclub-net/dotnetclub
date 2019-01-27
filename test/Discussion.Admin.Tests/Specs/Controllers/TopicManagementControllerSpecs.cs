@@ -33,7 +33,7 @@ namespace Discussion.Admin.Tests.Specs.Controllers
                 {
                     topicRepository.Save(new Topic
                     {
-                        Author = user,
+                        CreatedByUser = user,
                         Type = TopicType.Discussion,
                         Title = title
                     });
@@ -59,7 +59,7 @@ namespace Discussion.Admin.Tests.Specs.Controllers
             var topicRepository = _adminApp.GetService<IRepository<Topic>>();
             var topic = new Topic
             {
-                Author = user,
+                CreatedByUser = user,
                 Type = TopicType.Discussion,
                 Title = "some title"
             };

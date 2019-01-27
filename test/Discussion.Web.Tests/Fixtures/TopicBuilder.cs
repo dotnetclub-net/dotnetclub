@@ -32,7 +32,7 @@ namespace Discussion.Web.Tests.Fixtures
         
         public TopicBuilder WithAuthor(User user)
         {
-            _topic.Author = user;
+            _topic.CreatedByUser = user;
             return this;
         }
         
@@ -70,14 +70,14 @@ namespace Discussion.Web.Tests.Fixtures
             var someUser = _app.CreateUser(StringUtility.Random());
             
             var topicRepo = _app.GetService<IRepository<Topic>>();
-            if (_topic.Author == null)
+            if (_topic.CreatedByUser == null)
             {
-                _topic.Author = someUser;
+                _topic.CreatedByUser = someUser;
             }
             
             if (_replies.Count > 0)
             {
-                _topic.LastRepliedUser = _replies.LastOrDefault(r => r.CreatedByUser != null)?.CreatedByUser ?? someUser;
+                _topic.LastRepliedByUser = _replies.LastOrDefault(r => r.CreatedByUser != null)?.CreatedByUser ?? someUser;
             }
             
             
@@ -87,7 +87,7 @@ namespace Discussion.Web.Tests.Fixtures
             _replies.ForEach(reply =>
             {
                 reply.TopicId = _topic.Id;
-                reply.CreatedByUser = _topic.Author ?? someUser;
+                reply.CreatedByUser = _topic.CreatedByUser ?? someUser;
                 replyRepo.Save(reply);
             });
             return _topic;
