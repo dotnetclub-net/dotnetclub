@@ -17,7 +17,7 @@ namespace Discussion.Migrations
         {
             entityTable
                 .WithColumn("TopicId").AsInt32()
-                .WithColumn("CreatedBy").AsInt32()
+                .WithColumn("CreatedBy").AsInt32().Nullable()
                 .WithColumn("Content").AsString(int.MaxValue);
         }
     }
