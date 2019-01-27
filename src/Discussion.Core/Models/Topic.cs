@@ -17,6 +17,13 @@ namespace Discussion.Core.Models
         [ForeignKey("LastRepliedBy")]
         public User LastRepliedByUser { get; set; }
         public int? LastRepliedBy { get; set; }
+        
+        [ForeignKey("LastRepliedByWeChat")]
+        public WeChatAccount LastRepliedByWeChatAccount { get; set; }
+        public int? LastRepliedByWeChat { get; set; }
+        
+        [NotMapped] public IAuthor LastRepliedAuthor => (IAuthor)this.LastRepliedByUser ?? this.LastRepliedByWeChatAccount;
+        
         public DateTime? LastRepliedAt { get; set; }
 
         public int ReplyCount { get; set; }

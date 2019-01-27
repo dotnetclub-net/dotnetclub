@@ -57,6 +57,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             dbContext.Entry(topic).Reload();
             topic.ReplyCount.ShouldEqual(1);
             topic.LastRepliedByUser.ShouldNotBeNull();
+            topic.LastRepliedAuthor.ShouldNotBeNull();
             topic.LastRepliedAt.ShouldNotBeNull();
             var span = DateTime.UtcNow - topic.LastRepliedAt.Value;
             Assert.True(span.TotalSeconds > 0);

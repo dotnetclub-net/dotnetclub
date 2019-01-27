@@ -44,9 +44,9 @@
                     @if (topicItem.LastRepliedAt.HasValue)
                     {
                         <div class="topic-meta-secondary pull-right hidden-xs">
-                            @if (topicItem.LastRepliedByUser != null)
+                            @if (topicItem.LastRepliedAuthor != null)
                             {
-                                <img src="@AvatarUrlService.GetAvatarUrl(topicItem.LastRepliedByUser)" title="最后回复来自 @topicItem.LastRepliedByUser.DisplayName"  class="last-replied-user-avatar"/>
+                                <img src="@AvatarUrlService.GetAvatarUrl(topicItem.LastRepliedAuthor)" title="最后回复来自 @topicItem.LastRepliedAuthor.DisplayName"  class="last-replied-user-avatar"/>
                             }
                             <span class="last-replied-at" data-last-replied-at="@Html.Timestamp(topicItem.LastRepliedAt)"></span>
                         </div>

@@ -38,6 +38,7 @@ namespace Discussion.Admin.Controllers
                 .Where(c => c.TopicId == topicId)
                 .OrderBy(c => c.CreatedAtUtc)
                     .Include(r => r.CreatedByUser)
+                    .Include(r => r.CreatedByWeChatAccount)
                 .ToList()
                 .Select(r =>
                     new ReplySummary

@@ -40,6 +40,8 @@ namespace Discussion.Web.Controllers
                                             .ThenInclude(u => u.AvatarFile)
                                         .Include(t => t.LastRepliedByUser)
                                             .ThenInclude(u => u.AvatarFile)
+                                        .Include(t => t.LastRepliedByWeChatAccount)
+                                            .ThenInclude(u => u.AvatarFile)
                                         .OrderByDescending(topic => topic.CreatedAtUtc)
                                         .Page(PageSize, page);
 

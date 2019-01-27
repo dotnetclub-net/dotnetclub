@@ -58,6 +58,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             
             showedTopics.All(t => t.CreatedByUser != null).ShouldEqual(true);
             showedTopics.All(t => t.LastRepliedByUser != null).ShouldEqual(true);
+            showedTopics.All(t => t.LastRepliedAuthor != null).ShouldEqual(true);
         }
 
         [Fact]

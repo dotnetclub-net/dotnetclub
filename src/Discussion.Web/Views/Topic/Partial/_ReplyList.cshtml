@@ -13,8 +13,8 @@
             {
                 <div class="reply-item">
                     <dl class="reply-author">
-                        <dd><img src="@AvatarUrlService.GetAvatarUrl(reply.CreatedByUser)" class="avatar"/></dd>
-                        <dd class="username">@reply.CreatedByUser.DisplayName</dd>
+                        <dd><img src="@AvatarUrlService.GetAvatarUrl(reply.Author)" class="avatar"/></dd>
+                        <dd class="username">@reply.Author.DisplayName</dd>
                     </dl>
                     <div class="reply-content">
                         <div class="reply-content-body">@Html.RenderMarkdown(reply.Content, maxHeadingLevel: 3)</div>
