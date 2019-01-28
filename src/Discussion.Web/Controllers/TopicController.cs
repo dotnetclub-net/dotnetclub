@@ -91,5 +91,13 @@ namespace Discussion.Web.Controllers
                 return BadRequest();
             }
         }
+        
+        [Authorize]
+        [HttpPost]
+        [Route("/topics/import-from-wechat")]
+        public ActionResult ImportFromWeChat(ChatHistoryImportingModel model)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

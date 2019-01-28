@@ -8,7 +8,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
         public string SourceName {get;set;}
 
         [JsonProperty("_sourceUserId")]
-        public string SourceUserId {get;set;}
+        public string SourceWxId {get;set;}
 
         [JsonProperty("_sourceTime")]
         public string SourceTime {get;set;}
@@ -28,12 +28,22 @@ namespace Discussion.Web.Services.ChatHistoryImporting
 
     public class TextChatMessageContent : MessageContent
     {
+        public TextChatMessageContent()
+        {
+            Type = MessageType.Text;
+        }
+        
         [JsonProperty("_text")]
         public string Text { get; set; }
     }
 
     public class UrlChatMessageContent : MessageContent
     {
+        public UrlChatMessageContent()
+        {
+            Type = MessageType.Url;
+        }
+        
         [JsonProperty("_link")]
         public string Link { get; set; }
         
@@ -46,6 +56,11 @@ namespace Discussion.Web.Services.ChatHistoryImporting
 
     public class FileChatMessageContent : MessageContent
     {
+        public FileChatMessageContent()
+        {
+            Type = MessageType.Attachment;
+        }
+        
         [JsonProperty("_fileId")]
         public string FileId { get; set; }
         

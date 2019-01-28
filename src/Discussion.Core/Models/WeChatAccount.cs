@@ -7,17 +7,23 @@ namespace Discussion.Core.Models
     {
         public string WxId { get; set; }
         public string WxAccount { get; set; }
+
+        [NotMapped]
+        public string DisplayName => NickName;
         public string NickName { get; set; }
 
         [ForeignKey("AvatarFileId")]
         public FileRecord AvatarFile { get; set; }
         public int? AvatarFileId { get; set; }
-        [NotMapped]
-        public string DisplayName => NickName;
-        
+
         public IUserAvatar GetAvatar()
         {
-            throw new System.NotImplementedException();
+            if (AvatarFileId == null)
+            {
+                return new DefaultAvatar();
+            }
+
+            return new StorageFileAvatar {StorageFileSlug = AvatarFile.Slug};
         }
     }
 }

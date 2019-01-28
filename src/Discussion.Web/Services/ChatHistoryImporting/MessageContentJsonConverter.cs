@@ -27,7 +27,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
                 case MessageType.Attachment:
                     return item.ToObject<FileChatMessageContent>();
                 default:
-                    throw new NotImplementedException($"不支持导入 {messageType} 类型的聊天消息");
+                    throw new NotSupportedException($"不支持导入 {messageType} 类型的聊天消息");
             }
         }
 

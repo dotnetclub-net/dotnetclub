@@ -17,6 +17,7 @@ using Discussion.Core.Time;
 using Discussion.Migrations.Supporting;
 using Discussion.Web.Resources;
 using Discussion.Web.Services;
+using Discussion.Web.Services.ChatHistoryImporting;
 using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
@@ -99,13 +100,20 @@ namespace Discussion.Web
             services.AddScoped<IPhoneNumberVerificationService, DefaultPhoneNumberVerificationService>();
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
+            
+            services.AddScoped<IChatHistoryImporter, DefaultChatHistoryImporter>();
+            var chatyConfig = _appConfiguration.GetSection(nameof(ChatyOptions));
+            if (chatyConfig != null && !string.IsNullOrEmpty(chatyConfig[nameof(ChatyOptions.ServiceBaseUrl)]))
+            {
+                services.Configure<ChatyOptions>(chatyConfig);
+            }
 
             services.AddScoped<ITopicService, DefaultTopicService>();
             // todo: cache site settings!
             services.AddScoped(sp =>
             {
-                var configured = sp.GetService<IRepository<SiteSettings>>().All().FirstOrDefault();
-                return configured ??
+                var stored = sp.GetService<IRepository<SiteSettings>>().All().FirstOrDefault();
+                return stored ??
                        new SiteSettings
                        {
                            EnableNewReplyCreation = true,
