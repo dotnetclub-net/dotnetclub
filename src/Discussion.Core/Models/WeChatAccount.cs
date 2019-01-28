@@ -5,6 +5,8 @@ namespace Discussion.Core.Models
 {
     public class WeChatAccount : Entity, IAuthor
     {
+        public int UserId { get; set; }
+        
         public string WxId { get; set; }
         public string WxAccount { get; set; }
 

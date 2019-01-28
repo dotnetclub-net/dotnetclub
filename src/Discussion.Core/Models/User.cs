@@ -25,7 +25,7 @@ namespace Discussion.Core.Models
         [ForeignKey("PhoneNumberId")]
         public VerifiedPhoneNumber VerifiedPhoneNumber { get; set; }
         public int? PhoneNumberId { get; set; }
-
+        
         public IUserAvatar GetAvatar()
         {
             if (AvatarFileId > 0)

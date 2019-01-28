@@ -174,7 +174,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
             userMock.SetupGet(u => u.DiscussionUser).Returns(user);
 
             var topicService = new DefaultTopicService(siteSettings, userMock.Object, topicRepo.Object, null, new SystemClock());
-            var topicController = new TopicController(topicRepo.Object, topicService, NullLogger<TopicController>.Instance)
+            var topicController = new TopicController(
+                topicRepo.Object, 
+                topicService, 
+                NullLogger<TopicController>.Instance,
+                null,
+                null,
+                null,
+                null,
+                null)
             {
                 ControllerContext =
                 {

@@ -85,7 +85,7 @@ namespace Discussion.Web.Tests.Specs.Services
             using (var reader = new StreamReader(resourceStream, Encoding.UTF8))
             {
                 var json = reader.ReadToEnd();
-                messages = JsonConvert.DeserializeObject<ChatMessage[]>(json, new MessageContentJsonConverter());
+                messages = JsonConvert.DeserializeObject<ChatMessage[]>(json, new ChatMessageContentJsonConverter());
             }
             
             Assert.Equal(8, messages.Length);

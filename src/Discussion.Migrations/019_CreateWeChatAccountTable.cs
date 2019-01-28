@@ -6,7 +6,7 @@ namespace Discussion.Migrations
     [Migration(19)]
     public class CreateWeChatAccountTable : CreateEntityTableMigration
     {
-        private const string TABLE_NAME = "WeChatAccount";
+        internal const string TABLE_NAME = "WeChatAccount";
 
         protected override string TableName()
         {

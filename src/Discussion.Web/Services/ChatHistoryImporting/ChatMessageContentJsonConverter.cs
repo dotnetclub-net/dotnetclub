@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Discussion.Web.Services.ChatHistoryImporting
 {
-    public class MessageContentJsonConverter : JsonConverter
+    public class ChatMessageContentJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
