@@ -104,7 +104,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "someone",
                     SourceTime = "2018/12/02 12:00:08",
-                    SourceTimestamp = "1556067569000",
+                    SourceTimestamp = 1547552937,
                     SourceWxId = "Wx_879LJJKJGS",
                     Content = new TextChatMessageContent()
                     {
@@ -115,7 +115,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "Another one",
                     SourceTime = "2018/12/02 12:00:09",
-                    SourceTimestamp = "1546067539000",
+                    SourceTimestamp = 1547558937,
                     SourceWxId = "Wx_879LKJGSJJ",
                     Content = new TextChatMessageContent()
                     {
@@ -140,7 +140,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "Another one",
                     SourceTime = "2018/12/02 12:00:09",
-                    SourceTimestamp = "1546067539000",
+                    SourceTimestamp = 1547552937,
                     SourceWxId = "Wx_879LKJGSJJ",
                     Content = new TextChatMessageContent()
                     {
@@ -151,7 +151,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "someone",
                     SourceTime = "2018/12/02 12:00:08",
-                    SourceTimestamp = "1556067569000",
+                    SourceTimestamp = 1547552937,
                     SourceWxId = "Wx_879LJJKJGS",
                     Content = new TextChatMessageContent()
                     {
@@ -162,7 +162,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "someone",
                     SourceTime = "2018/12/02 12:00:09",
-                    SourceTimestamp = "1546067539000",
+                    SourceTimestamp = 1547556937,
                     SourceWxId = "Wx_879LJJKJGS",
                     Content = new TextChatMessageContent()
                     {
@@ -187,7 +187,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "someone",
                     SourceTime = "2018/12/02 12:00:08",
-                    SourceTimestamp = "1556067569000",
+                    SourceTimestamp = 1547552937,
                     SourceWxId = "Wx_FIRST_PERSON",
                     Content = new TextChatMessageContent()
                     {
@@ -198,7 +198,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "Another one",
                     SourceTime = "2018/12/02 12:00:09",
-                    SourceTimestamp = "1546067539000",
+                    SourceTimestamp = 1547552746,
                     SourceWxId = "Wx_SECOND_PERSON",
                     Content = new TextChatMessageContent()
                     {
@@ -209,7 +209,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "someone",
                     SourceTime = "2018/12/02 12:00:09",
-                    SourceTimestamp = "1546067539000",
+                    SourceTimestamp = 1547552945,
                     SourceWxId = "Wx_FIRST_PERSON",
                     Content = new TextChatMessageContent()
                     {
@@ -242,7 +242,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 {
                     SourceName = "someone",
                     SourceTime = "2018/12/02 12:00:08",
-                    SourceTimestamp = "1556067569000",
+                    SourceTimestamp = 1547552937,
                     SourceWxId = "Wx_879LKJGSJJ",
                     Content = new FileChatMessageContent
                     {
