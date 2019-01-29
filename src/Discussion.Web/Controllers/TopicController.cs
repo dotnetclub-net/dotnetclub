@@ -141,17 +141,15 @@ namespace Discussion.Web.Controllers
             chatDetailRequest.RequestUri = new Uri(apiPath);
 
             var response = await _httpClient.SendAsync(chatDetailRequest, CancellationToken.None);
-            
-            
-            if (!response.IsSuccessStatusCode ||
-                !(response.Content is StreamContent downloadedStream))
+
+            if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("无法导入对话 因为无法从 chaty 获取聊天内容");
                 return BadRequest();
             }
             
             ChatMessage[] messages;
-            var jsonStream = await downloadedStream.ReadAsStreamAsync();
+            var jsonStream = await response.Content.ReadAsStreamAsync();
             using (var reader = new StreamReader(jsonStream, Encoding.UTF8))
             {
                 var jsonString = reader.ReadToEnd();
@@ -166,11 +164,17 @@ namespace Discussion.Web.Controllers
             }
 
             var topicId = (int)redirectResult.RouteValues["Id"];
+            var topic = _topicRepo.Get(topicId);
             replies.ForEach(r =>
             {
                 r.TopicId = topicId;
                 _replyRepo.Save(r);
             });
+            
+            topic.ReplyCount = replies.Count;
+            topic.LastRepliedByWeChatAccount = replies.Last().CreatedByWeChatAccount;
+            topic.LastRepliedAt = replies.Last().CreatedAtUtc;
+            _topicRepo.Update(topic);
             return redirectResult;
         }
     }

@@ -73,6 +73,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 optionsMock.Object);
             
             app.DeleteAll<FileRecord>();
+            app.DeleteAll<WeChatAccount>();
         }
         
         [Fact]
@@ -104,7 +105,7 @@ namespace Discussion.Web.Tests.Specs.Services
                     SourceName = "someone",
                     SourceTime = "2018/12/02 12:00:08",
                     SourceTimestamp = "1556067569000",
-                    SourceWxId = "Wx_879LKJGSJJ",
+                    SourceWxId = "Wx_879LJJKJGS",
                     Content = new TextChatMessageContent()
                     {
                         Text = "Hello WeChat Message"
@@ -131,6 +132,53 @@ namespace Discussion.Web.Tests.Specs.Services
         }
         
         [Fact]
+        public async Task should_merge_text_messages_as_one_reply()
+        {
+            var messages = new[]
+            {
+                new ChatMessage
+                {
+                    SourceName = "Another one",
+                    SourceTime = "2018/12/02 12:00:09",
+                    SourceTimestamp = "1546067539000",
+                    SourceWxId = "Wx_879LKJGSJJ",
+                    Content = new TextChatMessageContent()
+                    {
+                        Text = "The first Message"
+                    }
+                },
+                new ChatMessage
+                {
+                    SourceName = "someone",
+                    SourceTime = "2018/12/02 12:00:08",
+                    SourceTimestamp = "1556067569000",
+                    SourceWxId = "Wx_879LJJKJGS",
+                    Content = new TextChatMessageContent()
+                    {
+                        Text = "Hello WeChat Message"
+                    }
+                },
+                new ChatMessage
+                {
+                    SourceName = "someone",
+                    SourceTime = "2018/12/02 12:00:09",
+                    SourceTimestamp = "1546067539000",
+                    SourceWxId = "Wx_879LJJKJGS",
+                    Content = new TextChatMessageContent()
+                    {
+                        Text = "The third Message"
+                    }
+                }
+            };
+            
+            var importResult = await _importer.Import(messages);
+            
+            Assert.Equal(2, importResult.Count);
+            Assert.Equal("The first Message", importResult[0].Content);
+            Assert.Equal("Hello WeChat Message\n\nThe third Message", importResult[1].Content);
+        }
+        
+        [Fact]
         public async Task should_import_wechat_accounts_and_reuse_existing_account_records()
         {
             var messages = new[]
@@ -140,7 +188,7 @@ namespace Discussion.Web.Tests.Specs.Services
                     SourceName = "someone",
                     SourceTime = "2018/12/02 12:00:08",
                     SourceTimestamp = "1556067569000",
-                    SourceWxId = "Wx_879LKJGSJJ",
+                    SourceWxId = "Wx_FIRST_PERSON",
                     Content = new TextChatMessageContent()
                     {
                         Text = "Hello WeChat Message"
@@ -151,10 +199,21 @@ namespace Discussion.Web.Tests.Specs.Services
                     SourceName = "Another one",
                     SourceTime = "2018/12/02 12:00:09",
                     SourceTimestamp = "1546067539000",
-                    SourceWxId = "Wx_879LKJGSJJ",
+                    SourceWxId = "Wx_SECOND_PERSON",
                     Content = new TextChatMessageContent()
                     {
                         Text = "The second Message"
+                    }
+                },
+                new ChatMessage
+                {
+                    SourceName = "someone",
+                    SourceTime = "2018/12/02 12:00:09",
+                    SourceTimestamp = "1546067539000",
+                    SourceWxId = "Wx_FIRST_PERSON",
+                    Content = new TextChatMessageContent()
+                    {
+                        Text = "The third Message"
                     }
                 }
             };
@@ -163,12 +222,15 @@ namespace Discussion.Web.Tests.Specs.Services
             
             Assert.NotNull(importResult[0].CreatedByWeChatAccount);
             Assert.Equal("someone", importResult[0].CreatedByWeChatAccount.DisplayName);
-            Assert.Equal("Wx_879LKJGSJJ", importResult[0].CreatedByWeChatAccount.WxId);
+            Assert.Equal("Wx_FIRST_PERSON", importResult[0].CreatedByWeChatAccount.WxId);
 
-            var wxAccounts = _weChatAccountRepo.All().ToList();
-            Assert.Equal(1, wxAccounts.Count);
-            Assert.Equal("Wx_879LKJGSJJ", wxAccounts[0].WxId);
+            var wxAccounts = _weChatAccountRepo.All().OrderBy(a => a.Id).ToList();
+            Assert.Equal(2, wxAccounts.Count);
+            Assert.Equal("Wx_FIRST_PERSON", wxAccounts[0].WxId);
             Assert.Equal("someone", wxAccounts[0].NickName);
+            
+            Assert.Equal("Wx_SECOND_PERSON", wxAccounts[1].WxId);
+            Assert.Equal("Another one", wxAccounts[1].NickName);
         }
         
         [Fact]

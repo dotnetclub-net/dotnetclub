@@ -14,7 +14,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
         public string SourceTime {get;set;}
 
         [JsonProperty("_sourceTimestamp")]
-        public string SourceTimestamp {get;set;}
+        public long SourceTimestamp {get;set;}
 
         [JsonProperty("_content")]
         public MessageContent Content {get;set;}
@@ -61,10 +61,10 @@ namespace Discussion.Web.Services.ChatHistoryImporting
             Type = MessageType.Attachment;
         }
         
-        [JsonProperty("_fileId")]
+        [JsonProperty("_storageFileId")]
         public string FileId { get; set; }
         
-        [JsonProperty("_fileName")]
+        [JsonProperty("_originalFileName")]
         public string FileName { get; set; }
     }
     

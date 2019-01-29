@@ -4,12 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Models;
 using Discussion.Core.Time;
+using Markdig.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -51,19 +53,65 @@ namespace Discussion.Web.Services.ChatHistoryImporting
                 throw new ArgumentException("微信消息为空，无法导入", nameof(wechatMessages));
             }
 
-            var convertAll = wechatMessages
-                .Select(async msg => new Reply
-                {
-                    Content = await GetContentFromMessage(msg),
-                    CreatedAtUtc = _clock.Now.UtcDateTime,
-                    CreatedByWeChatAccount = GetOrCreateGetWeChatAccount(msg)
-                })
-                .ToArray();
+            var replies = new List<Reply>();
+            for (var i = 0; i < wechatMessages.Length; i++)
+            {
+                var (content, idx) = await ImportContentWithMerge(wechatMessages, i);
+                var chatMessage = wechatMessages[i];
+                var wechatAccount = GetOrCreateGetWeChatAccount(chatMessage);
                 
-            await Task.WhenAll(convertAll);
+                replies.Add(new Reply
+                {
+                    Content = content,
+                    CreatedAtUtc = chatMessage.SourceTimestamp <= 0 
+                        ? _clock.Now.UtcDateTime : 
+                        DateTimeOffset.FromUnixTimeSeconds(chatMessage.SourceTimestamp).UtcDateTime,
+                    CreatedByWeChatAccount = wechatAccount
+                });
+
+                i = idx;
+            }
             
-            var replies = convertAll.Select(t => t.Result).ToList();
             return replies;
+        }
+
+        private async Task<(string, int)> ImportContentWithMerge(ChatMessage[] wechatMessages, int curIndex)
+        {
+            var curMessage = wechatMessages[curIndex];
+            
+            var content = await GetContentFromMessage(curMessage);
+            var contentBuilder = new StringBuilder(content);
+
+            if (!IsTextMessage(curMessage))
+            {
+                return (contentBuilder.ToString(), curIndex);
+            }
+
+            while (curIndex + 1 < wechatMessages.Length)
+            {
+                var nextMessage = wechatMessages[curIndex + 1];
+                var shouldMerge = nextMessage != null
+                                  && nextMessage.SourceWxId == curMessage.SourceWxId
+                                  && IsTextMessage(nextMessage);
+                if (!shouldMerge)
+                {
+                    break;
+                }
+
+                var nextContent = await GetContentFromMessage(nextMessage);
+                contentBuilder.Append("\n\n");
+                contentBuilder.Append(nextContent);
+                curIndex++;
+            }
+
+            return (contentBuilder.ToString(), curIndex);
+        }
+
+        private static bool IsTextMessage(ChatMessage chatMessage)
+        {
+            return chatMessage.Content.Type == MessageType.Text
+                   || chatMessage.Content.Type == MessageType.Url
+                   || chatMessage.Content.Type == MessageType.Attachment;
         }
 
         private WeChatAccount GetOrCreateGetWeChatAccount(ChatMessage msg)
@@ -134,21 +182,21 @@ namespace Discussion.Web.Services.ChatHistoryImporting
             downloadRequest.RequestUri = new Uri(apiPath);
 
             var response = await _httpClient.SendAsync(downloadRequest, CancellationToken.None);
-            response.EnsureSuccessStatusCode();
 
-            if (!(response.Content is StreamContent file))
+            if (!response.IsSuccessStatusCode)
             {
                 throw new InvalidOperationException($"无法下载文件 {fileName} (id: {fileId})");
             }
-            var downloadedStream = await file.ReadAsStreamAsync();
+            var downloadedStream = await response.Content.ReadAsStreamAsync();
             return await SaveFile(fileName, downloadedStream);
         }
 
         private async Task<string> SaveFile(string name, Stream content)
         {
             const string category = "imported-reply";
-            var subPath = string.Concat(category, _fileSystem.GetDirectorySeparatorChar(), Guid.NewGuid().ToString("N"));
-            
+            var subPath = string.Concat(category, _fileSystem.GetDirectorySeparatorChar(),
+                Guid.NewGuid().ToString("N"));
+
             var storageFile = await _fileSystem.CreateFileAsync(subPath);
             using (var outputStream = await storageFile.OpenWriteAsync())
             {
@@ -165,12 +213,10 @@ namespace Discussion.Web.Services.ChatHistoryImporting
                 Slug = Guid.NewGuid().ToString("N")
             };
             _fileRepo.Save(fileRecord);
-                        
+
             // ReSharper disable once Mvc.ActionNotResolved
             // ReSharper disable once Mvc.ControllerNotResolved
             return _urlHelper.Action("DownloadFile", "Common", new {slug = fileRecord.Slug});
         }
-        
-        
     }
 }
