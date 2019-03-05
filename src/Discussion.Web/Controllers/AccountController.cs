@@ -45,7 +45,6 @@ namespace Discussion.Web.Controllers
             return View();
         }
 
-
         [HttpPost]
         [Route("/signin")]
         public async Task<IActionResult> DoSignin([FromForm]UserViewModel viewModel, [FromQuery]string returnUrl)
@@ -95,7 +94,6 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
 
-
         [Route("/register")]
         public IActionResult Register()
         {
@@ -106,9 +104,20 @@ namespace Discussion.Web.Controllers
 
             return View();
         }
-        
+
+        [Route("/retrieve-password")]
+        public IActionResult RetrievePassword()
+        {
+            if (HttpContext.IsAuthenticated())
+            {
+                return RedirectTo("/");
+            }
+
+            return View();
+        }
+
         [HttpPost]
-        [Route("/register")]  
+        [Route("/register")]
         public async Task<IActionResult> DoRegister(UserViewModel registerModel)
         {
             if (!ModelState.IsValid)
@@ -149,7 +158,6 @@ namespace Discussion.Web.Controllers
                 lockoutOnFailure: true);
             return RedirectTo("/");
         }
-
 
         private IActionResult RedirectTo(string returnUrl)
         {
