@@ -1,0 +1,46 @@
+@using Discussion.Core.Mvc
+@using Discussion.Web.Services.UserManagement.Avatar
+@inject Discussion.Core.Models.SiteSettings SiteSettings
+@inject IAvatarUrlService AvatarUrlService
+@model TopicViewModel
+
+@{
+    var user = Context.DiscussionUser();
+    var canCreateReply = user != null;
+    if (canCreateReply && SiteSettings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue)
+    {
+        canCreateReply = false;
+    }
+}
+
+
+
+<div class="row">
+    <div class="panel no-padding panel-topic-create-reply col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel-heading">
+            添加回复
+        </div>
+
+        <div class="panel-body">
+            @if (canCreateReply)
+            {
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a id="tab-editor" href="#editor" aria-controls="home" role="tab" data-toggle="tab">编辑</a></li>
+                    <li role="presentation"><a id="tab-preview" href="#preview" aria-controls="profile" role="tab" data-toggle="tab">预览</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="editor">
+                        <textarea id="content-editor" placeholder="回复话题（支持 Markdown 语法）"></textarea>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="preview"></div>
+                </div>
+                <button id="submit-create" class="btn btn-default submit-create-btn">回复</button>
+            }
+            else
+            {
+                <p>多谢登录。</p>
+                <p>为账号验证了实名手机号之后，才可以添加回复。@Html.ActionLink("现在验证", "VerifyPhoneNumber", "User") </p>
+            }
+        </div>
+    </div>
+</div>

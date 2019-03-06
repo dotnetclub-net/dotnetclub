@@ -9,7 +9,7 @@ namespace Discussion.Migrations
         {
             Alter.Table(CreateUserTable.TABLE_NAME)
                 .AddColumn("AvatarFileId").AsInt32()
-                .NotNullable().WithDefaultValue(0);
+                .Nullable();
         }
 
         public override void Down()

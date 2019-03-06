@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -10,12 +10,14 @@ using Discussion.Core.Communication.Sms;
 using Discussion.Core.Cryptography;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
+using Discussion.Core.Models;
+using Discussion.Core.Models.UserAvatar;
 using Discussion.Core.Mvc;
 using Discussion.Core.Time;
 using Discussion.Migrations.Supporting;
-using Discussion.Web.Models;
 using Discussion.Web.Resources;
 using Discussion.Web.Services;
+using Discussion.Web.Services.ChatHistoryImporting;
 using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
@@ -25,14 +27,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Web.Services.UserManagement.Avatar;
+using Discussion.Web.Services.UserManagement.Avatar.UrlGenerators;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.Services.UserManagement.Identity;
 using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.Options;
 
 namespace Discussion.Web
 {
@@ -92,19 +93,34 @@ namespace Discussion.Web
                     return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);              
                 });
             
-            services.AddScoped<IUserAvatarService, UserAvatarService>();
+            services.AddSingleton<IAvatarUrlService, DispatchAvatarUrlService>();
+            services.AddScoped<IUserAvatarUrlGenerator<DefaultAvatar>, DefaultAvatarUrlGenerator>();
+            services.AddScoped<IUserAvatarUrlGenerator<StorageFileAvatar>, StorageFileAvatarUrlGenerator>();
+            services.AddScoped<IUserAvatarUrlGenerator<GravatarAvatar>, GravatarAvatarUrlGenerator>();
             services.AddScoped<IPhoneNumberVerificationService, DefaultPhoneNumberVerificationService>();
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
+            
+            services.AddScoped<IChatHistoryImporter, DefaultChatHistoryImporter>();
+            var chatyConfig = _appConfiguration.GetSection(nameof(ChatyOptions));
+            if (chatyConfig != null && !string.IsNullOrEmpty(chatyConfig[nameof(ChatyOptions.ServiceBaseUrl)]))
+            {
+                services.Configure<ChatyOptions>(chatyConfig);
+            }
 
             services.AddScoped<ITopicService, DefaultTopicService>();
-
-            var siteSettingsSection = _appConfiguration.GetSection(nameof(SiteSettings));
-            if (siteSettingsSection != null)
+            // todo: cache site settings!
+            services.AddScoped(sp =>
             {
-                services.Configure<SiteSettings>(siteSettingsSection);
-            }
-            services.AddSingleton(sp => sp.GetService<IOptions<SiteSettings>>().Value);
+                var stored = sp.GetService<IRepository<SiteSettings>>().All().FirstOrDefault();
+                return stored ??
+                       new SiteSettings
+                       {
+                           EnableNewReplyCreation = true,
+                           EnableNewTopicCreation = true,
+                           EnableNewUserRegistration = true
+                       };
+            });
         }
 
         public void Configure(IApplicationBuilder app)
@@ -121,7 +137,16 @@ namespace Discussion.Web
                     app.UseHsts();
                 }
             }
-            
+
+            app.Use(async (ctx, next) =>
+            {
+                var readonlyDataSettings = ctx.RequestServices.GetService<IReadonlyDataSettings>() as ReadonlyDataSettings; 
+                Debug.Assert(readonlyDataSettings != null, nameof(readonlyDataSettings) + " != null");
+                
+                var siteSettings = ctx.RequestServices.GetService<SiteSettings>();
+                readonlyDataSettings.IsReadonly = siteSettings.IsReadonly;
+                await next();
+            });
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseStaticFiles();

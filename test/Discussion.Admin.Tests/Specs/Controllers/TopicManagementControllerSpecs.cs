@@ -33,7 +33,7 @@ namespace Discussion.Admin.Tests.Specs.Controllers
                 {
                     topicRepository.Save(new Topic
                     {
-                        Author = user,
+                        CreatedByUser = user,
                         Type = TopicType.Discussion,
                         Title = title
                     });
@@ -48,5 +48,36 @@ namespace Discussion.Admin.Tests.Specs.Controllers
             Assert.Equal("title 2", list.Items[1].Title);
             Assert.Equal("title 1", list.Items[2].Title);
         }
+        
+        
+        [Fact]
+        public void should_delete_topic_()
+        {
+            var user = new User {UserName = "Jim"};
+            _adminApp.GetService<IRepository<User>>().Save(user);
+            
+            var topicRepository = _adminApp.GetService<IRepository<Topic>>();
+            var topic = new Topic
+            {
+                CreatedByUser = user,
+                Type = TopicType.Discussion,
+                Title = "some title"
+            };
+            topicRepository.Save(topic);
+
+            var controller = _adminApp.CreateController<TopicManagementController>();
+
+            controller.Delete(topic.Id);
+
+            var dbContext = _adminApp.GetService<ApplicationDbContext>();
+            dbContext.Entry(topic).Reload();
+            var deletedItem = topicRepository.Get(topic.Id);
+            Assert.Null(deletedItem);
+        }
+        
+        
+        
+        
+        
     }
 }

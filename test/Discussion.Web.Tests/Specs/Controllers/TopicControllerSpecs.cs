@@ -7,7 +7,6 @@ using Discussion.Core.Time;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Models;
 using Discussion.Web.Services;
 using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.Tests.Fixtures;
@@ -57,8 +56,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             showedTopics.ShouldContain(t => t.Title == "dummy topic 2" && t.Type == TopicType.Question);
             showedTopics.ShouldContain(t => t.Title == "dummy topic 3" && t.Type == TopicType.Job);
             
-            showedTopics.All(t => t.Author != null).ShouldEqual(true);
-            showedTopics.All(t => t.LastRepliedUser != null).ShouldEqual(true);
+            showedTopics.All(t => t.CreatedByUser != null).ShouldEqual(true);
+            showedTopics.All(t => t.LastRepliedByUser != null).ShouldEqual(true);
+            showedTopics.All(t => t.LastRepliedAuthor != null).ShouldEqual(true);
         }
 
         [Fact]
@@ -147,6 +147,26 @@ namespace Discussion.Web.Tests.Specs.Controllers
             actionResult.IsType<BadRequestResult>();
             topicRepo.VerifyNoOtherCalls();
         }
+ 
+        [Fact]
+        public void should_not_create_topic_if_site_settings_disabled_creation()
+        {
+            var topicRepo = new Mock<IRepository<Topic>>();
+            var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = false, EnableNewTopicCreation = false};
+            var topicController = CreateControllerWithSettings(_app.MockUser(), siteSettings, topicRepo);
+
+
+            var actionResult = topicController.CreateTopic(
+                new TopicCreationModel
+                {
+                    Title = "first topic you created",
+                    Content = "some content",
+                    Type = TopicType.Job
+                });
+            
+            actionResult.IsType<BadRequestResult>();
+            topicRepo.VerifyNoOtherCalls();
+        }
 
         private TopicController CreateControllerWithSettings(User user, SiteSettings siteSettings,  Mock<IRepository<Topic>> topicRepo)
         {
@@ -154,7 +174,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
             userMock.SetupGet(u => u.DiscussionUser).Returns(user);
 
             var topicService = new DefaultTopicService(siteSettings, userMock.Object, topicRepo.Object, null, new SystemClock());
-            var topicController = new TopicController(topicRepo.Object, topicService, NullLogger<TopicController>.Instance)
+            var topicController = new TopicController(
+                topicRepo.Object, 
+                topicService, 
+                NullLogger<TopicController>.Instance,
+                null,
+                null,
+                null,
+                null,
+                null)
             {
                 ControllerContext =
                 {

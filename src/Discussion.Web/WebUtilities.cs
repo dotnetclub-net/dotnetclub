@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Encodings.Web;
+using Discussion.Core.Markdown;
 using Discussion.Core.Models;
-using Discussion.Web.Services.Markdown;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 

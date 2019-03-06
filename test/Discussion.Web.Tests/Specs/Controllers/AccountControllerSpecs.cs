@@ -171,7 +171,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         public async Task should_register_new_user()
         {
             var accountCtrl = _app.CreateController<AccountController>();
-            var userName = "newuser";
+            var userName = "newuser1234";
             var newUser = new UserViewModel
             {
                 UserName = userName,
@@ -185,6 +185,32 @@ namespace Discussion.Web.Tests.Specs.Controllers
             registeredUser.ShouldNotBeNull();
             registeredUser.UserName.ShouldEqual(userName);
             registeredUser.Id.ShouldGreaterThan(0);
+        } 
+        
+        [Fact]
+        public async Task should_not_register_new_user_when_disabled()
+        {
+            _app.OverrideServices(services =>
+            {
+                services.AddSingleton(new SiteSettings
+                {
+                    IsReadonly = false,
+                    EnableNewUserRegistration = false
+                });
+            });
+            var accountCtrl = _app.CreateController<AccountController>();
+            var userName = "newuser";
+            var newUser = new UserViewModel
+            {
+                UserName = userName,
+                Password = "hello1"
+            };
+            
+            var registerResult = await accountCtrl.DoRegister(newUser);
+            registerResult.IsType<ViewResult>();
+
+            var registeredUser = _userRepo.All().FirstOrDefault(user => user.UserName == newUser.UserName);
+            registeredUser.ShouldBeNull();
         }
                 
         [Fact]

@@ -1,28 +1,27 @@
-﻿@using Discussion.Core.Mvc
+﻿@using System.Text.RegularExpressions
+@using Discussion.Core.Mvc
 @using Discussion.Web.Services.UserManagement.Avatar
-@inject Discussion.Web.Models.SiteSettings SiteSettings
-@inject IUserAvatarService AvatarService
+@inject Discussion.Core.Models.SiteSettings SiteSettings
+@inject IAvatarUrlService AvatarUrlService
 @model TopicViewModel
 
 @{
     ViewData["Title"] = Model.Topic.Title;
     
-    var user = Context.DiscussionUser();
-    var canCreateReply = user != null;
-    if (canCreateReply && SiteSettings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue)
-    {
-        canCreateReply = false;
-    }
+    ViewData["Keyword"] = Html.DescribeTopicType(Model.Topic.Type) + "：" + Model.Topic.Title;
+
+    var descText = Model.Topic.Content.Length > 100 ? Model.Topic.Content.Substring(0, 100) + "..." : Model.Topic.Content;
+    ViewData["Description"] = Regex.Replace(descText, @"(\n\r\t""'\>\<)", string.Empty);
 }
 
 <div class="row">
     <article class="panel panel-topic-detail col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <header class="topic-meta">
-            <img src="@AvatarService.GetUserAvatarUrl(Model.Topic.Author)" class="topic-author-avatar"/>
+            <img src="@AvatarUrlService.GetAvatarUrl(Model.Topic.CreatedByUser)" class="topic-author-avatar"/>
             <h1> @Model.Topic.Title </h1>
             <div>
                 <span class="meta-item author">
-                    作者 @Model.Topic.Author.DisplayName
+                    作者 @Model.Topic.CreatedByUser.DisplayName
                 </span>
                 <span class="meta-item created-at">
                     发布于 <span class="created-at-time" data-created-at="@Html.Timestamp(Model.Topic.CreatedAtUtc)"></span>
@@ -43,133 +42,32 @@
 
 @if (Model.Topic.ReplyCount > 0)
 {
-    <div class="row">
-        <div class="panel no-padding panel-topic-replies col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <div class="panel-heading">
-                共有 @Model.Topic.ReplyCount 条回复
-            </div>
-
-            <div class="panel-body">
-                @foreach (var reply in Model.Replies)
-                {
-                    <div class="reply-item">
-                        <dl class="reply-author">
-                            <dd><img src="@AvatarService.GetUserAvatarUrl(reply.Author)" class="avatar"/></dd>
-                            <dd class="username">@reply.Author.DisplayName</dd>
-                        </dl>
-                        <div class="reply-content">
-                            <div class="reply-content-body">@Html.RenderMarkdown(reply.Content, maxHeadingLevel: 3)</div>
-                            <div class="reply-content-related">
-                                回复于 <span class="replied-at" data-replied-at="@Html.Timestamp(reply.CreatedAtUtc)"></span>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
+    <partial name="./Partial/_ReplyList.cshtml" for="@Model" />
 }
 
-@if (Context.IsAuthenticated())
+@if (Context.IsAuthenticated() && SiteSettings.CanAddNewReplies())
 {
-    <div class="row">
-        <div class="panel no-padding panel-topic-create-reply col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <div class="panel-heading">
-                添加回复
-            </div>
-
-            <div class="panel-body">
-                @if (canCreateReply)
-                {
-                    <ul class="nav nav-tabs" role="tablist">
-                        <li role="presentation" class="active"><a id="tab-editor" href="#editor" aria-controls="home" role="tab" data-toggle="tab">编辑</a></li>
-                        <li role="presentation"><a id="tab-preview" href="#preview" aria-controls="profile" role="tab" data-toggle="tab">预览</a></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="editor">
-                            <textarea id="content-editor" placeholder="回复话题（支持 Markdown 语法）"></textarea>
-                        </div>
-                        <div role="tabpanel" class="tab-pane" id="preview"></div>
-                    </div>
-                    <button id="submit-create" class="btn btn-default submit-create-btn">回复</button>
-                }
-                else
-                {
-                    <p>多谢登录。</p>
-                    <p>为账号验证了实名手机号之后，才可以添加回复。@Html.ActionLink("现在验证", "VerifyPhoneNumber", "User") </p>
-                }
-            </div>
-        </div>
-    </div>
+    <partial name="./Partial/_NewReply.cshtml" for="@Model" />
 }
 
 @section Tail{
     <script>
-        $(document).ready(function() {
-            window.DiscussionApp.utils.transformTimestampOn('.created-at-time', 'data-created-at');
-            window.DiscussionApp.utils.transformTimestampOn('.replied-at', 'data-replied-at');
+        $(function() {
+            var replyUrl = '@Url.Action("Reply", "Reply", new {topicId = Model.Id})';
+            var previewApi = '@Url.Action("RenderMarkdown", "Common", new {maxHeadingLevel = 3})';
+            var app = window.DiscussionApp;
+            var previewSelectors = {
+                tabPreview: '#tab-preview',
+                tabEditor: '#tab-editor',
+                contentPreview: '#preview',
+                contentEditor: '#content-editor'
+            };
+            
+            app.utils.transformTimestampOn('.created-at-time', 'data-created-at');
+            app.utils.transformTimestampOn('.replied-at', 'data-replied-at');
 
-
-            $("#submit-create").on("click",
-                function() {
-                    var editor = $("#content-editor");
-                    var replyContent = editor.val();
-                    if (!$.trim(replyContent)) {
-                        editor.focus();
-                        return false;
-                    }
-
-                    var topicId = parseInt('@Model.Id');
-                    var postUrl = '/topics/' + topicId + '/replies';
-                    $.ajax({
-                        url: postUrl,
-                        method: 'POST',
-                        data: { content: replyContent, __RequestVerificationToken: window.__RequestVerificationToken },
-                        // contentType: 'json',
-                        dataType: 'json',
-                        success: function() {
-                            location.reload();
-                        },
-                        error: function(xhr) {
-                            var errors = JSON.parse(xhr.responseText);
-                            // Object.values(errors);  // [], [], []
-                        }
-                    });
-                });
-
-            $('#tab-preview').on('shown.bs.tab',
-                function(e) {
-                    var editor = $("#content-editor");
-                    var replyContent = editor.val();
-                    if (!$.trim(replyContent)) {
-                        editor.focus();
-                        e.preventDefault();
-                        return false;
-                    }
-
-                    $('#preview').html('正在加载预览...');
-                    $.ajax({
-                        url: '/api/common/md2html?maxHeadingLevel=3',
-                        method: 'POST',
-                        data: { markdown: replyContent, __RequestVerificationToken: window.__RequestVerificationToken },
-                        success: function(res) {
-                            if (res.hasSucceeded) {
-                                $('#preview').html(res.result.html);
-                            } else {
-                                $('#preview').html('<span style="color:red">' + res.errorMessage + '</span>');
-                            }
-                        },
-                        error: function() {
-                            $('#preview').html('暂时无法预览');
-                        }
-                    });
-                });
-
-            $('#tab-editor').on('shown.bs.tab',
-                function() {
-                    $("#content-editor").focus();
-                    $('#preview').empty();
-                });
+            $("#submit-create").click(app.topic.submitNewReply("#content-editor", replyUrl));
+            app.topic.setupReplyPreview(previewSelectors, previewApi);
         });
     </script>
 }

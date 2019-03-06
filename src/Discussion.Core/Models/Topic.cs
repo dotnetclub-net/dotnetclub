@@ -11,12 +11,19 @@ namespace Discussion.Core.Models
         public TopicType Type { get; set; }
 
         [ForeignKey("CreatedBy")]
-        public User Author { get; set; }
+        public User CreatedByUser { get; set; }
         public int CreatedBy { get; set; }
 
         [ForeignKey("LastRepliedBy")]
-        public User LastRepliedUser { get; set; }
+        public User LastRepliedByUser { get; set; }
         public int? LastRepliedBy { get; set; }
+        
+        [ForeignKey("LastRepliedByWeChat")]
+        public WeChatAccount LastRepliedByWeChatAccount { get; set; }
+        public int? LastRepliedByWeChat { get; set; }
+        
+        [NotMapped] public IAuthor LastRepliedAuthor => (IAuthor)this.LastRepliedByUser ?? this.LastRepliedByWeChatAccount;
+        
         public DateTime? LastRepliedAt { get; set; }
 
         public int ReplyCount { get; set; }

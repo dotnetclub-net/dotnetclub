@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
@@ -92,12 +93,13 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 Category = "testing",
                 UploadedBy = appUser.Id,
                 StoragePath = storageFile.GetPath(),
-                Size = fileLength
+                Size = fileLength,
+                Slug = Guid.NewGuid().ToString("N")
             };
             _fileRepo.Save(fileRecord);
           
             var commonController = _app.CreateController<CommonController>();
-            var downloadResult = await commonController.DownloadFile(fileRecord.Id) as FileStreamResult;
+            var downloadResult = await commonController.DownloadFile(fileRecord.Slug, download: true) as FileStreamResult;
 
             Assert.NotNull(downloadResult);
             Assert.Equal(fileRecord.OriginalName, downloadResult.FileDownloadName);

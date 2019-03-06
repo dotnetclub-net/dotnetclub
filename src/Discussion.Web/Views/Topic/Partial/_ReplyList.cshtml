@@ -1,0 +1,29 @@
+@using Discussion.Web.Services.UserManagement.Avatar
+@inject IAvatarUrlService AvatarUrlService
+@model TopicViewModel
+
+<div class="row">
+    <div class="panel no-padding panel-topic-replies col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel-heading">
+            共有 @Model.Topic.ReplyCount 条回复
+        </div>
+
+        <div class="panel-body">
+            @foreach (var reply in Model.Replies)
+            {
+                <div class="reply-item">
+                    <dl class="reply-author">
+                        <dd><img src="@AvatarUrlService.GetAvatarUrl(reply.Author)" class="avatar"/></dd>
+                        <dd class="username">@reply.Author.DisplayName</dd>
+                    </dl>
+                    <div class="reply-content">
+                        <div class="reply-content-body">@Html.RenderMarkdown(reply.Content, maxHeadingLevel: 3)</div>
+                        <div class="reply-content-related">
+                            回复于 <span class="replied-at" data-replied-at="@Html.Timestamp(reply.CreatedAtUtc)"></span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

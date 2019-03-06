@@ -1,0 +1,106 @@
+<page-header [title]="'站点设置'" homeI18n="管理面板"></page-header>
+
+<div *ngIf="!!siteSettings" >
+  <nz-card [nzBordered]="false">
+    <h3>提示信息</h3>
+
+    <form nz-form #noticeForm="ngForm" se-container="1" labelWidth="150">
+
+      <se label="页脚左侧提示">
+        <input type="text" nz-input [(ngModel)]="siteSettings.footerNoticeLeft" name="footerNoticeLeft" />
+      </se>
+      <se label="页脚右侧提示">
+        <input type="text" nz-input [(ngModel)]="siteSettings.footerNoticeRight" name="footerNoticeRight" />
+      </se>
+
+
+      <se>
+        <button nz-button nzType="primary" [disabled]="noticeForm.invalid"  (click)="updateSettings()">保存</button>
+      </se>
+    </form>
+  </nz-card>
+
+  <nz-card [nzBordered]="false">
+    <h3>导航链接</h3>
+
+    <form nz-form #linkForm="ngForm" se-container="2" labelWidth="150">
+      <se label="导航1文本">
+        <input type="text" nz-input [(ngModel)]="siteSettings.headerLink1Text" name="headerLink1Text" />
+      </se>
+      <se label="导航1链接">
+        <input type="text" nz-input [(ngModel)]="siteSettings.headerLink1Url" name="headerLink1Url"  />
+      </se>
+
+
+      <se label="导航2文本">
+        <input type="text" nz-input [(ngModel)]="siteSettings.headerLink2Text" name="headerLink2Text" />
+      </se>
+      <se label="导航2链接">
+        <input type="text" nz-input [(ngModel)]="siteSettings.headerLink2Url" name="headerLink2Url"  />
+      </se>
+
+
+      <se label="导航3文本">
+        <input type="text" nz-input [(ngModel)]="siteSettings.headerLink3Text" name="headerLink3Text" />
+      </se>
+      <se label="导航3链接">
+        <input type="text" nz-input [(ngModel)]="siteSettings.headerLink3Url" name="headerLink3Url"  />
+      </se>
+
+      <se label="导航4文本">
+        <input type="text" nz-input [(ngModel)]="siteSettings.headerLink4Text" name="headerLink4Text" />
+      </se>
+      <se label="导航4链接">
+        <input type="text" nz-input [(ngModel)]="siteSettings.headerLink4Url" name="headerLink4Url"  />
+      </se>
+
+      <se>
+        <button nz-button nzType="primary" [disabled]="linkForm.invalid"  (click)="updateSettings()">保存</button>
+      </se>
+    </form>
+  </nz-card>
+
+  <nz-card [nzBordered]="false">
+    <h3>运营设置</h3>
+
+    <form nz-form #settingsForm="ngForm" se-container="1" labelWidth="150">
+      <se label="站点域名" error="请填写站点域名" extra="用户访问网站前台时所用的域名（含端口）">
+        <input type="text" nz-input [(ngModel)]="siteSettings.publicHostName" name="publicHostName" required />
+      </se>
+      <se>
+        <label nz-checkbox [(ngModel)]="siteSettings.requireUserPhoneNumberVerified" name="requireUserPhoneNumberVerified">
+          <span>用户必须验证手机号才能发表内容</span>
+        </label>
+      </se>
+      <se>
+        <label nz-checkbox [(ngModel)]="siteSettings.isReadonly" name="isReadonly">
+          <span>将站点置为只读状态</span>
+        </label>
+      </se>
+      <se>
+        <label nz-checkbox [(ngModel)]="siteSettings.enableNewUserRegistration" name="enableNewUserRegistration">
+          <span>允许注册新用户</span>
+        </label>
+      </se>
+      <se>
+        <label nz-checkbox [(ngModel)]="siteSettings.enableNewTopicCreation" name="enableNewTopicCreation">
+          <span>允许添加新话题</span>
+        </label>
+      </se>
+      <se>
+        <label nz-checkbox [(ngModel)]="siteSettings.enableNewReplyCreation" name="enableNewReplyCreation">
+          <span>允许添加新回复</span>
+        </label>
+      </se>
+
+      <se>
+        <button nz-button nzType="primary" [disabled]="settingsForm.invalid" (click)="updateSettings()" >保存</button>
+      </se>
+    </form>
+  </nz-card>
+
+</div>
+
+<div *ngIf="!siteSettings">
+  加载中...
+</div>

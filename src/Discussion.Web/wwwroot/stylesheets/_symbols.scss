@@ -40,7 +40,22 @@ $fa-font-path:                "../lib/node_modules/@fortawesome/fontawesome-free
   & *{
     max-width: 95%;
   }
+  
+  img{
+    max-width:75%;
+    max-height:600px;
+  }
+  
+  img[src$='#middle']{
+    max-width:60%;
+    max-height:400px;
+  }
 
+  img[src$='#small']{
+    max-width:30%;
+    max-height:200px;
+  }
+  
   table {
     min-width: 40%;
     max-width: 90%;

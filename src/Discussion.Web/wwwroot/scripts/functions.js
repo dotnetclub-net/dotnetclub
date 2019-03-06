@@ -48,3 +48,22 @@ export function transformTimestampOn(domSelector, attr) {
         }
     });
 }
+
+
+export function countDown(seconds, callback, onCount){
+    callback = callback || new Function();
+    onCount = onCount || new Function();
+    
+    function _count(cur) {
+        if (cur === 0) {
+            callback();
+        } else {
+            setTimeout(function() {
+                _count(--cur);
+            }, 1000);
+            onCount(cur);
+        }
+    }
+
+    _count(seconds);
+}

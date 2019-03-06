@@ -1,82 +1,72 @@
 ﻿@using Discussion.Core.Models
 @using Discussion.Web.Services.UserManagement.Avatar
-@inject IUserAvatarService AvatarService
-@inject Discussion.Web.Models.SiteSettings SiteSettings
+@inject IAvatarUrlService AvatarUrlService
+@inject Discussion.Core.Models.SiteSettings SiteSettings
 @model User
 @{
     Layout = "_UserLayout.cshtml";
     ViewData["Title"] = "基本信息";
-
-    var suggestVerifying = SiteSettings.RequireUserPhoneNumberVerified && !Model.PhoneNumberId.HasValue;
 }
 
 
-<div class="panel panel-body panel-user-settings">
-    @if (suggestVerifying)
-    {
-        <div class="text-danger">
-            <p>在验证实名手机号之前，不能创建话题、添加回复。@Html.ActionLink("现在验证", "VerifyPhoneNumber", "User") </p>     
-        </div>
-    }
-    <h3>基本信息</h3>
 
-    <form asp-action="DoSettings" method="post">
-        <div asp-validation-summary="All" class="text-danger"></div>
-        <fieldset class="form-group">
-            <label>
-                用户名
-            </label>
-            <div>@Model.UserName</div>
-        </fieldset>
-        <fieldset>
-            <div class="user-avatar-wrapper">
-                <div class="inner-square">
-                    <img src="@AvatarService.GetUserAvatarUrl(Model)" title="点击更改头像" class="user-avatar"/>
-                </div>
-                <span class="avatar-note">点击更改头像，请使用 240x240 方形图片</span>
-                <canvas class="avatar-preview" width="240" height="240"></canvas>
+<h3>基本信息</h3>
+
+<form asp-action="DoSettings" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <fieldset class="form-group">
+        <label>
+            用户名
+        </label>
+        <div>@Model.UserName</div>
+    </fieldset>
+    <fieldset>
+        <div class="user-avatar-wrapper">
+            <div class="inner-square">
+                <img src="@AvatarUrlService.GetAvatarUrl(Model)" title="点击更改头像" class="user-avatar"/>
             </div>
-            <div>
-                @Html.HiddenFor(model => model.AvatarFileId)
-                <input type="file" class="avatar-upload" id="avatar-file-upload" accept="image/*"/>
-            </div>
-        </fieldset>
-        <fieldset class="form-group">
-            <label asp-for="DisplayName">
-                显示名称
-            </label>
-            <div>
-                @Html.TextBoxFor(model => model.DisplayName, new {autofocus=true, @class = "form-control", minlength = 3, maxlength = 20})
-            </div>
-        </fieldset>
-        <fieldset class="form-group">
-            <label asp-for="EmailAddress">
-                邮件地址
-            </label>
-            <div>
-                @Html.TextBoxFor(model => model.EmailAddress, new {type = "email", @class = "form-control", minlength = 3, maxlength = 40})
-                @if (!string.IsNullOrEmpty(Model.EmailAddress))
+            <span class="avatar-note">点击更改头像，请使用 240x240 方形图片</span>
+            
+        </div>
+        <div>
+            @Html.HiddenFor(model => model.AvatarFileId)
+        </div>
+    </fieldset>
+    <fieldset class="form-group">
+        <label asp-for="DisplayName">
+            显示名称
+        </label>
+        <div>
+            @Html.TextBoxFor(model => model.DisplayName, new {autofocus=true, @class = "form-control", minlength = 3, maxlength = 20})
+        </div>
+    </fieldset>
+    <fieldset class="form-group">
+        <label asp-for="EmailAddress">
+            邮件地址
+        </label>
+        <div>
+            @Html.TextBoxFor(model => model.EmailAddress, new {type = "email", @class = "form-control", minlength = 3, maxlength = 40})
+            @if (!string.IsNullOrEmpty(Model.EmailAddress))
+            {
+                <i rel="confirmation" data-status="send" title="@(Model.EmailAddressConfirmed ? "已验证" : "未验证")"
+                   class="confirmation-operation glyphicon @(Model.EmailAddressConfirmed ? "glyphicon-ok" : "glyphicon-warning-sign")"></i>
+                if (!Model.EmailAddressConfirmed)
                 {
-                    <i rel="confirmation" data-status="send" title="@(Model.EmailAddressConfirmed ? "已验证" : "未验证")"
-                       class="confirmation-operation glyphicon @(Model.EmailAddressConfirmed ? "glyphicon-ok" : "glyphicon-warning-sign")"></i>
-                    if (!Model.EmailAddressConfirmed)
-                    {
-                        <div rel="confirmation" class="confirm-palette">
-                            <a data-status="send" class="confirmation-operation link">现在验证</a>
-                            <a data-status="re-send" class="confirmation-operation link">再次发送验证邮件</a>
-                            <span data-status="sending" class="confirmation-operation">正在发送验证邮件</span>
-                            <span data-status="sent" class="confirmation-operation">
-                                验证邮件已发出，<span data-status="sent-1">请查收邮件完成验证</span><span data-status="sent-2" class="countdown"></span><span data-status="sent-2"> 秒后可再次发送</span>
-                            </span>
-                            <span data-status="error" class="confirmation-operation">无法发送验证邮件，请稍后再试</span>
-                        </div>
-                    }
+                    <div rel="confirmation" class="confirm-palette">
+                        <a data-status="send" class="confirmation-operation link">现在验证</a>
+                        <a data-status="re-send" class="confirmation-operation link">再次发送验证邮件</a>
+                        <span data-status="sending" class="confirmation-operation">正在发送验证邮件</span>
+                        <span data-status="sent" class="confirmation-operation">
+                            验证邮件已发出，<span data-status="sent-1">请查收邮件完成验证</span><span data-status="sent-2" class="countdown"></span><span data-status="sent-2"> 秒后可再次发送</span>
+                        </span>
+                        <span data-status="error" class="confirmation-operation">无法发送验证邮件，请稍后再试</span>
+                    </div>
                 }
-            </div>
-        </fieldset>
-        <button type="submit" class="btn btn-default">保存</button>
-    </form>
-</div>
+            }
+        </div>
+    </fieldset>
+    <button type="submit" class="btn btn-default">保存</button>
+</form>
 
 
 
@@ -85,194 +75,16 @@
         var sendConfirmationMailUrl = '@Url.Action("SendEmailConfirmation", "User")';
         var uploadAvatarUrl = '@Url.Action("UploadFile", "Common", new {category = "avatar"})';
         $(function() {
-            $('input[name=EmailAddress]').keyup(function() {
-                var changed = !this.value || this.value !== '@Model.EmailAddress';
-                if (changed) {
-                    $('[rel=confirmation]').hide();
-                } else {
-                    $('[rel=confirmation]').show();
-                }
-            });
-
-
-            // "send", "re-send", "error", "sending", "sent"
-            var currentStatus = null;
-            function updateOperations(status) {
-                currentStatus = status;
-                $('.confirmation-operation').hide();
-                $('.confirmation-operation[data-status=' + currentStatus + ']').show();
-
-                if (status === 'sent') {
-                    $('span[data-status=sent-2]').hide();
-                    $('span[data-status=sent-1]').show();
-                    setTimeout(function() {
-                            $('span[data-status=sent-1]').hide();
-                            $('span[data-status=sent-2]').show();
-                            countdown(30);
-                        },
-                        3500);
-                }
-                
-                function countdown(cur) {
-                    if (cur === 0) {
-                        updateOperations('re-send');
-                    } else {
-                        $('span[data-status=sent-2].countdown').text(cur);
-                        setTimeout(function() {
-                            countdown(--cur);
-                        }, 1000);
-                    }
-                }
-            }
-
-            function send() {
-                $('.confirmation').addClass('sent');
-                updateOperations('sending');
-
-                $.ajax({
-                    url: sendConfirmationMailUrl,
-                    method: 'POST',
-                    data: { __RequestVerificationToken: window.__RequestVerificationToken },
-                    dataType: 'json',
-                    success: function(data) {
-                        if (!data.hasSucceeded) {
-                            updateOperations('error');
-                        } else {
-                            updateOperations('sent');
-                        }
-                    },
-                    error: function() {
-                        updateOperations('error');
-                    }
-                });
-            }
-
-            updateOperations('send');
-            $('a.link.confirmation-operation').click(send);
+            var avatarUploadSelectors = {
+                avatarImage: '.user-avatar',
+                avatarNote: '.avatar-note',
+                inputField: '#@(nameof(Model.AvatarFileId))'
+            };
+            var userModule = window.DiscussionApp.user;
             
             
-            function fileSelected() {
-                if (!this.files.length) {
-                    return;
-                }
-
-
-                var blob = URL.createObjectURL(this.files[0]);
-                var parsedFile = parseFileName(this.files[0].name);
-                var img = new Image();
-                img.onload = function() {
-                    var size = 240;
-                    if (this.width < size || this.height < size) {
-                        alert('所选的图片太小，请选择 ' + size + 'x' + size + ' 像素以上的方形图片');
-                    } else {
-                        var resized = resizeTo(img, size, parsedFile.canBeTransparent);
-                        $('.user-avatar')[0].src = resized.dataURL;
-                        uploadAvatar(resized.dataURL, parsedFile.name + resized.ext);
-                    }
-                    URL.revokeObjectURL(blob);
-                };
-                img.onerror = function() {
-                    console.error('所选择的文件不是图片文件');
-                    URL.revokeObjectURL(blob);
-                };
-                img.src = blob;
-                
-                
-                function resizeTo(img, size, canBeTransparent) {
-                    var canvas = $('.avatar-preview')[0];
-                    var ctx = canvas.getContext('2d');
-
-                    var wRatio = img.width / size;
-                    var hRatio = img.height / size;
-                    var ratio = Math.min(wRatio, hRatio);
-                    
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img,
-                        0, 0,
-                        Math.floor(size * ratio), Math.floor(size * ratio), 
-                        0, 0,
-                        size, size);
-                    var usePng = canBeTransparent ? hasTransparent(ctx.getImageData(0, 0, size, size)) : false;
-                    return {
-                        dataURL: canvas.toDataURL(usePng ? 'image/png' : 'image/jpeg', 0.8),
-                        ext: usePng ? '.png' : '.jpg'
-                    };
-                }
-                
-                function hasTransparent(imageData) {
-                    for(var x = 0; x < imageData.width; x++){
-                        for(var y = 0; y < imageData.height; y++){
-                            if (imageData.data[3] === 0) {
-                                return true;
-                            }
-                        }
-                    }
-                    
-                    return false;
-                }
-                
-                function parseFileName(fileName) {
-                    var lastIndexOfDot = fileName.lastIndexOf('.');
-                    var hasExt = lastIndexOfDot > 0 && lastIndexOfDot < fileName.length - 2; 
-                    var name = hasExt ? fileName.substr(0, lastIndexOfDot) : fileName;
-                    var ext = hasExt ? fileName.substr(lastIndexOfDot) : '';
-                    return {
-                        name: name,
-                        canBeTransparent: ext.toLowerCase() === '.png' || ext.toLowerCase() === '.gif'
-                    };
-                }
-            }
-            
-            function uploadAvatar(dataURL, fileName) {
-                var u8Image  = b64ToUint8Array(dataURL);
-                var formData = new FormData();
-                formData.append('file', new Blob([ u8Image ], {type: "image/png"}), fileName);
-                formData.append('__RequestVerificationToken', window.__RequestVerificationToken);
-
-                $('.user-avatar').addClass('uploading').attr('title', '正在上传，请稍候...');
-                $.ajax({
-                    url: uploadAvatarUrl,
-                    data: formData,
-                    type: 'POST',
-                    contentType: false,
-                    processData: false,
-                    success: function(data) {
-                        $('.user-avatar').removeClass('uploading').attr('title', '点击更改头像');
-                        if (data.hasSucceeded) {
-                            $('.user-avatar')[0].src = data.result.publicUrl;
-                            $('#@(nameof(Model.AvatarFileId))').val(data.result.fileId);
-                            $('.avatar-note').text('请点击 保存 确认使用新头像');
-                        }
-                    },
-                    error: function() {
-                        $('.user-avatar').removeClass('uploading').attr('title', '点击更改头像');
-                        console.error('无法上传头像', arguments);
-                    }
-                });
-                
-                
-                function b64ToUint8Array(b64Image) {
-                    var img = atob(b64Image.split(',')[1]);
-                    var imgBuffer = [];
-                    var i = 0;
-                    while (i < img.length) {
-                        imgBuffer.push(img.charCodeAt(i));
-                        i++;
-                    }
-                    return new Uint8Array(imgBuffer);
-                }
-            }
-
-
-            $('.user-avatar').click(function() {
-                if ($(this).hasClass('uploading')) {
-                    return;
-                }
-                $('#avatar-file-upload').click();
-            });
-            $('#avatar-file-upload').change(fileSelected);
+            userModule.email.setupEditEmailAddress('@Model.EmailAddress', sendConfirmationMailUrl);
+            userModule.avatar.setupUploadAvatar(avatarUploadSelectors, uploadAvatarUrl);
         });
-
-
     </script>
 }

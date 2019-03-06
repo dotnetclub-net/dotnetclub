@@ -3,7 +3,6 @@ using Discussion.Core.Logging;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Time;
-using Discussion.Web.Models;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -38,6 +37,13 @@ namespace Discussion.Web.Controllers
         {
             var currentUser = HttpContext.DiscussionUser();
 
+            if (!_siteSettings.CanAddNewReplies())
+            {
+                var ex = new FeatureDisabledException();
+                _logger.LogWarning($"添加回复失败：{currentUser.UserName}：{ex.Message}");
+                return BadRequest();
+            }
+
             if (_siteSettings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
             {
                 var ex = new UserVerificationRequiredException();
@@ -67,7 +73,7 @@ namespace Discussion.Web.Controllers
             
             // ReSharper disable once PossibleNullReferenceException
             topic.LastRepliedAt = _clock.Now.UtcDateTime;
-            topic.LastRepliedUser = currentUser;
+            topic.LastRepliedByUser = currentUser;
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
             

@@ -2,12 +2,10 @@ using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
-using Discussion.Core.Mvc;
 using Discussion.Core.Time;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Models;
 using Discussion.Web.Tests.Fixtures;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -58,7 +56,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var dbContext = _app.GetService<ApplicationDbContext>();
             dbContext.Entry(topic).Reload();
             topic.ReplyCount.ShouldEqual(1);
-            topic.LastRepliedUser.ShouldNotBeNull();
+            topic.LastRepliedByUser.ShouldNotBeNull();
+            topic.LastRepliedAuthor.ShouldNotBeNull();
             topic.LastRepliedAt.ShouldNotBeNull();
             var span = DateTime.UtcNow - topic.LastRepliedAt.Value;
             Assert.True(span.TotalSeconds > 0);
@@ -93,6 +92,30 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var topic = _app.NewTopic().WithAuthor(_app.MockUser()).Create();
             var replyRepo = new Mock<IRepository<Reply>>();
             var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = true};
+
+            var replyController = new ReplyController(replyRepo.Object, 
+                _app.GetService<IRepository<Topic>>(), 
+                siteSettings, 
+                NullLogger<ReplyController>.Instance, 
+                new SystemClock());
+            replyController.ControllerContext.HttpContext = new DefaultHttpContext
+            {
+                User = _app.User,
+                RequestServices = _app.ApplicationServices
+            };
+
+            var actionResult = replyController.Reply(topic.Id, new ReplyCreationModel { Content = "some content"});
+            
+            actionResult.IsType<BadRequestResult>();
+            replyRepo.VerifyNoOtherCalls();
+        }
+        
+        [Fact]
+        public void should_not_add_reply_if_reply_disabled()
+        {
+            var topic = _app.NewTopic().WithAuthor(_app.MockUser()).Create();
+            var replyRepo = new Mock<IRepository<Reply>>();
+            var siteSettings = new SiteSettings {RequireUserPhoneNumberVerified = false, EnableNewReplyCreation =  false};
 
             var replyController = new ReplyController(replyRepo.Object, 
                 _app.GetService<IRepository<Topic>>(), 

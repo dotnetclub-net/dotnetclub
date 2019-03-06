@@ -1,5 +1,6 @@
 using System;
 using Discussion.Core.Models;
+using Discussion.Core.Models.UserAvatar;
 using Discussion.Core.Time;
 using Moq;
 using Xunit;
@@ -14,6 +15,56 @@ namespace Discussion.Web.Tests.Specs.Models
             var mockClock = new Mock<IClock>();
             mockClock.SetupGet(t => t.Now).Returns(new DateTimeOffset(DateTime.UtcNow, TimeSpan.Zero));
             _clock = mockClock.Object;
+        }
+        
+        [Fact]
+        public void should_get_default_avatar()
+        {
+            var user = new User();
+
+            Assert.IsType<DefaultAvatar>(user.GetAvatar());
+        }
+        
+        [Fact]
+        public void should_get_default_avatar_if_email_not_confirmed()
+        {
+            var user = new User()
+            {
+                EmailAddress = "someone@here.com",
+                EmailAddressConfirmed = false
+            };
+
+            Assert.IsType<DefaultAvatar>(user.GetAvatar());
+        }
+        
+        [Fact]
+        public void should_get_gravatar_if_email_confirmed()
+        {
+            var user = new User()
+            {
+                EmailAddress = "someone@here.com",
+                EmailAddressConfirmed = true
+            };
+
+            var gravatarAvatar = user.GetAvatar() as GravatarAvatar;
+            Assert.NotNull(gravatarAvatar);
+            Assert.Equal("someone@here.com", gravatarAvatar.EmailAddress);
+        }
+        
+        [Fact]
+        public void should_get_storage_file_avatar_if_uploaded_avatar_even_if_email_confirmed()
+        {
+            var user = new User()
+            {
+                AvatarFile = new FileRecord(){Id = 15, Slug =  "abcdefg"},
+                AvatarFileId = 15,
+                EmailAddress = "someone@here.com",
+                EmailAddressConfirmed = true
+            };
+
+            var fileAvatar = user.GetAvatar() as StorageFileAvatar;
+            Assert.NotNull(fileAvatar);
+            Assert.Equal("abcdefg", fileAvatar.StorageFileSlug);
         }
         
         [Fact]

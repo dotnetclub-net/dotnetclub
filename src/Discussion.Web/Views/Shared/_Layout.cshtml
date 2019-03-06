@@ -1,15 +1,28 @@
 ﻿@using Discussion.Core.Mvc
 @using Discussion.Web.Services.UserManagement.Avatar
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
-@inject IUserAvatarService AvatarService
+@inject IAvatarUrlService AvatarUrlService
+@inject Discussion.Core.Models.SiteSettings SiteSettings
 
 @{
-    var pageTitle = "dotnetClub";
+    var pageTitle = "dotnet club";
     var viewDataTitle = ViewData["Title"];
     if (null != viewDataTitle)
     {
         var title = (string) viewDataTitle;
         pageTitle =  $"{title} - {pageTitle}";
+    }
+    
+    var pageKeyword = ViewData["Keyword"];
+    if (null == pageKeyword)
+    {
+        pageKeyword = ".NET,.NET Core, .NET 跨平台, .NET 微服务, DevOps, 云原生, .NET 在线社区";
+    }
+    
+    var pageDescription = ViewData["Description"];
+    if (null == pageDescription)
+    {
+        pageDescription = "dotnet club 是中国 .NET 开发人员的聚集地，围绕 .NET 技术的问题解答与最佳实践展开讨论";
     }
 }
 <!DOCTYPE html>
@@ -18,8 +31,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@pageTitle</title>
-    <meta name="keywords" content=".NET 开发,.NET Core club, .NET 跨平台, .NET 微服务, DevOps" />
-    <meta name="description" content=".NET Core club 是国内 .NET 开发人员的聚集地，围绕 .NET 技术的问题解答与最佳实践展开讨论" />
+    <meta name="keywords" content="@pageKeyword" />
+    <meta name="description" content="@pageDescription" />
     <link rel="shortcut icon" href="~/favicon/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="~/favicon/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="~/favicon/favicon-32x32.png">
@@ -49,7 +62,7 @@
                     {
                         <div class="dropdown">
                             <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
+                                <img src="@AvatarUrlService.GetAvatarUrl(Context.DiscussionUser())" class="avatar"/>
                                 <span class="caret"></span>
                             </div>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
@@ -66,24 +79,42 @@
                     }
                     else
                     {
-                        @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
-                        <span>&nbsp;</span>
+                        if (SiteSettings.CanRegisterNewUsers())
+                        {
+                            @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
+                            <span>&nbsp;</span>
+                        }
                         @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
                     }
                 </div>
-                <a class="navbar-brand" href="/">dotnetClub</a>
+                <a class="navbar-brand" href="/">dotnet club</a>
             </div>
             <div id="main-navigation" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li class="active"><a href="/">首页</a></li>
-                    <li><a href="/about">关于</a></li>
+                    @if (!string.IsNullOrWhiteSpace(SiteSettings.HeaderLink1Text) && !string.IsNullOrWhiteSpace(SiteSettings.HeaderLink1Url))
+                    {
+                        <li><a href="@SiteSettings.HeaderLink1Url">@SiteSettings.HeaderLink1Text</a></li>
+                    }                    
+                    @if (!string.IsNullOrWhiteSpace(SiteSettings.HeaderLink2Text) && !string.IsNullOrWhiteSpace(SiteSettings.HeaderLink2Url))
+                    {
+                        <li><a href="@SiteSettings.HeaderLink2Url">@SiteSettings.HeaderLink2Text</a></li>
+                    }                    
+                    @if (!string.IsNullOrWhiteSpace(SiteSettings.HeaderLink3Text) && !string.IsNullOrWhiteSpace(SiteSettings.HeaderLink3Url))
+                    {
+                        <li><a href="@SiteSettings.HeaderLink3Url">@SiteSettings.HeaderLink3Text</a></li>
+                    }                    
+                    @if (!string.IsNullOrWhiteSpace(SiteSettings.HeaderLink4Text) && !string.IsNullOrWhiteSpace(SiteSettings.HeaderLink4Url))
+                    {
+                        <li><a href="@SiteSettings.HeaderLink4Url">@SiteSettings.HeaderLink4Text</a></li>
+                    }
                 </ul>
                 <div class="header-user pull-right hidden-xs">
                     @if (Context.IsAuthenticated())
                     {
                         <div class="dropdown">
                             <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                <img src="@AvatarService.GetUserAvatarUrl(Context.DiscussionUser())" class="avatar"/>
+                                <img src="@AvatarUrlService.GetAvatarUrl(Context.DiscussionUser())" class="avatar"/>
                                 <span class="caret"></span>
                             </div>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
@@ -100,8 +131,11 @@
                     }
                     else
                     {
-                        @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
-                        <span>&nbsp;</span>
+                        if (SiteSettings.CanRegisterNewUsers())
+                        {
+                            @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
+                            <span>&nbsp;</span>
+                        }
                         @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
                     }
                 </div>
@@ -118,8 +152,8 @@
     @RenderSection("PostContent", required: false)
 
 <footer class="page-footer container">
-    <p class="pull-left">© @DateTime.Today.Year dotnetClub</p>
-    <p class="pull-right">本站与微软无关。所有话题及回复仅代表作者观点，其版权归属为作者本人。 <a href="https://jinshuju.net/f/PzMDyb" class="report-link" target="_blank">举报不良信息</a></p>
+    <p class="pull-left">@Html.Raw(SiteSettings.FooterNoticeLeft)</p>
+    <p class="pull-right">@Html.Raw(SiteSettings.FooterNoticeRight)</p>
 </footer>
 
 <environment names="Development">

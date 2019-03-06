@@ -1,16 +1,21 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using Discussion.Core.Models.UserAvatar;
 using Discussion.Core.Time;
+using IUserAvatar = Discussion.Core.Models.UserAvatar.IUserAvatar;
 
 namespace Discussion.Core.Models
 {
-    public class User : Entity, IUser
+    public class User : Entity, IUser, IAuthor
     {
         public string UserName { get; set; }
         public string DisplayName { get; set; }
         public string EmailAddress { get; set; }
 
-        public int AvatarFileId { get; set; }
+        [ForeignKey("AvatarFileId")]
+        public FileRecord AvatarFile { get; set; }
+        public int? AvatarFileId { get; set; }
+        
         public string HashedPassword { get; set; }
         public DateTime? LastSeenAt { get; set; }
         
@@ -20,7 +25,21 @@ namespace Discussion.Core.Models
         [ForeignKey("PhoneNumberId")]
         public VerifiedPhoneNumber VerifiedPhoneNumber { get; set; }
         public int? PhoneNumberId { get; set; }
+        
+        public IUserAvatar GetAvatar()
+        {
+            if (AvatarFileId > 0)
+            {
+                return new StorageFileAvatar {  StorageFileSlug = AvatarFile.Slug };
+            }
 
+            if (EmailAddressConfirmed)
+            {
+                return new GravatarAvatar { EmailAddress = EmailAddress };
+            }
+
+            return new DefaultAvatar();
+        }
 
         public bool CanModifyPhoneNumberNow(IClock clock)
         {
@@ -34,7 +53,6 @@ namespace Discussion.Core.Models
                    && VerifiedPhoneNumber.ModifiedAtUtc < sevenDaysAgo;
         }
     }
-
 
     public interface IUser
     {

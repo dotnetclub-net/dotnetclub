@@ -7,5 +7,6 @@ namespace Discussion.Core.Models
         public string OriginalName { get; set; }
         public string StoragePath { get; set; }
         public string Category { get; set; }
+        public string Slug { get; set; }
     }
 }

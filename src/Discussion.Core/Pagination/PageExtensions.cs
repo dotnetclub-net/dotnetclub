@@ -22,14 +22,14 @@ namespace Discussion.Core.Pagination
     
     public static class PageExtensions
     {
-        public static Paged<T> Page<T>(this IEnumerable<T> queryableItems, int pageSize, int? pageNumber = null)
+        public static Paged<T> Page<T>(this IEnumerable<T> enumerableItems, int pageSize, int? pageNumber = null)
         {
-            return Page(queryableItems, item => item, pageSize, pageNumber);
+            return Page(enumerableItems, item => item, pageSize, pageNumber);
         }
   
-        public static Paged<TResult> Page<TSource, TResult>(this IEnumerable<TSource> queryableItems, Func<TSource, TResult> valueSelector, int pageSize, int? pageNumber = null)
+        public static Paged<TResult> Page<TSource, TResult>(this IEnumerable<TSource> enumerableItems, Func<TSource, TResult> valueSelector, int pageSize, int? pageNumber = null)
         {
-            var (paging, pagedQuery) = PageFromQuery(queryableItems.AsQueryable(), pageSize, pageNumber);
+            var (paging, pagedQuery) = PageFromQuery(enumerableItems.AsQueryable(), pageSize, pageNumber);
             var items = pagedQuery.AsEnumerable().Select(valueSelector).ToArray();
 
             return new Paged<TResult>
@@ -41,13 +41,26 @@ namespace Discussion.Core.Pagination
         
         public static Paged<T> Page<T>(this IQueryable<T> queryableItems, int pageSize, int? pageNumber = null)
         {
-            return Page(queryableItems, item => item, pageSize, pageNumber);
+            Expression<Func<T, T>> selector = item => item;
+            return Page(queryableItems, selector, pageSize, pageNumber);
         }
         
         public static Paged<TResult> Page<TSource, TResult>(this IQueryable<TSource> queryableItems, Expression<Func<TSource, TResult>> valueSelector, int pageSize, int? pageNumber = null)
         {
             var (paging, pagedQuery) = PageFromQuery(queryableItems, pageSize, pageNumber);
             var items = pagedQuery.Select(valueSelector).ToArray();
+
+            return new Paged<TResult>
+            {
+                Paging = paging,
+                Items = items
+            };
+        }
+        
+        public static Paged<TResult> Page<TSource, TResult>(this IQueryable<TSource> queryableItems, Func<TSource, TResult> valueSelector, int pageSize, int? pageNumber = null)
+        {
+            var (paging, pagedQuery) = PageFromQuery(queryableItems, pageSize, pageNumber);
+            var items = pagedQuery.ToArray().Select(valueSelector).ToArray();
 
             return new Paged<TResult>
             {

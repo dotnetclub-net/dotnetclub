@@ -1,1 +1,11 @@
-Topic List goes here
+<page-header [title]="'话题列表'" homeI18n="管理面板"></page-header>
+
+
+<nz-card [nzBordered]="false">
+  <st #st
+      [columns]="columns" [data]="topics"
+      [loading]="loading"
+      [page]="stPagingOptions" [pi]="paging.currentPage" [ps]="paging.pageSize" [total]="paging.itemCount"
+      (change)="dispatchClick($event)">
+  </st>
+</nz-card>

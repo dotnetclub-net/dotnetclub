@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -76,7 +77,7 @@ namespace Discussion.Admin.Tests.CoreSpecs.Pagination
             
             var sortedArticles = _adminApp.GetService<IRepository<Article>>().All().OrderBy(a => a.Id);
             var pagedList = sortedArticles.Page(
-                article => int.Parse(article.Title.Substring("queryable".Length + 1)),
+                (Func<Article, int>)(article => int.Parse(article.Title.Substring("queryable".Length + 1))),
                 PageSize, 1);
 
             VerifyPaging(pagedList, 1);

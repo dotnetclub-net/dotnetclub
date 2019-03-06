@@ -67,8 +67,10 @@ export class UserLoginComponent implements OnDestroy {
       this.tokenService.set({
         token: res.result.token,
       });
-      this.startupSrv.load().then(() => this.ngZone.run(() =>
-                            this.router.navigate(['/'])).then());
+      this.startupSrv.load().then(() =>
+        this.ngZone.run(() =>
+          this.router.navigate(['/'])
+        ).then());
     });
     this.loading = this.http.loading;
   }

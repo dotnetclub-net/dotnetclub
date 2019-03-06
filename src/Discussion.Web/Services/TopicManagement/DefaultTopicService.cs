@@ -1,9 +1,7 @@
-using System;
 using System.Linq;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Time;
-using Discussion.Web.Models;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +32,8 @@ namespace Discussion.Web.Services.TopicManagement
         {
             var topic = _topicRepo.All()
                 .Where(t => t.Id == topicId)
-                .Include(t => t.Author)
+                .Include(t => t.CreatedByUser)
+                    .ThenInclude(u => u.AvatarFile)
                 .SingleOrDefault();
             
             if (topic == null)
@@ -45,7 +44,10 @@ namespace Discussion.Web.Services.TopicManagement
             var replies = _replyRepo.All()
                 .Where(c => c.TopicId == topicId)
                 .OrderBy(c => c.CreatedAtUtc)
-                .Include(r => r.Author)
+                .Include(r => r.CreatedByUser)
+                    .ThenInclude(u => u.AvatarFile)
+                .Include(r => r.CreatedByWeChatAccount)
+                    .ThenInclude(u => u.AvatarFile)
                 .ToList();
 
             // todo:   _eventBus.Publish(new TopicViewedEvent{ TopicId = topicId });
@@ -57,6 +59,11 @@ namespace Discussion.Web.Services.TopicManagement
 
         public Topic CreateTopic(TopicCreationModel model)
         {
+            if (!_settings.CanCreateNewTopics())
+            {
+                throw new FeatureDisabledException();
+            }
+            
             var user = _currentUser.DiscussionUser;
             if (_settings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue)
             {

@@ -20,17 +20,19 @@ namespace Discussion.Web.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly IRepository<User> _userRepo;
         private readonly IClock _clock;
+        private readonly SiteSettings _settings;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<AccountController> logger, IRepository<User> userRepo, IClock clock)
+            ILogger<AccountController> logger, IRepository<User> userRepo, IClock clock, SiteSettings settings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _userRepo = userRepo;
             _clock = clock;
+            _settings = settings;
         }
 
         [Route("/signin")]
@@ -68,7 +70,7 @@ namespace Discussion.Web.Controllers
             }
             else
             {
-                _logger.LogInformation($"用户登录失败：用户名 {viewModel.UserName}：数据格式不正确。");
+                _logger.LogWarning($"用户登录失败：用户名 {viewModel.UserName}：数据格式不正确。");
             }
 
             if (!result.Succeeded)
@@ -112,6 +114,14 @@ namespace Discussion.Web.Controllers
             if (!ModelState.IsValid)
             {
                 _logger.LogInformation($"用户注册失败：用户名 {registerModel.UserName}：数据格式不正确。");
+                return View("Register");
+            }
+
+            if (!_settings.CanRegisterNewUsers())
+            {
+                const string errorMessage = "已关闭用户注册";
+                _logger.LogWarning($"用户注册失败：用户名 {registerModel.UserName}：{errorMessage}");
+                ModelState.AddModelError("UserName", errorMessage);
                 return View("Register");
             }
 

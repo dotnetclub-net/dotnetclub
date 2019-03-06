@@ -2,7 +2,7 @@
 using Markdig;
 using Markdig.Extensions.EmphasisExtras;
 
-namespace Discussion.Web.Services.Markdown
+namespace Discussion.Core.Markdown
 {
     public static class MarkdownConverter
     {

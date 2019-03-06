@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using Discussion.Admin.Services;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -80,13 +81,15 @@ namespace Discussion.Admin.Controllers
         [Authorize]
         public IActionResult UserInfo()
         {
+            var adminUserId = HttpContext.User
+                .Claims
+                .First(c => c.Type == ClaimTypes.NameIdentifier)
+                .Value;
+            
             return Ok(new
             {
-                status = 1,
-                result = new
-                {
-                    UserName = "dotnet_lover",
-                }
+                Id = adminUserId,
+                UserName = HttpContext.User.Identity.Name
             });
         }
     }

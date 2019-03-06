@@ -1,7 +1,7 @@
 ﻿@using Discussion.Core.Mvc
 @using Discussion.Web.Services.UserManagement.Avatar
-@inject IUserAvatarService AvatarService
-@inject Discussion.Web.Models.SiteSettings SiteSettings
+@inject IAvatarUrlService AvatarUrlService
+@inject Discussion.Core.Models.SiteSettings SiteSettings
 @model Discussion.Core.Pagination.Paged<Discussion.Core.Models.Topic>
 
 @{
@@ -11,11 +11,9 @@
     var nextDisabled = Model.Paging.HasNextPage ? "" : "disabled";
 
     var user = Context.DiscussionUser();
-    var canCreateTopic = user != null;
-    if (canCreateTopic && SiteSettings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue)
-    {
-        canCreateTopic = false;
-    }
+    var siteCanCreateTopic = SiteSettings.CanCreateNewTopics();
+    var userCanCreateTopic = user != null && (!SiteSettings.RequireUserPhoneNumberVerified || user.PhoneNumberId.HasValue);
+    var canCreateTopic = siteCanCreateTopic && userCanCreateTopic;
 }
 
 
@@ -36,7 +34,7 @@
             @foreach (var topicItem in Model.Items)
             {
                 <div class="topic-item">
-                    <img src="@AvatarService.GetUserAvatarUrl(topicItem.Author)" title="话题作者 @topicItem.Author.DisplayName" class="topic-author-avatar"/>
+                    <img src="@AvatarUrlService.GetAvatarUrl(topicItem.CreatedByUser)" title="话题作者 @topicItem.CreatedByUser.DisplayName" class="topic-author-avatar"/>
                     <div class="topic-meta-primary pull-left">
                         <span class="topic-type">@Html.DescribeTopicType(topicItem.Type)</span>
                     </div>
@@ -46,9 +44,9 @@
                     @if (topicItem.LastRepliedAt.HasValue)
                     {
                         <div class="topic-meta-secondary pull-right hidden-xs">
-                            @if (topicItem.LastRepliedUser != null)
+                            @if (topicItem.LastRepliedAuthor != null)
                             {
-                                <img src="@AvatarService.GetUserAvatarUrl(topicItem.LastRepliedUser)" title="最后回复来自 @topicItem.LastRepliedUser.DisplayName"  class="last-replied-user-avatar"/>
+                                <img src="@AvatarUrlService.GetAvatarUrl(topicItem.LastRepliedAuthor)" title="最后回复来自 @topicItem.LastRepliedAuthor.DisplayName"  class="last-replied-user-avatar"/>
                             }
                             <span class="last-replied-at" data-last-replied-at="@Html.Timestamp(topicItem.LastRepliedAt)"></span>
                         </div>

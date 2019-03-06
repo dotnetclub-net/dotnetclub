@@ -1,8 +1,9 @@
 namespace Discussion.Admin.ViewModels
 {
-    public class UserSummery
+    public class AuthorSummary
     {
         public int Id { get; set; }
         public string DisplayName { get; set; }
+        public string AvatarUrl { get; set; }
     }
 }

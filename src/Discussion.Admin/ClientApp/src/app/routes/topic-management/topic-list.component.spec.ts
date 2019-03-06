@@ -20,8 +20,14 @@ describe('Component: TopicList', () => {
     const comp = createComponent(TopicListComponent);
     comp.ngOnInit();
 
-    const request = mockedHttp.expectOne({method: 'GET', url: 'api/topics'});
-    request.flush([{id: 1, title: 'topic 1'}, {id: 2, title: 'topic 2'}]);
+    const request = mockedHttp.expectOne({method: 'GET', url: 'api/topics?page=1'});
+    request.flush( {
+        code: 200,
+        result: {
+          items: [{id: 1, title: 'topic 1'}, {id: 2, title: 'topic 2'}],
+          paging: {itemCount: 2, pageSize: 10}
+        }
+    });
 
     expect(comp.topics).not.toBeNull();
     expect(comp.topics[0].id).toEqual(1);
