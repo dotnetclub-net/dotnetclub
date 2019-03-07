@@ -1,0 +1,163 @@
+/* line 11, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+/* line 14, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+/* line 22, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+html {
+  font-size: 10px;
+  -webkit-tap-highlight-color: transparent; }
+
+/* line 27, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.42857;
+  color: #333;
+  background-color: #fff; }
+
+/* line 36, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit; }
+
+/* line 48, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+a {
+  color: #aa6cb7;
+  text-decoration: none; }
+  /* line 52, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+  a:hover, a:focus {
+    color: #834790;
+    text-decoration: underline; }
+  /* line 58, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+  a:focus {
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px; }
+
+/* line 69, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+figure {
+  margin: 0; }
+
+/* line 76, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+img {
+  vertical-align: middle; }
+
+/* line 81, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+.img-responsive {
+  display: block;
+  max-width: 100%;
+  height: auto; }
+
+/* line 86, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+.img-rounded {
+  border-radius: 6px; }
+
+/* line 93, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+.img-thumbnail {
+  padding: 4px;
+  line-height: 1.42857;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  -webkit-transition: all 0.2s ease-in-out;
+  -o-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  display: inline-block;
+  max-width: 100%;
+  height: auto; }
+
+/* line 106, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+.img-circle {
+  border-radius: 50%; }
+
+/* line 113, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eeeeee; }
+
+/* line 125, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0; }
+
+/* line 141, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+.sr-only-focusable:active, .sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto; }
+
+/* line 159, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/lib/source/bootstrap-sass/assets/stylesheets/bootstrap/_scaffolding.scss */
+[role="button"] {
+  cursor: pointer; }
+
+/* line 7, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+.no-padding {
+  padding: 0; }
+
+/* line 13, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+body.with-generic-nav {
+  padding-top: 65px;
+  background: #e1e1e1; }
+
+/* line 18, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+.navbar-inverse .navbar-brand {
+  color: white; }
+
+/* line 22, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+.panel {
+  margin-bottom: 13px; }
+
+/* line 26, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+.panel .panel-heading {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 3px 3px 0 0; }
+
+/* line 33, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+.header-user {
+  color: white;
+  margin-top: 15px; }
+  /* line 37, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+  .header-user .signout-form {
+    display: inline; }
+    /* line 40, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+    .header-user .signout-form button {
+      display: inline;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      outline: none;
+      color: #aa6cb7; }
+    /* line 49, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+    .header-user .signout-form:hover, .header-user .signout-form:active {
+      color: #834790;
+      text-decoration: underline; }
+
+/* line 56, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/base.scss */
+.page-footer {
+  margin-top: 30px;
+  margin-bottom: 30px;
+  padding: 0; }

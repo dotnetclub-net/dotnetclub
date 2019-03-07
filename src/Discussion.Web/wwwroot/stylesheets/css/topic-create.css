@@ -1,0 +1,49 @@
+/* line 4, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+.topic-title-container {
+  background: white;
+  margin-top: 30px;
+  padding-top: 15px;
+  padding-bottom: 10px;
+  border-radius: 3px; }
+  /* line 12, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+  .topic-title-container #new-topic-title {
+    width: calc( 100% - 20px);
+    height: 35px;
+    margin: 0 10px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    border-bottom: 1px solid #e1e1e1; }
+
+/* line 24, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+.note-editor.panel {
+  border: none;
+  border-radius: 0; }
+  /* line 28, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+  .note-editor.panel .panel-heading.note-toolbar {
+    background: transparent;
+    border: none; }
+  /* line 33, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+  .note-editor.panel .btn.note-btn {
+    border: none;
+    color: #555555; }
+
+/* line 40, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+.topic-submit-section {
+  padding-right: 10px;
+  margin-top: 15px;
+  margin-bottom: 80px; }
+  /* line 45, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+  .topic-submit-section .topic-type-dropdown, .topic-submit-section .submit-create-btn {
+    float: right; }
+  /* line 49, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+  .topic-submit-section .topic-type-dropdown {
+    margin-right: 20px; }
+    /* line 52, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+    .topic-submit-section .topic-type-dropdown .dropdown-toggle {
+      padding-top: 5px;
+      cursor: pointer;
+      font-size: 15px; }
+  /* line 59, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-create.scss */
+  .topic-submit-section .submit-create-btn {
+    width: 100px; }

@@ -1,0 +1,23 @@
+/* line 6, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/signin.scss */
+.login-form {
+  margin-bottom: 30px; }
+  /* line 9, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/signin.scss */
+  .login-form fieldset {
+    margin: 10px 0; }
+    /* line 12, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/signin.scss */
+    .login-form fieldset label {
+      font-weight: normal; }
+      /* line 15, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/signin.scss */
+      .login-form fieldset label span {
+        display: inline-block;
+        width: 80px;
+        text-align: right;
+        padding-right: 10px; }
+  /* line 25, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/signin.scss */
+  .login-form .signin-button {
+    margin-left: 85px; }
+    /* line 28, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/signin.scss */
+    .login-form .signin-button .glyphicon-user:before {
+      position: relative;
+      top: 2px;
+      margin-right: 4px; }

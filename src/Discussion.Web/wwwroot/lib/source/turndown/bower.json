@@ -1,0 +1,27 @@
+{
+  "name": "turndown",
+  "description": "A library that converts HTML to Markdown",
+  "main": "turndown.js",
+  "moduleType": "globals",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "package.json",
+    "package-lock.json"
+  ],
+  "keywords": [
+    "converter",
+    "html",
+    "markdown"
+  ],
+  "authors": [
+    "Dom Christie <christiedom@gmail.com>"
+  ],
+  "homepage": "http://domchristie.github.io/turndown/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/domchristie/turndown.git"
+  }
+}

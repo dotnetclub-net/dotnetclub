@@ -1,0 +1,56 @@
+/* line 3, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+.panel-topic-list .panel-body {
+  min-height: 260px; }
+  /* line 6, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+  .panel-topic-list .panel-body .no-topics-notice {
+    margin: 10px;
+    color: #555555; }
+  /* line 11, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+  .panel-topic-list .panel-body .topic-item {
+    height: 45px;
+    font-size: 1.2em;
+    padding: 13px 10px;
+    border-bottom: 1px solid #f0f0f0; }
+    /* line 17, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+    .panel-topic-list .panel-body .topic-item:hover {
+      background: #f5f5f5; }
+    /* line 23, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+    .panel-topic-list .panel-body .topic-item .topic-meta-primary {
+      width: 40px;
+      text-align: right; }
+      /* line 27, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+      .panel-topic-list .panel-body .topic-item .topic-meta-primary .counts {
+        font-size: 13px; }
+      /* line 30, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+      .panel-topic-list .panel-body .topic-item .topic-meta-primary .topic-type {
+        background: #eeeeee;
+        color: #777777;
+        padding: 3px;
+        border-radius: 4px;
+        font-size: .8em;
+        position: relative;
+        top: -2px; }
+    /* line 42, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+    .panel-topic-list .panel-body .topic-item.featured .topic-meta-primary .topic-type {
+      background: #aa6cb7;
+      color: white; }
+    /* line 48, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+    .panel-topic-list .panel-body .topic-item .topic-title {
+      color: #333;
+      padding: 0 10px;
+      width: calc(100% - 100px);
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis; }
+      /* line 57, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+      .panel-topic-list .panel-body .topic-item .topic-title:hover {
+        color: #333; }
+      /* line 60, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+      .panel-topic-list .panel-body .topic-item .topic-title:visited {
+        color: #777777; }
+    /* line 67, D:/Coding/dotnetclub/src/Discussion.Web/wwwroot/stylesheets/scss/topic-list.scss */
+    .panel-topic-list .panel-body .topic-item .topic-meta-secondary .last-replied-at {
+      font-size: 13px;
+      padding-top: 5px;
+      color: #777777; }
