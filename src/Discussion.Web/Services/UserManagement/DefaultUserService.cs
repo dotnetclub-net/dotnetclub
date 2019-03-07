@@ -21,6 +21,7 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IUrlHelper _urlHelper;
         private readonly IEmailDeliveryMethod _emailDeliveryMethod;
         private readonly IConfirmationEmailBuilder _confirmationEmailBuilder;
+        private readonly IResetPasswordEmailBuilder _resetPasswordEmailBuilder;
         private readonly IPhoneNumberVerificationService _phoneNumberVerificationService;
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
         private readonly IClock _clock;
@@ -30,12 +31,14 @@ namespace Discussion.Web.Services.UserManagement
             IEmailDeliveryMethod emailDeliveryMethod, 
             IUrlHelper urlHelper, 
             IConfirmationEmailBuilder confirmationEmailBuilder, 
+            IResetPasswordEmailBuilder resetPasswordEmailBuilder,
             IPhoneNumberVerificationService phoneNumberVerificationService, 
             IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock)
         {
             _userRepo = userRepo;
             _userManager = userManager;
             _emailDeliveryMethod = emailDeliveryMethod;
+            _resetPasswordEmailBuilder = resetPasswordEmailBuilder;
             _urlHelper = urlHelper;
             _confirmationEmailBuilder = confirmationEmailBuilder;
             _phoneNumberVerificationService = phoneNumberVerificationService;
@@ -100,6 +103,23 @@ namespace Discussion.Web.Services.UserManagement
 
             var emailBody = _confirmationEmailBuilder.BuildEmailBody(user.DisplayName, callbackUrl);
             await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
+        }
+
+        public async Task SendEmailRetrievePasswordAsync(User user, string urlProtocol)
+        {
+            var tokenString = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var tokenInEmail = new UserEmailToken { UserId = user.Id, Token = tokenString };
+
+            // ReSharper disable Mvc.ActionNotResolved
+            // ReSharper disable Mvc.ControllerNotResolved
+            var resetUrl = _urlHelper.Action(
+                "ResetPassword",
+                "Account",
+                new { token = tokenInEmail.EncodeAsUrlQueryString() },
+                protocol: urlProtocol);
+
+            var emailBody = _resetPasswordEmailBuilder.BuildEmailBody(user.DisplayName, resetUrl);
+            await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户密码重置", emailBody);
         }
 
         public async Task<IdentityResult> ConfirmEmailAsync(UserEmailToken tokenInEmail)

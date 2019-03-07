@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Email;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
+using Discussion.Web.Services.UserManagement;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -22,10 +24,12 @@ namespace Discussion.Web.Controllers
         private readonly IRepository<User> _userRepo;
         private readonly IClock _clock;
         private readonly SiteSettings _settings;
+        private readonly IUserService _userService;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
+            IUserService userService,
             ILogger<AccountController> logger, IRepository<User> userRepo, IClock clock, SiteSettings settings)
         {
             _userManager = userManager;
@@ -34,6 +38,7 @@ namespace Discussion.Web.Controllers
             _userRepo = userRepo;
             _clock = clock;
             _settings = settings;
+            _userService = userService;
         }
 
         [Route("/signin")]
@@ -162,7 +167,7 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/retrieve-password")]
-        public IActionResult DoRetrievePassword(RetrievePasswordModel model)
+        public async Task<IActionResult> DoRetrievePassword(RetrievePasswordModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -172,7 +177,10 @@ namespace Discussion.Web.Controllers
 
             try
             {
-                var user = GetUserBy(model);
+                var user = GetUserByChecking(model);
+
+                await _userService.SendEmailRetrievePasswordAsync(user, Request.Scheme);
+                _logger.LogInformation($"发送重置密码邮件成功：{user.UserName}");
             }
             catch (RetrievePasswordVerificationException e)
             {
@@ -181,10 +189,45 @@ namespace Discussion.Web.Controllers
                 return View("RetrievePassword");
             }
 
-            return View("RetrievePassword");
+            return View("DoRetrievePassword");
         }
 
-        User GetUserBy(RetrievePasswordModel model)
+        [HttpGet]
+        [Route("/reset-password")]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string token)
+        {
+            ViewData["token"] = token;
+            return View();
+        }
+
+        [HttpPost]
+        [Route("/reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> DoResetPassword(string token, string newPassword)
+        {
+            var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
+            if (tokenInEmail == null)
+            {
+                var msg = "重置密码失败：无法识别提供的 token";
+                ViewData["error"] = msg;
+                _logger.LogWarning(msg);
+                return View("DoResetPassword");
+            }
+
+            User user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
+            var result = await _userManager.ResetPasswordAsync(user, tokenInEmail.Token, newPassword);
+            if (result.Errors?.Count() > 0)
+            {
+                foreach (var err in result.Errors)
+                {
+                    ViewData["error"] += $"{err.Code}:{err.Description}";
+                }
+            }
+            return View(result);
+        }
+
+        private User GetUserByChecking(RetrievePasswordModel model)
         {
             User user;
 
@@ -204,10 +247,10 @@ namespace Discussion.Web.Controllers
             user = _userRepo.All().FirstOrDefault(e => e.UserName.ToLower() == model.UsernameOrEmail.ToLower());
 
             if (user == null)
-               throw new RetrievePasswordVerificationException("用户名不存在");
+                throw new RetrievePasswordVerificationException("用户名不存在");
 
             if (user.ConfirmedEmail == null)
-               throw new RetrievePasswordVerificationException("邮箱没有验证");
+                throw new RetrievePasswordVerificationException("邮箱没有验证");
 
             return user;
         }

@@ -11,6 +11,8 @@ namespace Discussion.Web.Services.UserManagement
 
         Task SendEmailConfirmationMailAsync(User user, string urlProtocol);
 
+        Task SendEmailRetrievePasswordAsync(User user, string urlProtocol);
+
         Task<IdentityResult> ConfirmEmailAsync(UserEmailToken tokenInEmail);
 
         Task SendPhoneNumberVerificationCodeAsync(User user, string phoneNumber);
