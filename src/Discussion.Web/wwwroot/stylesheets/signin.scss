@@ -1,17 +1,14 @@
 @import "symbols";
 
-
-
-
 .login-form{
   margin-bottom: 30px;
-  
+
   fieldset{
     margin: 10px 0;
-    
+
     label {
       font-weight: normal;
-      
+
       span {
         display: inline-block;
         width: 80px;
@@ -24,11 +21,16 @@
 
   .signin-button {
     margin-left: 85px;
-    
-    .glyphicon-user:before{
+
+    .glyphicon-user:before,
+    .glyphicon-ok:before {
       position: relative;
       top: 2px;
       margin-right: 4px;
     }
   }
+}
+
+.retrieve-password-error {
+  margin-left: 60px;
 }

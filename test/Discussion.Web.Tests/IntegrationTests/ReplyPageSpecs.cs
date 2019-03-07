@@ -1,6 +1,5 @@
 using Discussion.Tests.Common;
 using Discussion.Web.Tests.Fixtures;
-using Discussion.Web.Tests.Specs.Controllers;
 using Xunit;
 using static Discussion.Tests.Common.SigninRequirement;
 

@@ -9,7 +9,6 @@ using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
 using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
-using Microsoft.AspNetCore.Identity;
 using Xunit;
 
 namespace Discussion.Admin.Tests.Specs.Controllers

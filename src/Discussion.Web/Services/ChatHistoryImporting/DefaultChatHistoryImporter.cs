@@ -11,7 +11,6 @@ using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Models;
 using Discussion.Core.Time;
-using Markdig.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 

@@ -15,13 +15,12 @@ using Discussion.Core.Logging;
 
 namespace Discussion.Web.Controllers
 {
-    
     [Route("user")]
     [Authorize]
     public class UserController: Controller
     {
-        public const string ConfigKeyRequireUserPhoneNumberVerified = "RequireUserPhoneNumberVerified"; 
-        
+        public const string ConfigKeyRequireUserPhoneNumberVerified = "RequireUserPhoneNumberVerified";
+
         private readonly UserManager<User> _userManager;
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
@@ -33,13 +32,12 @@ namespace Discussion.Web.Controllers
             _logger = logger;
         }
 
-        
         [Route("settings")]
         public IActionResult Settings()
         {
             return View(HttpContext.DiscussionUser());
         }
-        
+
         [HttpPost]
         [Route("settings")]
         public async Task<IActionResult> DoSettings(UserSettingsViewModel userSettingsViewModel)
@@ -65,7 +63,6 @@ namespace Discussion.Web.Controllers
             return View("Settings", user);
         }
 
-
         [HttpPost]
         [Route("send-confirmation-mail")]
         public async Task<ApiResponse> SendEmailConfirmation()
@@ -84,7 +81,6 @@ namespace Discussion.Web.Controllers
             }
         }
 
-
         [HttpGet]
         [Route("confirm-email")]
         [AllowAnonymous]
@@ -99,7 +95,7 @@ namespace Discussion.Web.Controllers
 
             var result = await _userService.ConfirmEmailAsync(tokenInEmail);
             _logger.LogIdentityResult("确认邮件地址", result);
-            return View(result.Succeeded); 
+            return View(result.Succeeded);
         }
 
         [Route("change-password")]
@@ -119,14 +115,14 @@ namespace Discussion.Web.Controllers
                 _logger.LogModelState("修改密码", ModelState, user.UserName);
                 return View(getActionName, viewModel);
             }
-            
+
             var changeResult = await _userManager.ChangePasswordAsync(user, viewModel.OldPassword, viewModel.NewPassword);
             if (!changeResult.Succeeded)
             {
                 ModelState.Clear();
                 changeResult.Errors.ToList().ForEach(err =>
                 {
-                    ModelState.AddModelError(err.Code, err.Description);    
+                    ModelState.AddModelError(err.Code, err.Description);
                 });
                 _logger.LogIdentityResult("修改密码", changeResult, user.UserName);
                 return View(getActionName, viewModel);
@@ -135,7 +131,6 @@ namespace Discussion.Web.Controllers
             _logger.LogIdentityResult("修改密码", changeResult, user.UserName);
             return RedirectToAction(getActionName);
         }
-
 
         [Route("phone-number-verification")]
         public IActionResult VerifyPhoneNumber([FromForm] string code)
@@ -163,9 +158,9 @@ namespace Discussion.Web.Controllers
             catch(PhoneNumberVerificationFrequencyExceededException)
             {
                 _logger.LogWarning($"发送手机验证短信失败：{user.UserName}：超出调用限制");
-                return badRequestResponse;                
+                return badRequestResponse;
             }
-                
+
             return ApiResponse.NoContent();
         }
 
@@ -185,10 +180,8 @@ namespace Discussion.Web.Controllers
                 _logger.LogWarning($"验证手机号码失败：{user.UserName}：验证码不正确或已过期");
                 return ApiResponse.Error("code", "验证码不正确或已过期");
             }
-            
+
             return ApiResponse.NoContent();
         }
-
-
     }
 }

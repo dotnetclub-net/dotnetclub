@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Text;
 using Discussion.Core.Utilities;
 using Discussion.Web.ViewModels;

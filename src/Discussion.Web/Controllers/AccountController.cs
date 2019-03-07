@@ -4,11 +4,12 @@ using Discussion.Core.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
+using Discussion.Web.Services.UserManagement.Exceptions;
+using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Discussion.Web.Controllers
@@ -44,7 +45,6 @@ namespace Discussion.Web.Controllers
             }
             return View();
         }
-
 
         [HttpPost]
         [Route("/signin")]
@@ -95,7 +95,6 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
 
-
         [Route("/register")]
         public IActionResult Register()
         {
@@ -106,9 +105,9 @@ namespace Discussion.Web.Controllers
 
             return View();
         }
-        
+
         [HttpPost]
-        [Route("/register")]  
+        [Route("/register")]
         public async Task<IActionResult> DoRegister(UserViewModel registerModel)
         {
             if (!ModelState.IsValid)
@@ -150,8 +149,70 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
 
+        [Route("/retrieve-password")]
+        public IActionResult RetrievePassword()
+        {
+            if (HttpContext.IsAuthenticated())
+            {
+                return RedirectTo("/");
+            }
 
-        private IActionResult RedirectTo(string returnUrl)
+            return View();
+        }
+
+        [HttpPost]
+        [Route("/retrieve-password")]
+        public IActionResult DoRetrievePassword(RetrievePasswordModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning($"找回密码失败：用户名或邮箱 {model.UsernameOrEmail} 数据格式不正确。");
+                return View("RetrievePassword");
+            }
+
+            try
+            {
+                var user = GetUserBy(model);
+            }
+            catch (RetrievePasswordVerificationException e)
+            {
+                ModelState.AddModelError(nameof(model.UsernameOrEmail), e.Message);
+                _logger.LogWarning($"找回密码失败：{model.UsernameOrEmail} {e.Message}");
+                return View("RetrievePassword");
+            }
+
+            return View("RetrievePassword");
+        }
+
+        User GetUserBy(RetrievePasswordModel model)
+        {
+            User user;
+
+            if (model.IsEmail())
+            {
+                user = _userRepo.All()
+                    .Where(e => e.EmailAddressConfirmed)
+                    .Where(e => e.EmailAddress != null)
+                    .FirstOrDefault(e => e.EmailAddress.ToLower() == model.UsernameOrEmail.ToLower());
+
+                if (user == null)
+                    throw new RetrievePasswordVerificationException("邮箱没有验证");
+
+                return user;
+            }
+
+            user = _userRepo.All().FirstOrDefault(e => e.UserName.ToLower() == model.UsernameOrEmail.ToLower());
+
+            if (user == null)
+               throw new RetrievePasswordVerificationException("用户名不存在");
+
+            if (user.ConfirmedEmail == null)
+               throw new RetrievePasswordVerificationException("邮箱没有验证");
+
+            return user;
+        }
+
+        IActionResult RedirectTo(string returnUrl)
         {
             if (string.IsNullOrEmpty(returnUrl))
             {
