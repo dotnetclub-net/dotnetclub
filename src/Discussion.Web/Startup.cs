@@ -99,6 +99,7 @@ namespace Discussion.Web
             services.AddScoped<IUserAvatarUrlGenerator<GravatarAvatar>, GravatarAvatarUrlGenerator>();
             services.AddScoped<IPhoneNumberVerificationService, DefaultPhoneNumberVerificationService>();
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
+            services.AddSingleton<IResetPasswordEmailBuilder, DefaultResetPasswordEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
 
             services.AddScoped<IChatHistoryImporter, DefaultChatHistoryImporter>();

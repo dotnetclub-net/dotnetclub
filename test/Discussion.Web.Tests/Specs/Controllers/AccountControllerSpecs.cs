@@ -2,9 +2,11 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Discussion.Core.Communication.Email;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Utilities;
 using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
@@ -12,8 +14,10 @@ using Discussion.Web.Controllers;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Utilities;
 using Moq;
 using Xunit;
 
@@ -50,8 +54,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
         async Task should_signin_user_and_redirect_when_signin_with_valid_user()
         {
             // Arrange
-             ClaimsPrincipal signedInClaimsPrincipal = null;
-             var authService = MockAuthService(principal => signedInClaimsPrincipal = principal);
+            ClaimsPrincipal signedInClaimsPrincipal = null;
+            var authService = MockAuthService(principal => signedInClaimsPrincipal = principal);
 
             const string password = "111111A";
             _app.CreateUser("jim", password, "Jim Green");
@@ -327,6 +331,47 @@ namespace Discussion.Web.Tests.Specs.Controllers
             result.ErrorMessage.ShouldEqual("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
         }
 
+        [Fact]
+        async void should_not_send_email_with_invalid_usernameOrEmail()
+        {
+            MockMailSender();
+
+            var accountCtrl = _app.CreateController<AccountController>();
+
+            var viewModel = new RetrievePasswordModel();
+            viewModel.UsernameOrEmail = StringUtility.Random();
+
+            var viewResult = (await accountCtrl.DoRetrievePassword(viewModel)) as ViewResult;
+
+            Assert.NotNull(viewResult);
+            viewResult.ViewName.ShouldEqual("RetrievePassword");
+        }
+
+        [Fact]
+        public async void should_not__reset_password__with_invalid_token()
+        {
+            MockMailSender();
+            var mockUser = UseUpdatedAppUser("dangfang888@163.com", true);
+
+            var accountCtrl = _app.CreateController<AccountController>();
+
+            var viewModel = new RetrievePasswordModel();
+            viewModel.UsernameOrEmail = mockUser.EmailAddress;
+
+            var viewResult = (await accountCtrl.DoRetrievePassword(viewModel)) as ViewResult;
+
+            Assert.NotNull(viewResult);
+            viewResult.ViewName.ShouldEqual("DoRetrievePassword");
+
+
+            var generatedUrl = accountCtrl.GetFakeRouter().GetGeneratedUrl;
+            var token = generatedUrl["token"].ToString();
+            var userManager = _app.GetService<UserManager<User>>();
+            var resultPassword = await userManager.ResetPasswordAsync(mockUser, token, "123qwe@!#");
+
+            Assert.True(resultPassword.Succeeded);
+        }
+
         #endregion
 
         [Fact]
@@ -343,6 +388,29 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.NotNull(signOutResult);
             signOutResult.IsType<RedirectResult>();
             authService.Verify();
+        }
+
+        private Mock<IEmailDeliveryMethod> MockMailSender(bool willBeCalled = true)
+        {
+            var mailSender = new Mock<IEmailDeliveryMethod>();
+            if (willBeCalled)
+            {
+                mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+            }
+
+            _app.OverrideServices(services => services.AddSingleton(mailSender.Object));
+            return mailSender;
+        }
+
+        private User UseUpdatedAppUser(string newEmail, bool confirmed)
+        {
+            var user = _app.MockUser();
+            user.EmailAddress = newEmail;
+            user.EmailAddressConfirmed = confirmed;
+            _userRepo.Update(user);
+            return user;
         }
     }
 }
