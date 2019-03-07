@@ -33,7 +33,6 @@ namespace Discussion.Tests.Common.AssertionExtensions
         {
             Assert.Equal(expected, obj);
         }
-        
 
         public static void ShouldNotEqual(this string obj, string expected)
         {

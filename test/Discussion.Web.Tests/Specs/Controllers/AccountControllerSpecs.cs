@@ -9,6 +9,7 @@ using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
+using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -288,13 +289,58 @@ namespace Discussion.Web.Tests.Specs.Controllers
         #region Retrieve Password
 
         [Fact]
-        void should_return_retrieve_page_as_view_result()
+        void should_return_retrieve_password_page_as_view_result()
         {
             var accountCtrl = _app.CreateController<AccountController>();
 
             var viewResult = accountCtrl.RetrievePassword() as ViewResult;
 
             Assert.NotNull(viewResult);
+        }
+
+        [Fact]
+        void should_not_send_reset_password_email_when_user_not_existed()
+        {
+            var model = new RetrievePasswordModel
+            {
+                UsernameOrEmail = "test"
+            };
+
+            var controller = _app.CreateController<AccountController>();
+            var result = controller.DoRetrievePassword(model);
+
+            controller.ModelState.IsValid.ShouldBeFalse();
+            controller.ModelState.Keys.ShouldContain("UsernameOrEmail");
+        }
+
+        [Fact]
+        void should_not_send_reset_password_email_when_user_existed_but_email_not_confirmed()
+        {
+            var model = new RetrievePasswordModel
+            {
+                UsernameOrEmail = "test"
+            };
+
+            var controller = _app.CreateController<AccountController>();
+            var result = controller.DoRetrievePassword(model);
+
+            controller.ModelState.IsValid.ShouldBeFalse();
+            controller.ModelState.Keys.ShouldContain("UsernameOrEmail");
+        }
+
+        [Fact]
+        void should_not_send_reset_password_email_when_confirmed_email_not_existed()
+        {
+            var model = new RetrievePasswordModel
+            {
+                UsernameOrEmail = "test@gmail.com"
+            };
+
+            var controller = _app.CreateController<AccountController>();
+            var result = controller.DoRetrievePassword(model);
+
+            controller.ModelState.IsValid.ShouldBeFalse();
+            controller.ModelState.Keys.ShouldContain("UsernameOrEmail");
         }
 
         #endregion
