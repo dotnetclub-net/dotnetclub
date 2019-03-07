@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Discussion.Admin.Supporting;
 using Discussion.Core.Data;
-using Discussion.Core.Models;
 using Discussion.Tests.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

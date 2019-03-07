@@ -9,7 +9,7 @@ namespace Discussion.Web.Services.UserManagement.Identity
     public static class ServiceExtensions
     {
         private const string EmailConfirmationTokenProviderName = "EmailConfirmation";
-        
+
         public static void AddIdentityServices(this IServiceCollection services)
         {
             services.AddAuthorization();
@@ -32,10 +32,10 @@ namespace Discussion.Web.Services.UserManagement.Identity
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.User.RequireUniqueEmail = false; // 如果设置为 true，则不但会检查 Email 的唯一性，还会要求 Email 必填
-                
+
                 options.Tokens.EmailConfirmationTokenProvider = EmailConfirmationTokenProviderName;
             });
-            
+
             services.Configure<EmailConfirmationTokenOptions>(options =>
             {
                 options.TokenLifespan = TimeSpan.FromDays(7);

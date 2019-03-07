@@ -1,8 +1,5 @@
 @import "symbols";
 
-
-
-
 .login-form{
   margin-bottom: 30px;
 
@@ -32,4 +29,8 @@
       margin-right: 4px;
     }
   }
+}
+
+.retrieve-password-error {
+  margin-left: 60px;
 }

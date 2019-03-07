@@ -4,7 +4,6 @@ using Discussion.Core.Communication.Sms;
 using Discussion.Core.Models;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
