@@ -1,4 +1,5 @@
-﻿using Discussion.Core.Models;
+﻿using System;
+using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -162,52 +163,44 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/retrieve-password")]
-        public IActionResult DoRetrievePassword(RetrievePasswordModel model)
+        public ApiResponse DoRetrievePassword(RetrievePasswordModel model)
         {
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning($"找回密码失败：用户名或邮箱 {model.UsernameOrEmail} 数据格式不正确。");
-                return View("RetrievePassword");
+                return ApiResponse.Error(ModelState);
             }
 
             try
             {
                 var user = GetUserBy(model);
+                _logger.LogInformation($"找回密码：发送重置密码邮件到 {user.ConfirmedEmail} ");
+                return ApiResponse.NoContent();
             }
             catch (RetrievePasswordVerificationException e)
             {
-                ModelState.AddModelError(nameof(model.UsernameOrEmail), e.Message);
                 _logger.LogWarning($"找回密码失败：{model.UsernameOrEmail} {e.Message}");
-                return View("RetrievePassword");
+                return ApiResponse.Error(e.Message);
             }
-
-            return View("RetrievePassword");
         }
 
         User GetUserBy(RetrievePasswordModel model)
         {
-            User user;
+            var usernameOrEmail = model.UsernameOrEmail.ToLower();
 
-            if (model.IsEmail())
-            {
-                user = _userRepo.All()
-                    .Where(e => e.EmailAddressConfirmed)
-                    .Where(e => e.EmailAddress != null)
-                    .FirstOrDefault(e => e.EmailAddress.ToLower() == model.UsernameOrEmail.ToLower());
+            var users = _userRepo
+                .All()
+                .Where(e => e.UserName.ToLower() == usernameOrEmail ||
+                            e.EmailAddress != null && e.EmailAddress.ToLower() == usernameOrEmail)
+                .ToList();
 
-                if (user == null)
-                    throw new RetrievePasswordVerificationException("邮箱没有验证");
+            if (!users.Any())
+                throw new RetrievePasswordVerificationException("该用户不存在");
 
-                return user;
-            }
-
-            user = _userRepo.All().FirstOrDefault(e => e.UserName.ToLower() == model.UsernameOrEmail.ToLower());
+            var user = users.FirstOrDefault(e => e.EmailAddressConfirmed);
 
             if (user == null)
-               throw new RetrievePasswordVerificationException("用户名不存在");
-
-            if (user.ConfirmedEmail == null)
-               throw new RetrievePasswordVerificationException("邮箱没有验证");
+               throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
 
             return user;
         }

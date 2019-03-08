@@ -291,15 +291,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         void should_return_retrieve_password_page_as_view_result()
         {
-            var accountCtrl = _app.CreateController<AccountController>();
+            var controller = _app.CreateController<AccountController>();
 
-            var viewResult = accountCtrl.RetrievePassword() as ViewResult;
+            var result = controller.RetrievePassword() as ViewResult;
 
-            Assert.NotNull(viewResult);
+            Assert.NotNull(result);
         }
 
         [Fact]
-        void should_not_send_reset_password_email_when_user_not_existed()
+        void should_return_error_when_user_not_existed()
         {
             var model = new RetrievePasswordModel
             {
@@ -309,38 +309,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var controller = _app.CreateController<AccountController>();
             var result = controller.DoRetrievePassword(model);
 
-            controller.ModelState.IsValid.ShouldBeFalse();
-            controller.ModelState.Keys.ShouldContain("UsernameOrEmail");
+            result.ErrorMessage.ShouldEqual("该用户不存在");
         }
 
         [Fact]
-        void should_not_send_reset_password_email_when_user_existed_but_email_not_confirmed()
+        void should_return_error_when_user_existed_but_email_not_confirmed()
         {
-            var model = new RetrievePasswordModel
-            {
-                UsernameOrEmail = "test"
-            };
+            var user = new User {UserName = "test", EmailAddressConfirmed = false};
+
+            _userRepo.Save(user);
+
+            var model = new RetrievePasswordModel { UsernameOrEmail = user.UserName };
 
             var controller = _app.CreateController<AccountController>();
             var result = controller.DoRetrievePassword(model);
 
-            controller.ModelState.IsValid.ShouldBeFalse();
-            controller.ModelState.Keys.ShouldContain("UsernameOrEmail");
-        }
-
-        [Fact]
-        void should_not_send_reset_password_email_when_confirmed_email_not_existed()
-        {
-            var model = new RetrievePasswordModel
-            {
-                UsernameOrEmail = "test@gmail.com"
-            };
-
-            var controller = _app.CreateController<AccountController>();
-            var result = controller.DoRetrievePassword(model);
-
-            controller.ModelState.IsValid.ShouldBeFalse();
-            controller.ModelState.Keys.ShouldContain("UsernameOrEmail");
+            result.ErrorMessage.ShouldEqual("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
         }
 
         #endregion
