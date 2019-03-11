@@ -293,33 +293,46 @@ namespace Discussion.Web.Tests.Specs.Controllers
         #region Retrieve Password
 
         [Fact]
-        void should_return_retrieve_page_as_view_result()
+        void should_return_retrieve_password_page_as_view_result()
         {
-            var accountCtrl = _app.CreateController<AccountController>();
+            var controller = _app.CreateController<AccountController>();
 
-            var viewResult = accountCtrl.RetrievePassword() as ViewResult;
+            var result = controller.RetrievePassword() as ViewResult;
 
-            Assert.NotNull(viewResult);
+            Assert.NotNull(result);
         }
 
         [Fact]
-        async void should_not_send_email_with_invalid_usernameOrEmail()
+        async void should_return_error_when_user_not_existed()
         {
-            MockMailSender();
+            var model = new RetrievePasswordModel
+            {
+                UsernameOrEmail = "test"
+            };
 
-            var accountCtrl = _app.CreateController<AccountController>();
+            var controller = _app.CreateController<AccountController>();
+            var result = await controller.DoRetrievePassword(model);
 
-            var viewModel = new RetrievePasswordModel();
-            viewModel.UsernameOrEmail = StringUtility.Random();
-
-            var viewResult = (await accountCtrl.DoRetrievePassword(viewModel)) as ViewResult;
-
-            Assert.NotNull(viewResult);
-            viewResult.ViewName.ShouldEqual("RetrievePassword");
+            result.ErrorMessage.ShouldEqual("该用户不存在");
         }
 
         [Fact]
-        public async void should_not__reset_password__with_invalid_token()
+        async void should_return_error_when_user_existed_but_email_not_confirmed()
+        {
+            var user = new User {UserName = "test", EmailAddressConfirmed = false};
+
+            _userRepo.Save(user);
+
+            var model = new RetrievePasswordModel { UsernameOrEmail = user.UserName };
+
+            var controller = _app.CreateController<AccountController>();
+            var result = await controller.DoRetrievePassword(model);
+
+            result.ErrorMessage.ShouldEqual("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
+        }
+
+        [Fact]
+        public async void should_not_reset_password__with_invalid_token()
         {
             MockMailSender();
             var mockUser = UseUpdatedAppUser("dangfang888@163.com", true);
@@ -329,18 +342,17 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var viewModel = new RetrievePasswordModel();
             viewModel.UsernameOrEmail = mockUser.EmailAddress;
 
-            var viewResult = (await accountCtrl.DoRetrievePassword(viewModel)) as ViewResult;
+            var viewResult = (await accountCtrl.DoRetrievePassword(viewModel)) as ApiResponse;
 
-            Assert.NotNull(viewResult);
-            viewResult.ViewName.ShouldEqual("DoRetrievePassword");
-
+            viewResult.ShouldNotBeNull();
+            viewResult.HasSucceeded.ShouldBeTrue();
 
             var generatedUrl = accountCtrl.GetFakeRouter().GetGeneratedUrl;
             var token = generatedUrl["token"].ToString();
             var userManager = _app.GetService<UserManager<User>>();
             var resultPassword = await userManager.ResetPasswordAsync(mockUser, token, "123qwe@!#");
 
-            Assert.True(resultPassword.Succeeded);
+            resultPassword.Succeeded.ShouldBeFalse();
         }
 
         #endregion

@@ -229,28 +229,21 @@ namespace Discussion.Web.Controllers
 
         private User GetUserByChecking(RetrievePasswordModel model)
         {
-            User user;
+            var usernameOrEmail = model.UsernameOrEmail.ToLower();
 
-            if (model.IsEmail())
-            {
-                user = _userRepo.All()
-                    .Where(e => e.EmailAddressConfirmed)
-                    .Where(e => e.EmailAddress != null)
-                    .FirstOrDefault(e => e.EmailAddress.ToLower() == model.UsernameOrEmail.ToLower());
+            var users = _userRepo
+                .All()
+                .Where(e => e.UserName.ToLower() == usernameOrEmail ||
+                            e.EmailAddress != null && e.EmailAddress.ToLower() == usernameOrEmail)
+                .ToList();
 
-                if (user == null)
-                    throw new RetrievePasswordVerificationException("邮箱没有验证");
+            if (!users.Any())
+                throw new RetrievePasswordVerificationException("该用户不存在");
 
-                return user;
-            }
-
-            user = _userRepo.All().FirstOrDefault(e => e.UserName.ToLower() == model.UsernameOrEmail.ToLower());
+            var user = users.FirstOrDefault(e => e.EmailAddressConfirmed);
 
             if (user == null)
-                throw new RetrievePasswordVerificationException("用户名不存在");
-
-            if (user.ConfirmedEmail == null)
-                throw new RetrievePasswordVerificationException("邮箱没有验证");
+                throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
 
             return user;
         }

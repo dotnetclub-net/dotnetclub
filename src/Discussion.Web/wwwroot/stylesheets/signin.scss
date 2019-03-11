@@ -1,9 +1,9 @@
 @import "symbols";
 
-.login-form{
+.login-form {
   margin-bottom: 30px;
 
-  fieldset{
+  fieldset {
     margin: 10px 0;
 
     label {
@@ -29,8 +29,4 @@
       margin-right: 4px;
     }
   }
-}
-
-.retrieve-password-error {
-  margin-left: 60px;
 }

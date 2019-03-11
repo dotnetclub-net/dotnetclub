@@ -26,7 +26,7 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             _app.ShouldGet("/signin", responseShouldContain: "用户登录");
         }
-          
+
         [Fact]
         public void should_be_able_to_signin_new_user()
         {
@@ -48,7 +48,7 @@ namespace Discussion.Web.Tests.IntegrationTests
                     cookieHeaders.ShouldContain(cookie => cookie.Contains(".AspNetCore.Identity.Application"));
                 });
         }
-        
+
         [Fact]
         public void signed_in_users_should_be_able_to_view_pages_that_requires_authenticated_users()
         {
@@ -56,7 +56,7 @@ namespace Discussion.Web.Tests.IntegrationTests
             var username = StringUtility.Random();
             var password = "11111a";
             _app.CreateUser(username, password);
-            
+
             HttpResponseMessage signinResponse = null;
             _app.Path("/signin")
                 .Post()
@@ -77,34 +77,34 @@ namespace Discussion.Web.Tests.IntegrationTests
 
         [Fact]
         public void should_serve_register_page_correctly()
-        {   
+        {
             _app.ShouldGet("/register", responseShouldContain: "用户注册");
         }
-  
+
         [Fact]
         public void should_be_able_to_register_new_user()
         {
             var username = StringUtility.Random();
             var password = "11111a";
-            
+
             _app.Path("/register")
                 .Post()
-                .WithForm(new 
+                .WithForm(new
                 {
                     UserName = username,
                     Password = password
                 })
                 .ShouldSuccessWithRedirect(_app.NoUser());
-            
+
             var isRegistered = _app.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
             isRegistered.ShouldEqual(true);
         }
-     
+
         [Fact]
         public void should_signin_newly_registered_user()
         {
             HttpResponseMessage registerResponse = null;
-            
+
             _app.Path("/register")
                 .Post()
                 .WithForm(new
@@ -114,12 +114,18 @@ namespace Discussion.Web.Tests.IntegrationTests
                 })
                 .ShouldSuccessWithRedirect(_app.NoUser())
                 .WithResponse(res => registerResponse = res);
-            
+
             _app.Path("/topics/create")
                 .Get()
                 .WithCookieFrom(registerResponse)
                 .ShouldSuccess()
                 .WithResponse(res => res.ReadAllContent().Contains("注销"));
+        }
+
+        [Fact]
+        public void should_serve_retrieve_password_page_correctly()
+        {
+            _app.ShouldGet("/retrieve-password", responseShouldContain: "找回密码");
         }
     }
 }

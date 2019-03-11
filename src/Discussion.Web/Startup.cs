@@ -56,7 +56,7 @@ namespace Discussion.Web
                 .ConfigureHost(new WebHostBuilder(), addCommandLineArguments: true)
                 .UseStartup<Startup>()
                 .Build();
-            
+
             host.Run();
         }
 
@@ -84,15 +84,15 @@ namespace Discussion.Web
             services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
             services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
             services.AddSingleton<HttpMessageInvoker>(new HttpClient());
-            
+
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
                 .AddScoped(sp =>
                 {
                     var actionAccessor = sp.GetService<IActionContextAccessor>();
                     var urlHelperFactory = sp.GetService<IUrlHelperFactory>();
-                    return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);              
+                    return urlHelperFactory.GetUrlHelper(actionAccessor.ActionContext);
                 });
-            
+
             services.AddSingleton<IAvatarUrlService, DispatchAvatarUrlService>();
             services.AddScoped<IUserAvatarUrlGenerator<DefaultAvatar>, DefaultAvatarUrlGenerator>();
             services.AddScoped<IUserAvatarUrlGenerator<StorageFileAvatar>, StorageFileAvatarUrlGenerator>();
@@ -101,7 +101,7 @@ namespace Discussion.Web
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddSingleton<IResetPasswordEmailBuilder, DefaultResetPasswordEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
-            
+
             services.AddScoped<IChatHistoryImporter, DefaultChatHistoryImporter>();
             var chatyConfig = _appConfiguration.GetSection(nameof(ChatyOptions));
             if (chatyConfig != null && !string.IsNullOrEmpty(chatyConfig[nameof(ChatyOptions.ServiceBaseUrl)]))
@@ -125,7 +125,7 @@ namespace Discussion.Web
         }
 
         public void Configure(IApplicationBuilder app)
-        {   
+        {
             if (_hostingEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -134,16 +134,16 @@ namespace Discussion.Web
             {
                 app.UseExceptionHandler("/error");
                 if(bool.TryParse(_appConfiguration["HSTS"] ?? "False", out var useHsts) && useHsts)
-                { 
+                {
                     app.UseHsts();
                 }
             }
 
             app.Use(async (ctx, next) =>
             {
-                var readonlyDataSettings = ctx.RequestServices.GetService<IReadonlyDataSettings>() as ReadonlyDataSettings; 
+                var readonlyDataSettings = ctx.RequestServices.GetService<IReadonlyDataSettings>() as ReadonlyDataSettings;
                 Debug.Assert(readonlyDataSettings != null, nameof(readonlyDataSettings) + " != null");
-                
+
                 var siteSettings = ctx.RequestServices.GetService<SiteSettings>();
                 readonlyDataSettings.IsReadonly = siteSettings.IsReadonly;
                 await next();
@@ -163,6 +163,6 @@ namespace Discussion.Web
                 logger.LogCritical("数据库结构创建完成");
             }, logger);
         }
-        
+
     }
 }

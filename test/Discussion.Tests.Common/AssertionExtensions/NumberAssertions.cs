@@ -33,12 +33,6 @@ namespace Discussion.Tests.Common.AssertionExtensions
         {
             Assert.True(number <= other, $"Expected {number} to be less than or equal {other}");
         }
-        
-
-
-
-
-
 
         public static void ShouldEqual(this long number, long expected)
         {
@@ -69,6 +63,5 @@ namespace Discussion.Tests.Common.AssertionExtensions
         {
             Assert.True(number <= other, $"Expected {number} to be less than or equal {other}");
         }
-
     }
 }
