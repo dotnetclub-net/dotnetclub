@@ -26,13 +26,13 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
         private readonly IClock _clock;
 
-        public DefaultUserService(IRepository<User> userRepo, 
-            UserManager<User> userManager, 
-            IEmailDeliveryMethod emailDeliveryMethod, 
-            IUrlHelper urlHelper, 
-            IConfirmationEmailBuilder confirmationEmailBuilder, 
+        public DefaultUserService(IRepository<User> userRepo,
+            UserManager<User> userManager,
+            IEmailDeliveryMethod emailDeliveryMethod,
+            IUrlHelper urlHelper,
+            IConfirmationEmailBuilder confirmationEmailBuilder,
             IResetPasswordEmailBuilder resetPasswordEmailBuilder,
-            IPhoneNumberVerificationService phoneNumberVerificationService, 
+            IPhoneNumberVerificationService phoneNumberVerificationService,
             IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock)
         {
             _userRepo = userRepo;
@@ -53,7 +53,7 @@ namespace Discussion.Web.Services.UserManagement
             {
                 return updateEmailResult;
             }
-            
+
             user.AvatarFileId = userSettingsViewModel.AvatarFileId;
             user.DisplayName = userSettingsViewModel.DisplayName;
             if (string.IsNullOrWhiteSpace(user.DisplayName))
@@ -69,16 +69,16 @@ namespace Discussion.Web.Services.UserManagement
         {
             var existingEmail = user.EmailAddress?.Trim();
             var newEmail = userSettingsViewModel.EmailAddress?.Trim();
-            
+
             var emailNotChanged = existingEmail.IgnoreCaseEqual(newEmail);
             if (emailNotChanged)
             {
                 return IdentityResult.Success;
             }
-            
+
             var emailTaken = IsEmailTakenByAnotherUser(user.Id, newEmail);
-            
-            return emailTaken 
+
+            return emailTaken
                 ? EmailTakenResult()
                 : await _userManager.SetEmailAsync(user, newEmail);
         }
@@ -89,10 +89,10 @@ namespace Discussion.Web.Services.UserManagement
             {
                 throw new UserEmailAlreadyConfirmedException(user.UserName);
             }
-            
+
             var tokenString = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var tokenInEmail = new UserEmailToken {UserId = user.Id, Token = tokenString};
-            
+
             // ReSharper disable Mvc.ActionNotResolved
             // ReSharper disable Mvc.ControllerNotResolved
             var callbackUrl = _urlHelper.Action(
@@ -130,7 +130,7 @@ namespace Discussion.Web.Services.UserManagement
             {
                 return identityResult;
             }
-            
+
             if (IsEmailTakenByAnotherUser(tokenInEmail.UserId, user.EmailAddress))
             {
                 user.EmailAddressConfirmed = false;
@@ -142,7 +142,7 @@ namespace Discussion.Web.Services.UserManagement
 
         public async Task SendPhoneNumberVerificationCodeAsync(User user, string phoneNumber)
         {
-            if (!user.CanModifyPhoneNumberNow(_clock) || 
+            if (!user.CanModifyPhoneNumberNow(_clock) ||
                 _phoneNumberVerificationService.IsFrequencyExceededForUser(user.Id))
             {
                 throw new PhoneNumberVerificationFrequencyExceededException();
@@ -179,7 +179,7 @@ namespace Discussion.Web.Services.UserManagement
             {
                 return false;
             }
-            
+
             return _userRepo.All()
                 .Any(u => u.EmailAddressConfirmed
                           && u.Id != thisUserId

@@ -17,19 +17,22 @@ namespace Discussion.Web.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
-        private readonly ILogger<AccountController> _logger;
-        private readonly IRepository<User> _userRepo;
-        private readonly IClock _clock;
-        private readonly SiteSettings _settings;
-        private readonly IUserService _userService;
+        readonly UserManager<User> _userManager;
+        readonly SignInManager<User> _signInManager;
+        readonly ILogger<AccountController> _logger;
+        readonly IRepository<User> _userRepo;
+        readonly IClock _clock;
+        readonly SiteSettings _settings;
+        readonly IUserService _userService;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IUserService userService,
-            ILogger<AccountController> logger, IRepository<User> userRepo, IClock clock, SiteSettings settings)
+            ILogger<AccountController> logger,
+            IRepository<User> userRepo,
+            IClock clock,
+            SiteSettings settings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -52,7 +55,9 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/signin")]
-        public async Task<IActionResult> DoSignin([FromForm]UserViewModel viewModel, [FromQuery]string returnUrl)
+        public async Task<IActionResult> DoSignin(
+            [FromForm] UserViewModel viewModel,
+            [FromQuery] string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -190,7 +195,6 @@ namespace Discussion.Web.Controllers
 
         [HttpGet]
         [Route("/reset-password")]
-        [AllowAnonymous]
         public IActionResult ResetPassword(string token)
         {
             ViewData["token"] = token;
@@ -199,7 +203,6 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/reset-password")]
-        [AllowAnonymous]
         public async Task<IActionResult> DoResetPassword(string token, string newPassword)
         {
             var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
@@ -211,7 +214,7 @@ namespace Discussion.Web.Controllers
                 return View("DoResetPassword");
             }
 
-            User user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
+            var user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
             var result = await _userManager.ResetPasswordAsync(user, tokenInEmail.Token, newPassword);
             if (result.Errors?.Count() > 0)
             {

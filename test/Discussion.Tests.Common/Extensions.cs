@@ -14,22 +14,22 @@ namespace Discussion.Tests.Common
 {
     public static class Extensions
     {
-        
+
         public static T GetService<T>(this HttpContext httpContext) where T : class
         {
             return httpContext.RequestServices.GetService<T>();
         }
-                
+
         public static T GetService<T>(this ControllerBase controller) where T : class
         {
             return controller.HttpContext.RequestServices.GetService<T>();
         }
-        
+
         public static TestApplicationExtensions.FakeRoute GetFakeRouter(this ControllerBase controller)
         {
             return controller.RouteData.Routers[0] as TestApplicationExtensions.FakeRoute;
         }
-        
+
         public static string ReadAllContent(this HttpResponseMessage response)
         {
             return response.Content.ReadAsStringAsync().Result;
@@ -39,7 +39,7 @@ namespace Discussion.Tests.Common
         {
             return WithCookie(request, cookie.Name, cookie.Value);
         }
-        
+
         public static RequestBuilder WithCookie(this RequestBuilder request, string name, string value)
         {
             request.And(req =>
@@ -47,7 +47,7 @@ namespace Discussion.Tests.Common
                 if (req.Headers.TryGetValues(HeaderNames.Cookie, out var existingCookies))
                 {
                     req.Headers.Remove(HeaderNames.Cookie);
-                    
+
                     var existing = existingCookies.First();
                     var cookieHeader = string.Concat(existing.TrimEnd(';', ' '), $"; {name}={value};");
                     req.Headers.Add(HeaderNames.Cookie, cookieHeader);
@@ -59,32 +59,32 @@ namespace Discussion.Tests.Common
             });
             return request;
         }
-        
+
         public static RequestBuilder WithCookiesFrom(this RequestBuilder request, HttpResponseMessage response)
         {
             if (!response.Headers.TryGetValues(HeaderNames.SetCookie, out var cookies))
             {
                 return request;
             }
-            
-            var responseCookieHeaders = SetCookieHeaderValue.ParseList(cookies.ToList()); 
+
+            var responseCookieHeaders = SetCookieHeaderValue.ParseList(cookies.ToList());
             foreach (var cookie in responseCookieHeaders)
             {
                 request.WithCookie(cookie.Name.ToString(), cookie.Value.ToString());
             }
             return request;
         }
-        
+
         public static RequestBuilder WithJson(this RequestBuilder request, object obj)
         {
             return request.And(req =>
             {
                 var json = JsonConvert.SerializeObject(obj);
                 req.Content = new StringContent(json);
-                req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json"); 
+                req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             });
         }
-        
+
         public static RequestBuilder WithForm(this RequestBuilder request, Dictionary<string, string> obj)
         {
             return request.And(req =>
@@ -103,7 +103,7 @@ namespace Discussion.Tests.Common
                     {
                         obj = new Dictionary<string, string>();
                     }
-                    
+
                     obj["__RequestVerificationToken"] = tokens.VerificationToken;
                     req.Content = new FormUrlEncodedContent(obj);
                 })
@@ -114,8 +114,8 @@ namespace Discussion.Tests.Common
         {
             return new TestHttpRequestBuilder(app, path);
         }
-        
-        public static TestHttpRequestBuilder.ResponseAssertion ShouldGet(this TestApplication app, string path, 
+
+        public static TestHttpRequestBuilder.ResponseAssertion ShouldGet(this TestApplication app, string path,
             SigninRequirement signinStatus = SigninRequirement.SigninNotRequired,
             string responseShouldContain = null)
         {
@@ -130,12 +130,16 @@ namespace Discussion.Tests.Common
             var getSuccess = get.ShouldSuccess(user);
             if (responseShouldContain != null)
             {
-                getSuccess.WithResponse(res => res.ReadAllContent().Contains(responseShouldContain));
+                getSuccess.WithResponse(res =>
+                {
+
+                    return res.ReadAllContent().Contains(responseShouldContain);
+                });
             }
-            
+
             return getSuccess;
         }
-        
+
         public static TestHttpRequestBuilder.ResponseAssertion ShouldPost(this TestApplication app, string path,
             object postEntity = null,
             SigninRequirement signinStatus = SigninRequirement.SigninNotRequired,
@@ -146,12 +150,12 @@ namespace Discussion.Tests.Common
             {
                 post.WithForm(postEntity);
             }
-            
+
             if (signinStatus == SigninRequirement.SigninRequired)
             {
                 post.ShouldFail(user: app.NoUser()).WithSigninRedirect();
             }
-            
+
             var user = signinStatus == SigninRequirement.SigninRequired ? app.MockUser() : app.NoUser();
             var postSuccess = post
                 .ShouldBeHandled(user)

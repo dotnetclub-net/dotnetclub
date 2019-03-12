@@ -6,7 +6,6 @@ using Discussion.Core.Communication.Email;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
-using Discussion.Core.Utilities;
 using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
@@ -17,7 +16,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Utilities;
 using Moq;
 using Xunit;
 
@@ -28,13 +26,15 @@ namespace Discussion.Web.Tests.Specs.Controllers
     {
         // ReSharper disable PossibleNullReferenceException
 
-        private readonly TestDiscussionWebApp _app;
-        private readonly IRepository<User> _userRepo;
+        readonly TestDiscussionWebApp _app;
+        readonly IRepository<User> _userRepo;
+        readonly UserManager<User> _userManager;
 
         public AccountControllerSpecs(TestDiscussionWebApp app)
         {
             _app = app.Reset();
             _userRepo = _app.GetService<IRepository<User>>();
+            _userManager = _app.GetService<UserManager<User>>();
         }
 
         #region Signin
@@ -44,7 +44,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var accountCtrl = _app.CreateController<AccountController>();
 
-            IActionResult signinPageResult = accountCtrl.Signin(null);
+            var signinPageResult = accountCtrl.Signin(null);
 
             var viewResult = signinPageResult as ViewResult;
             Assert.NotNull(viewResult);
@@ -81,7 +81,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.NotNull(signedInUser.LastSeenAt);
         }
 
-        private Mock<IAuthenticationService> MockAuthService(Action<ClaimsPrincipal> onSignin)
+        Mock<IAuthenticationService> MockAuthService(Action<ClaimsPrincipal> onSignin)
         {
             var authService = new Mock<IAuthenticationService>();
             authService.Setup(auth => auth.SignInAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<ClaimsPrincipal>(),
@@ -303,73 +303,90 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
 
         [Fact]
-        void should_return_error_when_user_not_existed()
+        async void should_not_send_reset_password_email_when_user_not_existed()
         {
             var model = new RetrievePasswordModel
             {
-                UsernameOrEmail = "test"
+                UsernameOrEmail = Guid.NewGuid().ToString()
             };
 
             var controller = _app.CreateController<AccountController>();
-            var result = controller.DoRetrievePassword(model);
+            var result = await controller.DoRetrievePassword(model);
 
             result.ErrorMessage.ShouldEqual("该用户不存在");
         }
 
         [Fact]
-        void should_return_error_when_user_existed_but_email_not_confirmed()
+        async void should_not_send_reset_password_email_when_user_email_not_confirmed()
         {
-            var user = new User {UserName = "test", EmailAddressConfirmed = false};
-
-            _userRepo.Save(user);
-
+            var user = CreateUser();
             var model = new RetrievePasswordModel { UsernameOrEmail = user.UserName };
 
             var controller = _app.CreateController<AccountController>();
-            var result = controller.DoRetrievePassword(model);
+            var result = await controller.DoRetrievePassword(model);
 
             result.ErrorMessage.ShouldEqual("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
         }
 
         [Fact]
-        async void should_not_send_email_with_invalid_usernameOrEmail()
+        async void should_send_reset_password_email()
         {
-            MockMailSender();
+            var user = CreateUser(true);
+            var model = new RetrievePasswordModel { UsernameOrEmail = user.UserName };
 
-            var accountCtrl = _app.CreateController<AccountController>();
+            var mailSender = MockMailSender();
+            var controller = _app.CreateController<AccountController>();
+            var result = await controller.DoRetrievePassword(model);
 
-            var viewModel = new RetrievePasswordModel();
-            viewModel.UsernameOrEmail = StringUtility.Random();
+            result.ShouldNotBeNull();
+            result.HasSucceeded.ShouldBeTrue();
 
-            var viewResult = (await accountCtrl.DoRetrievePassword(viewModel)) as ViewResult;
+            mailSender.Verify(x => x.SendEmailAsync(
+                user.EmailAddress,
+                "dotnet club 用户密码重置",
+                It.IsAny<string>()), Times.Once);
+        }
 
-            Assert.NotNull(viewResult);
-            viewResult.ViewName.ShouldEqual("RetrievePassword");
+        #endregion
+
+        #region Reset Password
+
+        [Fact]
+        void should_return_reset_password_page_as_view_result()
+        {
+            var controller = _app.CreateController<AccountController>();
+            var result = controller.ResetPassword("token") as ViewResult;
+
+            Assert.NotNull(result);
         }
 
         [Fact]
-        public async void should_not__reset_password__with_invalid_token()
+        async void should_not_reset_password_when_token_invalid()
         {
-            MockMailSender();
-            var mockUser = UseUpdatedAppUser("dangfang888@163.com", true);
+            var user = CreateUser(true);
+            var emailToken = new UserEmailToken { UserId = user.Id, Token = "hello"};
+            var queryString = emailToken.EncodeAsUrlQueryString();
 
-            var accountCtrl = _app.CreateController<AccountController>();
+            var controller = _app.CreateController<AccountController>();
+            var result = await controller.DoResetPassword(queryString, "newPassword") as ViewResult;
 
-            var viewModel = new RetrievePasswordModel();
-            viewModel.UsernameOrEmail = mockUser.EmailAddress;
+            result.ShouldNotBeNull();
+            result.ViewData["error"].ShouldEqual("InvalidToken:验证令牌不正确");
+        }
 
-            var viewResult = (await accountCtrl.DoRetrievePassword(viewModel)) as ViewResult;
+        [Fact]
+        async void should_reset_password()
+        {
+            var user = CreateUser(true);
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var emailToken = new UserEmailToken { UserId = user.Id, Token = token };
+            var queryString = emailToken.EncodeAsUrlQueryString();
 
-            Assert.NotNull(viewResult);
-            viewResult.ViewName.ShouldEqual("DoRetrievePassword");
+            var controller = _app.CreateController<AccountController>();
+            var result = await controller.DoResetPassword(queryString, "newPassword") as ViewResult;
 
-
-            var generatedUrl = accountCtrl.GetFakeRouter().GetGeneratedUrl;
-            var token = generatedUrl["token"].ToString();
-            var userManager = _app.GetService<UserManager<User>>();
-            var resultPassword = await userManager.ResetPasswordAsync(mockUser, token, "123qwe@!#");
-
-            Assert.True(resultPassword.Succeeded);
+            result.ShouldNotBeNull();
+            (result.Model as IdentityResult).Succeeded.ShouldBeTrue();
         }
 
         #endregion
@@ -390,26 +407,33 @@ namespace Discussion.Web.Tests.Specs.Controllers
             authService.Verify();
         }
 
-        private Mock<IEmailDeliveryMethod> MockMailSender(bool willBeCalled = true)
+        Mock<IEmailDeliveryMethod> MockMailSender()
         {
             var mailSender = new Mock<IEmailDeliveryMethod>();
-            if (willBeCalled)
-            {
-                mailSender.Setup(sender => sender.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(Task.CompletedTask)
-                    .Verifiable();
-            }
+
+            mailSender.Setup(sender => sender.SendEmailAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
             _app.OverrideServices(services => services.AddSingleton(mailSender.Object));
+
             return mailSender;
         }
 
-        private User UseUpdatedAppUser(string newEmail, bool confirmed)
+        User CreateUser(bool emailConfirmed = false)
         {
-            var user = _app.MockUser();
-            user.EmailAddress = newEmail;
-            user.EmailAddressConfirmed = confirmed;
-            _userRepo.Update(user);
+            var user = new User
+            {
+                UserName = Guid.NewGuid().ToString(),
+                EmailAddress = $"{Guid.NewGuid()}@gmail.com",
+                EmailAddressConfirmed = emailConfirmed
+            };
+
+            _userRepo.Save(user);
+
             return user;
         }
     }
