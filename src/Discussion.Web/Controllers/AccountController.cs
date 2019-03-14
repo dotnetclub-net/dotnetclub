@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
@@ -158,8 +159,8 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
 
-        [Route("/retrieve-password")]
-        public IActionResult RetrievePassword()
+        [Route("/forgot-password")]
+        public IActionResult ForgotPassword()
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -170,8 +171,8 @@ namespace Discussion.Web.Controllers
         }
 
         [HttpPost]
-        [Route("/retrieve-password")]
-        public async Task<ApiResponse> DoRetrievePassword(RetrievePasswordModel model)
+        [Route("/forgot-password")]
+        public async Task<ApiResponse> DoForgotPassword(ForgotPasswordModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -195,38 +196,51 @@ namespace Discussion.Web.Controllers
 
         [HttpGet]
         [Route("/reset-password")]
-        public IActionResult ResetPassword(string token)
+        public IActionResult ResetPassword(ResetPasswordModel model)
         {
-            ViewData["token"] = token;
-            return View();
+            ModelState.Clear();
+
+            var userEmailToken = UserEmailToken.ExtractFromQueryString(model.Token);
+            if (userEmailToken == null)
+            {
+                ModelState.AddModelError(nameof(model.Token), "Token无法识别");
+                _logger.LogWarning($"重置密码失败：Token无法识别 {model.Token}");
+                return View(model);
+            }
+
+            model.Token = userEmailToken.Token;
+            model.UserId = userEmailToken.UserId;
+
+            return View(model);
         }
 
         [HttpPost]
         [Route("/reset-password")]
-        public async Task<IActionResult> DoResetPassword(string token, string newPassword)
+        public async Task<IActionResult> DoResetPassword(ResetPasswordModel model)
         {
-            var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
-            if (tokenInEmail == null)
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.FindByIdAsync(model.UserId.ToString());
+            if (user == null)
             {
-                var msg = "重置密码失败：无法识别提供的 token";
-                ViewData["error"] = msg;
-                _logger.LogWarning(msg);
-                return View("DoResetPassword");
+                ModelState.AddModelError(nameof(model.UserId), "该用户不存在");
+                return View(model);
             }
 
-            var user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
-            var result = await _userManager.ResetPasswordAsync(user, tokenInEmail.Token, newPassword);
-            if (result.Errors?.Count() > 0)
-            {
-                foreach (var err in result.Errors)
-                {
-                    ViewData["error"] += $"{err.Code}:{err.Description}";
-                }
-            }
-            return View(result);
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+
+            if (result.Errors.Any())
+                result.Errors.ToList()
+                    .ForEach(e => ModelState.AddModelError(e.Code, e.Description));
+
+            _logger.LogInformation($"重置密码成功：{user.UserName}");
+
+            model.Succeeded = true;
+
+            return View(model);
         }
 
-        User GetUserBy(RetrievePasswordModel model)
+        User GetUserBy(ForgotPasswordModel model)
         {
             var usernameOrEmail = model.UsernameOrEmail.ToLower();
 

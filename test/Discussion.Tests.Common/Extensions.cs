@@ -130,11 +130,7 @@ namespace Discussion.Tests.Common
             var getSuccess = get.ShouldSuccess(user);
             if (responseShouldContain != null)
             {
-                getSuccess.WithResponse(res =>
-                {
-
-                    return res.ReadAllContent().Contains(responseShouldContain);
-                });
+                getSuccess.WithResponse(res => res.ReadAllContent().Contains(responseShouldContain));
             }
 
             return getSuccess;

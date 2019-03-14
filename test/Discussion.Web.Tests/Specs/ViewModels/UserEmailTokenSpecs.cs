@@ -18,15 +18,15 @@ namespace Discussion.Web.Tests.Specs.ViewModels
                 Token = StringUtility.Random(32)
             };
 
-            var encoded = emailToken.EncodeAsUrlQueryString();
-            
-            
+            var encoded = emailToken.EncodeAsQueryString();
+
+
             var queryString = Encoding.ASCII.GetString(Convert.FromBase64String(encoded));
             var query = QueryHelpers.ParseQuery(queryString);
             Assert.Equal("35", query["userid"]);
             Assert.Equal(emailToken.Token, query["token"]);
         }
-        
+
         [Fact]
         public void should_decode_encoded_url_query_string()
         {
@@ -35,12 +35,11 @@ namespace Discussion.Web.Tests.Specs.ViewModels
                 UserId = 35,
                 Token = StringUtility.Random(32)
             };
-            var encoded = emailToken.EncodeAsUrlQueryString();
-            
-            
-            var extracted = UserEmailToken.ExtractFromUrlQueryString(encoded);
-            
-            
+            var encoded = emailToken.EncodeAsQueryString();
+
+
+            var extracted = UserEmailToken.ExtractFromQueryString(encoded);
+
             Assert.Equal(35, extracted.UserId);
             Assert.Equal(emailToken.Token, extracted.Token);
         }

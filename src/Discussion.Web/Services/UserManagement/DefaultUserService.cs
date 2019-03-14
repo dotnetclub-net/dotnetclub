@@ -98,7 +98,7 @@ namespace Discussion.Web.Services.UserManagement
             var callbackUrl = _urlHelper.Action(
                 "ConfirmEmail",
                 "User",
-                new {token = tokenInEmail.EncodeAsUrlQueryString()},
+                new {token = tokenInEmail.EncodeAsQueryString()},
                 protocol: urlProtocol);
 
             var emailBody = _confirmationEmailBuilder.BuildEmailBody(user.DisplayName, callbackUrl);
@@ -107,15 +107,15 @@ namespace Discussion.Web.Services.UserManagement
 
         public async Task SendEmailRetrievePasswordAsync(User user, string urlProtocol)
         {
-            var tokenString = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var tokenInEmail = new UserEmailToken { UserId = user.Id, Token = tokenString };
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var model = new UserEmailToken { UserId = user.Id, Token = token };
 
             // ReSharper disable Mvc.ActionNotResolved
             // ReSharper disable Mvc.ControllerNotResolved
             var resetUrl = _urlHelper.Action(
                 "ResetPassword",
                 "Account",
-                new { token = tokenInEmail.EncodeAsUrlQueryString() },
+                new { token = model.EncodeAsQueryString() },
                 protocol: urlProtocol);
 
             var emailBody = _resetPasswordEmailBuilder.BuildEmailBody(user.DisplayName, resetUrl);

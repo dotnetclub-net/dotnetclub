@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -290,14 +291,14 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
         #endregion
 
-        #region Retrieve Password
+        #region Forgot Password
 
         [Fact]
-        void should_return_retrieve_password_page_as_view_result()
+        void should_return_forgot_password_page_as_view_result()
         {
             var controller = _app.CreateController<AccountController>();
 
-            var result = controller.RetrievePassword() as ViewResult;
+            var result = controller.ForgotPassword() as ViewResult;
 
             Assert.NotNull(result);
         }
@@ -305,13 +306,13 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         async void should_not_send_reset_password_email_when_user_not_existed()
         {
-            var model = new RetrievePasswordModel
+            var model = new ForgotPasswordModel
             {
                 UsernameOrEmail = Guid.NewGuid().ToString()
             };
 
             var controller = _app.CreateController<AccountController>();
-            var result = await controller.DoRetrievePassword(model);
+            var result = await controller.DoForgotPassword(model);
 
             result.ErrorMessage.ShouldEqual("该用户不存在");
         }
@@ -320,10 +321,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
         async void should_not_send_reset_password_email_when_user_email_not_confirmed()
         {
             var user = CreateUser();
-            var model = new RetrievePasswordModel { UsernameOrEmail = user.UserName };
+            var model = new ForgotPasswordModel { UsernameOrEmail = user.UserName };
 
             var controller = _app.CreateController<AccountController>();
-            var result = await controller.DoRetrievePassword(model);
+            var result = await controller.DoForgotPassword(model);
 
             result.ErrorMessage.ShouldEqual("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
         }
@@ -332,11 +333,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
         async void should_send_reset_password_email()
         {
             var user = CreateUser(true);
-            var model = new RetrievePasswordModel { UsernameOrEmail = user.UserName };
+            var model = new ForgotPasswordModel { UsernameOrEmail = user.UserName };
 
             var mailSender = MockMailSender();
             var controller = _app.CreateController<AccountController>();
-            var result = await controller.DoRetrievePassword(model);
+            var result = await controller.DoForgotPassword(model);
 
             result.ShouldNotBeNull();
             result.HasSucceeded.ShouldBeTrue();
@@ -354,24 +355,44 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         void should_return_reset_password_page_as_view_result()
         {
+            var model = new ResetPasswordModel();
+
             var controller = _app.CreateController<AccountController>();
-            var result = controller.ResetPassword("token") as ViewResult;
+            var result = controller.ResetPassword(model) as ViewResult;
 
             Assert.NotNull(result);
+        }
+
+        [Fact]
+        void should_return_error_when_goto_reset_password_page_with_invalid_token()
+        {
+            var model = new ResetPasswordModel {Token = "hello"};
+
+            var controller = _app.CreateController<AccountController>();
+            var result = controller.ResetPassword(model);
+
+            controller.ModelState.IsValid.ShouldBeFalse();
+            controller.ModelState[nameof(model.Token)].Errors.First()
+                .ErrorMessage.ShouldEqual("Token无法识别");
         }
 
         [Fact]
         async void should_not_reset_password_when_token_invalid()
         {
             var user = CreateUser(true);
-            var emailToken = new UserEmailToken { UserId = user.Id, Token = "hello"};
-            var queryString = emailToken.EncodeAsUrlQueryString();
+            var model = new ResetPasswordModel
+            {
+                Token = "hello",
+                UserId = user.Id,
+                Password = "test123"
+            };
 
             var controller = _app.CreateController<AccountController>();
-            var result = await controller.DoResetPassword(queryString, "newPassword") as ViewResult;
+            var result = await controller.DoResetPassword(model) as ViewResult;
 
-            result.ShouldNotBeNull();
-            result.ViewData["error"].ShouldEqual("InvalidToken:验证令牌不正确");
+            controller.ModelState.IsValid.ShouldBeFalse();
+            controller.ModelState["InvalidToken"].Errors.First()
+                .ErrorMessage.ShouldEqual("验证令牌不正确");
         }
 
         [Fact]
@@ -379,14 +400,17 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var user = CreateUser(true);
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var emailToken = new UserEmailToken { UserId = user.Id, Token = token };
-            var queryString = emailToken.EncodeAsUrlQueryString();
+            var model = new ResetPasswordModel
+            {
+                Token = token,
+                UserId = user.Id,
+                Password = "test123"
+            };
 
             var controller = _app.CreateController<AccountController>();
-            var result = await controller.DoResetPassword(queryString, "newPassword") as ViewResult;
+            var result = await controller.DoResetPassword(model) as ViewResult;
 
-            result.ShouldNotBeNull();
-            (result.Model as IdentityResult).Succeeded.ShouldBeTrue();
+            (result.Model as ResetPasswordModel).Succeeded.ShouldBeTrue();
         }
 
         #endregion

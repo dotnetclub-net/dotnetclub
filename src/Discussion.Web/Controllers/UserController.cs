@@ -86,7 +86,7 @@ namespace Discussion.Web.Controllers
         [AllowAnonymous]
         public async Task<ViewResult> ConfirmEmail(string token)
         {
-            var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
+            var tokenInEmail = UserEmailToken.ExtractFromQueryString(token);
             if (tokenInEmail == null)
             {
                 _logger.LogWarning("确认邮件地址失败：无法识别提供的 token");

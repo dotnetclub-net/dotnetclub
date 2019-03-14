@@ -141,12 +141,12 @@ namespace Discussion.Web.Tests.IntegrationTests
 
         #endregion
 
-        #region Retrieve Password
+        #region Forgot Password
 
         [Fact]
-        void should_serve_retrieve_password_page_correctly()
+        void should_serve_forgot_password_page_correctly()
         {
-            _app.ShouldGet("/retrieve-password", responseShouldContain: "找回密码");
+            _app.ShouldGet("/forgot-password", responseShouldContain: "找回密码");
         }
 
         [Fact]
@@ -161,8 +161,8 @@ namespace Discussion.Web.Tests.IntegrationTests
                 .Returns(Task.CompletedTask);
             _app.OverrideServices(services => services.AddSingleton(mailDeliveryMethod.Object));
 
-            _app.ShouldPost("/retrieve-password",
-                    new RetrievePasswordModel {UsernameOrEmail = user.UserName},
+            _app.ShouldPost("/forgot-password",
+                    new ForgotPasswordModel {UsernameOrEmail = user.UserName},
                     signinStatus: SigninRequirement.SigninNotRequired)
                 .WithApiResult((api, _) => api.HasSucceeded.ShouldEqual(true));
         }
@@ -182,12 +182,14 @@ namespace Discussion.Web.Tests.IntegrationTests
         {
             var user = CreateUser();
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var emailToken = new UserEmailToken { UserId = user.Id, Token = token };
-            var queryString = emailToken.EncodeAsUrlQueryString();
+            var model = new ResetPasswordModel
+            {
+                Token = token,
+                UserId = user.Id,
+                Password = "test123"
+            };
 
-            _app.ShouldPost($"/reset-password",
-                    new {token = queryString, newPassword = "aaa111"},
-                    signinStatus: SigninRequirement.SigninNotRequired)
+            _app.ShouldPost($"/reset-password", model, SigninRequirement.SigninNotRequired)
                 .WithResponse(response =>
                 {
                     response.StatusCode.ShouldEqual(HttpStatusCode.OK);
