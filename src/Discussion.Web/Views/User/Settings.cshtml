@@ -26,7 +26,7 @@
                 <img src="@AvatarUrlService.GetAvatarUrl(Model)" title="点击更改头像" class="user-avatar"/>
             </div>
             <span class="avatar-note">点击更改头像，请使用 240x240 方形图片</span>
-            
+
         </div>
         <div>
             @Html.HiddenFor(model => model.AvatarFileId)
@@ -81,8 +81,8 @@
                 inputField: '#@(nameof(Model.AvatarFileId))'
             };
             var userModule = window.DiscussionApp.user;
-            
-            
+
+
             userModule.email.setupEditEmailAddress('@Model.EmailAddress', sendConfirmationMailUrl);
             userModule.avatar.setupUploadAvatar(avatarUploadSelectors, uploadAvatarUrl);
         });

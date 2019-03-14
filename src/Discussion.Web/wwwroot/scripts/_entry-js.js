@@ -13,8 +13,9 @@ import * as utils from './functions'
 import * as mdeditor from './markdown-editor'
 import * as topic from './topic'
 import * as user from './user/index'
+import * as account from './account/index'
 
 
 
 window.jQuery = window.$ = jQuery;
-window.DiscussionApp = { utils, mdeditor, topic, user  };
+window.DiscussionApp = { utils, mdeditor, topic, user, account };
