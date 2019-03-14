@@ -5,6 +5,8 @@ namespace Discussion.Web.ViewModels
 {
     public class TopicViewModel
     {
+        public TopicViewModel(){}
+        
         private TopicViewModel(Topic topic)
         {
             this.Topic = topic;
@@ -12,6 +14,7 @@ namespace Discussion.Web.ViewModels
 
         public int Id => this.Topic.Id;
 
+        public string Title { get; set; }
         public Topic Topic { get; }
 
         public List<Reply> Replies { get; set; }
@@ -22,6 +25,12 @@ namespace Discussion.Web.ViewModels
             {
                 Replies = replies
             };
+        }
+
+
+        public class NestedClass
+        {
+            public string Title { get; set; }
         }
     }
 }
