@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
@@ -132,5 +133,34 @@ namespace Discussion.Web.Tests.Specs.Controllers
             urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>())).Returns(fileLink);
             return urlHelper.Object;
         }
-    }
+        [Fact]
+        public async Task should_down_file_server()
+        {
+            try
+            {
+                ///模拟http下载文件请求，分别附加request headers If-Modified-Since If-None-Match 
+                ///第一次请求什么都不带 返回报文中检查响应头
+                ///第二次请求根据响应头中的时间和token验证，正确返回缓存 httostatuscode304
+                ///第三次请求根据响应头中正确时间和错误的token,返回下载文件 httostatuscode200
+                var client = new HttpClient();
+                var response = await client.GetAsync("https://localhost:5021/api/common/download/be8f02ca8fd44d0dbbc76513b6221a9f");
+                response.Headers.ETag.Tag.Equals("1c1b4216127d046");
+                //response.Headers.
+                string responseStatusCode = response.StatusCode.ToString();
+                Assert.Equal("304", responseStatusCode);
+                client.DefaultRequestHeaders.Add("If-Modified-Sinc", "");
+                client.DefaultRequestHeaders.Add("If-None-Match", "");
+                response = await client.GetAsync("https://localhost:5021/api/common/download/be8f02ca8fd44d0dbbc76513b6221a9f");
+                client.DefaultRequestHeaders.Add("If-Modified-Sinc", "");
+                client.DefaultRequestHeaders.Add("If-None-Match", "");
+                response = await client.GetAsync("https://localhost:5021/api/common/download/be8f02ca8fd44d0dbbc76513b6221a9f");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+
+        }
+    } 
 }
