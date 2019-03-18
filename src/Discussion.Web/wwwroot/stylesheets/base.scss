@@ -3,13 +3,9 @@
 @import "../lib/node_modules/bootstrap-sass/assets/stylesheets/bootstrap/scaffolding";
 @import "../lib/node_modules/@fortawesome/fontawesome-free/scss/brands";
 
-
-
 .no-padding{
 	padding: 0 !important;
 }
-
-
 
 body.with-generic-nav {
 	padding-top: 65px;
@@ -38,18 +34,18 @@ body.with-generic-nav {
 .header-user {
 	color:white;
 	margin-top: 15px;
-	
+
 	.avatar{
 		width:24px;
 		height: 24px;
 		border-radius: 2px;
 	}
-	
+
 	.dropdown {
 		.dropdown-toggle{
 			cursor: pointer;
 		}
-		
+
 		.dropdown-menu {
 			right: 0;
 			left: initial;
@@ -72,14 +68,14 @@ body.with-generic-nav {
 			}
 		}
 	}
-	
-	
+
+
 	.signout-form {
-		
+
 		&:hover, &:active {
 			background-color:$gray-content-hover;
 		}
-		
+
 		button {
 			display: block;
 			padding: 3px 20px;
@@ -99,18 +95,17 @@ body.with-generic-nav {
 	margin-top: 30px;
 	margin-bottom: 30px;
 	padding: 0;
-	
-	
+
+
 	.report-link{
 		color:$brand-lightest
 	}
 }
 
-
 a.link{
 	cursor: pointer;
 	text-decoration: none;
-	
+
 	&:hover,&:active{
 		text-decoration: underline;
 	}

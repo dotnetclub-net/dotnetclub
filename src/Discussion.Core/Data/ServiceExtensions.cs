@@ -16,7 +16,7 @@ namespace Discussion.Core.Data
     {
         public const string ConfigKeyConnectionString = "sqliteConnectionString";
         public const string ConfigKeyIgnoreReadOnlySettings = "ignoreReadOnlySettings";
-        
+
         public static void AddDataServices(this IServiceCollection services, IConfiguration appConfiguration, ILogger logger)
         {
             var connectionString = NormalizeConnectionString(appConfiguration[ConfigKeyConnectionString], out var createTemporary);
@@ -43,35 +43,35 @@ namespace Discussion.Core.Data
             var connectionString = appConfiguration[ConfigKeyConnectionString];
             var dataSource = new SqliteConnection(connectionString).DataSource;
             logger.LogInformation($"数据库位置：{dataSource}");
-            
+
             if (!File.Exists(dataSource))
             {
                 services.GetService<IApplicationLifetime>()
                     .ApplicationStarted
-                    .Register(() => databaseInitializer(connectionString));     
+                    .Register(() => databaseInitializer(connectionString));
             }
         }
-        
+
         private static string NormalizeConnectionString(string configuredConnectionString, out bool createTemporary)
         {
             string RandomDbName()
             {
                 return Path.Combine(Path.GetTempPath(), $"{StringUtility.Random()}-dnclub.db");
             }
-            
+
             createTemporary = string.IsNullOrWhiteSpace(configuredConnectionString);
-            return createTemporary 
-                ? $"Data Source={RandomDbName()}" 
+            return createTemporary
+                ? $"Data Source={RandomDbName()}"
                 : configuredConnectionString;
         }
-        
+
         private static Action<DbContextOptionsBuilder> PrepareSqlite(string connectionString)
         {
             // If use in-memory mode, then persist the db connection across ApplicationDbContext instances
             if (connectionString.Contains(":memory:"))
             {
                 var connection = new SqliteConnection(connectionString);
-                return options => options.UseSqlite(connection); 
+                return options => options.UseSqlite(connection);
             }
             else
             {

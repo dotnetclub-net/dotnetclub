@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography.Xml;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Microsoft.AspNetCore.Http;

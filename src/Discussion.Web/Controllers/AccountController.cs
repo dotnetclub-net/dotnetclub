@@ -4,28 +4,36 @@ using Discussion.Core.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
+using Discussion.Web.Services.UserManagement;
+using Discussion.Web.Services.UserManagement.Exceptions;
+using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Discussion.Web.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
-        private readonly ILogger<AccountController> _logger;
-        private readonly IRepository<User> _userRepo;
-        private readonly IClock _clock;
-        private readonly SiteSettings _settings;
+        readonly UserManager<User> _userManager;
+        readonly SignInManager<User> _signInManager;
+        readonly ILogger<AccountController> _logger;
+        readonly IRepository<User> _userRepo;
+        readonly IClock _clock;
+        readonly SiteSettings _settings;
+        readonly IUserService _userService;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<AccountController> logger, IRepository<User> userRepo, IClock clock, SiteSettings settings)
+            IUserService userService,
+            ILogger<AccountController> logger,
+            IRepository<User> userRepo,
+            IClock clock,
+            SiteSettings settings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -33,6 +41,7 @@ namespace Discussion.Web.Controllers
             _userRepo = userRepo;
             _clock = clock;
             _settings = settings;
+            _userService = userService;
         }
 
         [Route("/signin")]
@@ -45,10 +54,11 @@ namespace Discussion.Web.Controllers
             return View();
         }
 
-
         [HttpPost]
         [Route("/signin")]
-        public async Task<IActionResult> DoSignin([FromForm]UserViewModel viewModel, [FromQuery]string returnUrl)
+        public async Task<IActionResult> DoSignin(
+            [FromForm] UserViewModel viewModel,
+            [FromQuery] string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -95,7 +105,6 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
 
-
         [Route("/register")]
         public IActionResult Register()
         {
@@ -106,9 +115,9 @@ namespace Discussion.Web.Controllers
 
             return View();
         }
-        
+
         [HttpPost]
-        [Route("/register")]  
+        [Route("/register")]
         public async Task<IActionResult> DoRegister(UserViewModel registerModel)
         {
             if (!ModelState.IsValid)
@@ -150,8 +159,109 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
 
+        [Route("/forgot-password")]
+        public IActionResult ForgotPassword()
+        {
+            if (HttpContext.IsAuthenticated())
+            {
+                return RedirectTo("/");
+            }
 
-        private IActionResult RedirectTo(string returnUrl)
+            return View();
+        }
+
+        [HttpPost]
+        [Route("/forgot-password")]
+        public async Task<ApiResponse> DoForgotPassword(ForgotPasswordModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning($"找回密码失败：用户名或邮箱 {model.UsernameOrEmail} 数据格式不正确。");
+                return ApiResponse.Error(ModelState);
+            }
+
+            try
+            {
+                var user = GetUserBy(model);
+                await _userService.SendEmailRetrievePasswordAsync(user, Request.Scheme);
+                _logger.LogInformation($"发送重置密码邮件成功：{user.ConfirmedEmail}");
+                return ApiResponse.NoContent();
+            }
+            catch (RetrievePasswordVerificationException e)
+            {
+                _logger.LogWarning($"找回密码失败：{model.UsernameOrEmail} {e.Message}");
+                return ApiResponse.Error(e.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("/reset-password")]
+        public IActionResult ResetPassword(ResetPasswordModel model)
+        {
+            ModelState.Clear();
+
+            var userEmailToken = UserEmailToken.ExtractFromQueryString(model.Token);
+            if (userEmailToken == null)
+            {
+                ModelState.AddModelError(nameof(model.Token), "Token无法识别");
+                _logger.LogWarning($"重置密码失败：Token无法识别 {model.Token}");
+                return View(model);
+            }
+
+            model.Token = userEmailToken.Token;
+            model.UserId = userEmailToken.UserId;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("/reset-password")]
+        public async Task<IActionResult> DoResetPassword(ResetPasswordModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.FindByIdAsync(model.UserId.ToString());
+            if (user == null)
+            {
+                ModelState.AddModelError(nameof(model.UserId), "该用户不存在");
+                return View(model);
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+
+            if (result.Errors.Any())
+                result.Errors.ToList()
+                    .ForEach(e => ModelState.AddModelError(e.Code, e.Description));
+
+            _logger.LogInformation($"重置密码成功：{user.UserName}");
+
+            model.Succeeded = true;
+
+            return View(model);
+        }
+
+        User GetUserBy(ForgotPasswordModel model)
+        {
+            var usernameOrEmail = model.UsernameOrEmail.ToLower();
+
+            var users = _userRepo
+                .All()
+                .Where(e => e.UserName.ToLower() == usernameOrEmail ||
+                            e.EmailAddress != null && e.EmailAddress.ToLower() == usernameOrEmail)
+                .ToList();
+
+            if (!users.Any())
+                throw new RetrievePasswordVerificationException("该用户不存在");
+
+            var user = users.FirstOrDefault(e => e.EmailAddressConfirmed);
+
+            if (user == null)
+               throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
+
+            return user;
+        }
+
+        IActionResult RedirectTo(string returnUrl)
         {
             if (string.IsNullOrEmpty(returnUrl))
             {

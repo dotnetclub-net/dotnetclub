@@ -9,26 +9,25 @@ namespace Discussion.Web.ViewModels
 {
     public class UserEmailToken
     {
-        public int UserId { get; set; }
-        public string Token { get; set; }
-            
-            
-        public string EncodeAsUrlQueryString()
+        internal int UserId { get; set; }
+        internal string Token { get; set; }
+
+        internal string EncodeAsQueryString()
         {
             var callbackCode = $"userid={UserId}&token={WebUtility.UrlEncode(Token)}";
 
             return Convert.ToBase64String(Encoding.ASCII.GetBytes(callbackCode));
         }
 
-
-        public static UserEmailToken ExtractFromUrlQueryString(string queryStringToken)
+        internal static UserEmailToken ExtractFromQueryString(string queryString)
         {
-            Dictionary<string, StringValues> query = null;
+            if (string.IsNullOrWhiteSpace(queryString)) return null;
 
+            Dictionary<string, StringValues> query = null;
             try
             {
-                var queryString = Encoding.ASCII.GetString(Convert.FromBase64String(queryStringToken));
-                query = QueryHelpers.ParseQuery(queryString);
+                var str = Encoding.ASCII.GetString(Convert.FromBase64String(queryString));
+                query = QueryHelpers.ParseQuery(str);
             }
             catch
             {
@@ -42,7 +41,11 @@ namespace Discussion.Web.ViewModels
             parsedSucceeded = parsedSucceeded && !string.IsNullOrEmpty(tokenString);
 
             return parsedSucceeded
-                ? new UserEmailToken { UserId = userId, Token = WebUtility.UrlDecode(tokenString).Replace(" ", "+") }
+                ? new UserEmailToken
+                {
+                    UserId = userId,
+                    Token = WebUtility.UrlDecode(tokenString).Replace(" ", "+")
+                }
                 : null;
         }
     }

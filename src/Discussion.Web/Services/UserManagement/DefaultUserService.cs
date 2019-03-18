@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
@@ -22,21 +21,24 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IUrlHelper _urlHelper;
         private readonly IEmailDeliveryMethod _emailDeliveryMethod;
         private readonly IConfirmationEmailBuilder _confirmationEmailBuilder;
+        private readonly IResetPasswordEmailBuilder _resetPasswordEmailBuilder;
         private readonly IPhoneNumberVerificationService _phoneNumberVerificationService;
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
         private readonly IClock _clock;
 
-        public DefaultUserService(IRepository<User> userRepo, 
-            UserManager<User> userManager, 
-            IEmailDeliveryMethod emailDeliveryMethod, 
-            IUrlHelper urlHelper, 
-            IConfirmationEmailBuilder confirmationEmailBuilder, 
-            IPhoneNumberVerificationService phoneNumberVerificationService, 
+        public DefaultUserService(IRepository<User> userRepo,
+            UserManager<User> userManager,
+            IEmailDeliveryMethod emailDeliveryMethod,
+            IUrlHelper urlHelper,
+            IConfirmationEmailBuilder confirmationEmailBuilder,
+            IResetPasswordEmailBuilder resetPasswordEmailBuilder,
+            IPhoneNumberVerificationService phoneNumberVerificationService,
             IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock)
         {
             _userRepo = userRepo;
             _userManager = userManager;
             _emailDeliveryMethod = emailDeliveryMethod;
+            _resetPasswordEmailBuilder = resetPasswordEmailBuilder;
             _urlHelper = urlHelper;
             _confirmationEmailBuilder = confirmationEmailBuilder;
             _phoneNumberVerificationService = phoneNumberVerificationService;
@@ -51,7 +53,7 @@ namespace Discussion.Web.Services.UserManagement
             {
                 return updateEmailResult;
             }
-            
+
             user.AvatarFileId = userSettingsViewModel.AvatarFileId;
             user.DisplayName = userSettingsViewModel.DisplayName;
             if (string.IsNullOrWhiteSpace(user.DisplayName))
@@ -67,16 +69,16 @@ namespace Discussion.Web.Services.UserManagement
         {
             var existingEmail = user.EmailAddress?.Trim();
             var newEmail = userSettingsViewModel.EmailAddress?.Trim();
-            
+
             var emailNotChanged = existingEmail.IgnoreCaseEqual(newEmail);
             if (emailNotChanged)
             {
                 return IdentityResult.Success;
             }
-            
+
             var emailTaken = IsEmailTakenByAnotherUser(user.Id, newEmail);
-            
-            return emailTaken 
+
+            return emailTaken
                 ? EmailTakenResult()
                 : await _userManager.SetEmailAsync(user, newEmail);
         }
@@ -87,20 +89,37 @@ namespace Discussion.Web.Services.UserManagement
             {
                 throw new UserEmailAlreadyConfirmedException(user.UserName);
             }
-            
+
             var tokenString = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var tokenInEmail = new UserEmailToken {UserId = user.Id, Token = tokenString};
-            
+
             // ReSharper disable Mvc.ActionNotResolved
             // ReSharper disable Mvc.ControllerNotResolved
             var callbackUrl = _urlHelper.Action(
                 "ConfirmEmail",
                 "User",
-                new {token = tokenInEmail.EncodeAsUrlQueryString()},
+                new {token = tokenInEmail.EncodeAsQueryString()},
                 protocol: urlProtocol);
 
             var emailBody = _confirmationEmailBuilder.BuildEmailBody(user.DisplayName, callbackUrl);
             await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户邮件地址确认", emailBody);
+        }
+
+        public async Task SendEmailRetrievePasswordAsync(User user, string urlProtocol)
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var model = new UserEmailToken { UserId = user.Id, Token = token };
+
+            // ReSharper disable Mvc.ActionNotResolved
+            // ReSharper disable Mvc.ControllerNotResolved
+            var resetUrl = _urlHelper.Action(
+                "ResetPassword",
+                "Account",
+                new { token = model.EncodeAsQueryString() },
+                protocol: urlProtocol);
+
+            var emailBody = _resetPasswordEmailBuilder.BuildEmailBody(user.DisplayName, resetUrl);
+            await _emailDeliveryMethod.SendEmailAsync(user.EmailAddress, "dotnet club 用户密码重置", emailBody);
         }
 
         public async Task<IdentityResult> ConfirmEmailAsync(UserEmailToken tokenInEmail)
@@ -111,7 +130,7 @@ namespace Discussion.Web.Services.UserManagement
             {
                 return identityResult;
             }
-            
+
             if (IsEmailTakenByAnotherUser(tokenInEmail.UserId, user.EmailAddress))
             {
                 user.EmailAddressConfirmed = false;
@@ -123,7 +142,7 @@ namespace Discussion.Web.Services.UserManagement
 
         public async Task SendPhoneNumberVerificationCodeAsync(User user, string phoneNumber)
         {
-            if (!user.CanModifyPhoneNumberNow(_clock) || 
+            if (!user.CanModifyPhoneNumberNow(_clock) ||
                 _phoneNumberVerificationService.IsFrequencyExceededForUser(user.Id))
             {
                 throw new PhoneNumberVerificationFrequencyExceededException();
@@ -160,7 +179,7 @@ namespace Discussion.Web.Services.UserManagement
             {
                 return false;
             }
-            
+
             return _userRepo.All()
                 .Any(u => u.EmailAddressConfirmed
                           && u.Id != thisUserId
