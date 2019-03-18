@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
@@ -142,18 +144,56 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 ///第一次请求什么都不带 返回报文中检查响应头
                 ///第二次请求根据响应头中的时间和token验证，正确返回缓存 httostatuscode304
                 ///第三次请求根据响应头中正确时间和错误的token,返回下载文件 httostatuscode200
-                var client = new HttpClient();
-                var response = await client.GetAsync("https://localhost:5021/api/common/download/be8f02ca8fd44d0dbbc76513b6221a9f");
-                response.Headers.ETag.Tag.Equals("1c1b4216127d046");
-                //response.Headers.
-                string responseStatusCode = response.StatusCode.ToString();
-                Assert.Equal("304", responseStatusCode);
-                client.DefaultRequestHeaders.Add("If-Modified-Sinc", "");
-                client.DefaultRequestHeaders.Add("If-None-Match", "");
-                response = await client.GetAsync("https://localhost:5021/api/common/download/be8f02ca8fd44d0dbbc76513b6221a9f");
-                client.DefaultRequestHeaders.Add("If-Modified-Sinc", "");
-                client.DefaultRequestHeaders.Add("If-None-Match", "");
-                response = await client.GetAsync("https://localhost:5021/api/common/download/be8f02ca8fd44d0dbbc76513b6221a9f");
+                const string fileContent = "Hello World from a Fake File 其中还包含中文";
+                var appUser = _app.MockUser();
+                var storageFile = await _fs.CreateFileAsync("testing/the-file.txt");
+                long fileLength;
+
+                using (var ms = new MemoryStream())
+                {
+                    var writer = new StreamWriter(ms);
+                    writer.Write(fileContent);
+                    writer.Flush();
+                    ms.Seek(0, SeekOrigin.Begin);
+                    fileLength = ms.Length;
+
+                    using (var dest = await storageFile.OpenWriteAsync())
+                    {
+                        await ms.CopyToAsync(dest);
+                    }
+                }
+                var fileRecord = new FileRecord
+                {
+                    OriginalName = "the-file.txt",
+                    Category = "testing",
+                    UploadedBy = appUser.Id,
+                    StoragePath = storageFile.GetPath(),
+                    Size = fileLength,
+                    Slug = Guid.NewGuid().ToString("N")
+                };
+                _fileRepo.Save(fileRecord);
+
+
+                var last = _fileRepo.All().FirstOrDefault(f => f.Slug.ToLower() == fileRecord.Slug.ToLower()).ModifiedAtUtc;
+                DateTimeOffset lastOffset = DateTime.SpecifyKind(last, DateTimeKind.Utc);
+                var _lastModified = new DateTimeOffset(lastOffset.Year, lastOffset.Month, lastOffset.Day,
+                                lastOffset.Hour, lastOffset.Minute, lastOffset.Second, lastOffset.Offset).ToUniversalTime();
+                long etagHash = _lastModified.ToFileTime() ^ fileLength;
+                var entityTag = new EntityTagHeaderValue('\"' + Convert.ToString(etagHash, 16) + '\"');
+                DateTime dtTomorrow = DateTime.Now.AddDays(1);
+                var commonController = _app.CreateController<CommonController>();
+                var downloadResult = await commonController.DownloadFile(fileRecord.Slug, download: true) as FileStreamResult;
+                Assert.Equal(downloadResult.EntityTag.Tag.Value, entityTag.Tag);
+
+                commonController.Request.Headers.Add("If-None-Match", entityTag.Tag);
+                commonController.Request.Headers.Add("If-Modified-Since", dtTomorrow.ToString());
+                var downloadResultByRedirect = await commonController.DownloadFile(fileRecord.Slug, download: true) as StatusCodeResult;
+                Assert.Equal("304", downloadResultByRedirect.StatusCode.ToString());
+
+
+                commonController.Request.Headers["If-Modified-Since"] = DateTime.Now.AddHours(-1).ToString();
+                var downloadResultByStatus = await commonController.DownloadFile(fileRecord.Slug, download: true) as FileStreamResult;
+                Assert.Equal(downloadResult.EntityTag.Tag.Value, entityTag.Tag);
             }
             catch(Exception ex)
             {

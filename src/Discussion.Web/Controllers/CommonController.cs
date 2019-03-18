@@ -104,13 +104,12 @@ namespace Discussion.Web.Controllers
             //根据etag 头 和expires 头判断是否要返回缓存
             //返回缓存条件  expires没过期&etag文件没有发生变化
             //重新请求条件 ① expires过期 ②expires没过期，但是etag发生变化 ③没有expires 或者etag头
+            //ResponseCache 特性是常规的缓存
             var entityTag = new EntityTagHeaderValue("\"CalculatedEtagValue\"");
             string dt = Request.Headers["If-Modified-Since"];
             DateTime isModifiedSince;
             DateTime.TryParse(dt, out isModifiedSince);
             string etag= Request.Headers["If-None-Match"];
-            //if(!string.IsNullOrWhiteSpace(etag))
-            //    etag = etag.Replace("\"", "");
             var fileRecord = _fileRepo.All().FirstOrDefault(f => f.Slug.ToLower() == slug.ToLower());
             if (fileRecord == null)
             {
@@ -131,7 +130,7 @@ namespace Discussion.Web.Controllers
                             lastOffset.Hour, lastOffset.Minute, lastOffset.Second, lastOffset.Offset).ToUniversalTime();
             long etagHash = _lastModified.ToFileTime() ^ length;
             entityTag = new EntityTagHeaderValue('\"' + Convert.ToString(etagHash, 16) + '\"');
-            if (isModifiedSince != null && isModifiedSince>= DateTime.Now && entityTag.Tag.Value.Equals(etag))
+            if (isModifiedSince != DateTime.MinValue && isModifiedSince>= DateTime.Now && entityTag.Tag.Value.Equals(etag))
             {
                 return new StatusCodeResult(304);  
             }
