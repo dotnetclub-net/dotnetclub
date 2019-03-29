@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
+using Discussion.Core.ETag;
 using Discussion.Core.FileSystem;
 using Discussion.Core.Markdown;
 using Discussion.Core.Models;
@@ -25,13 +26,15 @@ namespace Discussion.Web.Controllers
         private readonly IRepository<FileRecord> _fileRepo;
         private readonly IContentTypeProvider _contentTypeProvider;
         private readonly ILogger<CommonController> _logger;
+        private readonly ITagBuilder _tagbuilder;
 
-        public CommonController(IFileSystem fileSystem, IRepository<FileRecord> fileRepo, IContentTypeProvider contentTypeProvider, ILogger<CommonController> logger)
+        public CommonController(IFileSystem fileSystem, IRepository<FileRecord> fileRepo, IContentTypeProvider contentTypeProvider, ITagBuilder tagbuilder, ILogger<CommonController> logger)
         {
             _fileSystem = fileSystem;
             _fileRepo = fileRepo;
             _contentTypeProvider = contentTypeProvider;
             _logger = logger;
+            _tagbuilder = tagbuilder;
         }
 
         [HttpPost("md2html")]
@@ -97,7 +100,6 @@ namespace Discussion.Web.Controllers
         }
 
         [HttpGet("download/{slug}", Name = "")]
-        //[ResponseCache(Duration = 600)]
         [AllowAnonymous]
         public async Task<IActionResult> DownloadFile(string slug, [FromQuery] bool? download)
         {
@@ -105,11 +107,9 @@ namespace Discussion.Web.Controllers
             //返回缓存条件  expires没过期&etag文件没有发生变化
             //重新请求条件 ① expires过期 ②expires没过期，但是etag发生变化 ③没有expires 或者etag头
             //ResponseCache 特性是常规的缓存
-            var entityTag = new EntityTagHeaderValue("\"CalculatedEtagValue\"");
             string dt = Request.Headers["If-Modified-Since"];
-            DateTime isModifiedSince;
-            DateTime.TryParse(dt, out isModifiedSince);
-            string etag= Request.Headers["If-None-Match"];
+            DateTime.TryParse(dt, out var isModifiedSince);
+            string etag = Request.Headers["If-None-Match"];
             var fileRecord = _fileRepo.All().FirstOrDefault(f => f.Slug.ToLower() == slug.ToLower());
             if (fileRecord == null)
             {
@@ -120,22 +120,16 @@ namespace Discussion.Web.Controllers
             {
                 return NotFound();
             }
-            var buffered = new BufferedStream(await file.OpenReadAsync(), 8 * 1024);
             var shouldDownload = download.HasValue && download.Value;
-            long length;
-            length = file.GetSize();
-            var last = fileRecord.ModifiedAtUtc;
-            DateTimeOffset lastOffset = DateTime.SpecifyKind(last, DateTimeKind.Utc);
-            var _lastModified = new DateTimeOffset(lastOffset.Year, lastOffset.Month, lastOffset.Day,
-                            lastOffset.Hour, lastOffset.Minute, lastOffset.Second, lastOffset.Offset).ToUniversalTime();
-            long etagHash = _lastModified.ToFileTime() ^ length;
-            entityTag = new EntityTagHeaderValue('\"' + Convert.ToString(etagHash, 16) + '\"');
-            if (isModifiedSince != DateTime.MinValue && isModifiedSince>= DateTime.Now && entityTag.Tag.Value.Equals(etag))
+            var entityTag = _tagbuilder.EntityTagBuild(fileRecord.ModifiedAtUtc, file.GetSize()); 
+            if (isModifiedSince != DateTime.MinValue && isModifiedSince >= DateTime.Now && entityTag.Tag.Value.Equals(etag))
             {
-                return new StatusCodeResult(304);  
+                return new StatusCodeResult(304);
             }
             else
             {
+                Response.StatusCode = 200;
+                var buffered = new BufferedStream(await file.OpenReadAsync(), 8 * 1024);
                 if (!_contentTypeProvider.TryGetContentType(fileRecord.OriginalName, out var contentType))
                 {
                     contentType = "aplpication/octet-stream";
@@ -147,11 +141,6 @@ namespace Discussion.Web.Controllers
                     LastModified = DateTime.UtcNow.AddDays(1)
                 };
             }
-
-            #region Old Return Response
-            //return File(buffered, "text/plain", "downloadName.txt",
-            //lastModified: DateTime.UtcNow.AddSeconds(-5), entityTag: entityTag);
-            #endregion
         }
     }
 }
