@@ -1,0 +1,22 @@
+kind: ReplicaSet
+apiVersion: apps/v1
+metadata:
+  name: web-rs
+  labels:
+    name: web-rs
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: dotnetclub
+          image: jijiechen/dotnetclub:201902240624
+          ports:
+            - name: http
+              containerPort: 5000
