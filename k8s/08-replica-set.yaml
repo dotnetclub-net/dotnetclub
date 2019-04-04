@@ -18,6 +18,9 @@ spec:
         - name: web-data
           persistentVolumeClaim: 
             claimName: web-claim
+        - name: web-config-data
+          configMap: 
+            name: web-config
       securityContext:
             runAsUser: 5000
             fsGroup: 5000
@@ -30,3 +33,7 @@ spec:
           volumeMounts:
             - mountPath: /club-data
               name: web-data
+            - mountPath: /club-data/appsettings.json
+              name: web-config-data
+              subPath: appsettings.json
+          
