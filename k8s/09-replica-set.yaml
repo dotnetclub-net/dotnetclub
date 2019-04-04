@@ -21,6 +21,9 @@ spec:
         - name: web-config-data
           configMap: 
             name: web-config
+        - name: web-protection-keys-repo
+          secret: 
+            secretName: web-protection-keys
       securityContext:
             runAsUser: 5000
             fsGroup: 5000
@@ -36,4 +39,6 @@ spec:
             - mountPath: /club-data/appsettings.json
               name: web-config-data
               subPath: appsettings.json
+            - mountPath: /data-protection-keys
+              name: web-protection-keys-repo
           

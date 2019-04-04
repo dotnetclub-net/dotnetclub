@@ -12,5 +12,10 @@ data:
           },
           "PathFormat": "/club-data/logs/log-{Date}.log",
           "FileSizeLimitBytes": 10485760
+        },
+        "DataProtectionOptions": {
+          "DisableAutomaticKeyGeneration" : true,
+          "KeyRepositoryPath": "/data-protection-keys/",
+          "ApplicationName": "dotnetclub"
         }
     }

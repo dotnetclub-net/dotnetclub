@@ -12,3 +12,8 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 5000
+
+
+# todo: add storage class and dynamic storage provisioning
+# todo: add ingress and support HTTPS
+# todo: refresh data protection keys every 90 days
