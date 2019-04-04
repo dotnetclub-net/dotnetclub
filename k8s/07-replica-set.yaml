@@ -5,7 +5,7 @@ metadata:
   labels:
     name: web-rs
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels: 
       app: web
@@ -14,9 +14,19 @@ spec:
       labels:
         app: web
     spec:
+      volumes:
+        - name: web-data
+          persistentVolumeClaim: 
+            claimName: web-claim
+      securityContext:
+            runAsUser: 5000
+            fsGroup: 5000
       containers:
         - name: dotnetclub
           image: jijiechen/dotnetclub:201902240624
           ports:
             - name: http
               containerPort: 5000
+          volumeMounts:
+            - mountPath: /club-data
+              name: web-data
