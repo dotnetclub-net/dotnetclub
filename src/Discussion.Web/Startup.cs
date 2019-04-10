@@ -34,6 +34,7 @@ using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.StaticFiles;
+using Discussion.Core.ETag;
 
 namespace Discussion.Web
 {
@@ -101,6 +102,7 @@ namespace Discussion.Web
             services.AddSingleton<IConfirmationEmailBuilder, DefaultConfirmationEmailBuilder>();
             services.AddSingleton<IResetPasswordEmailBuilder, DefaultResetPasswordEmailBuilder>();
             services.AddScoped<IUserService, DefaultUserService>();
+            services.AddScoped<ITagBuilder, ETagBuilder>();
 
             services.AddScoped<IChatHistoryImporter, DefaultChatHistoryImporter>();
             var chatyConfig = _appConfiguration.GetSection(nameof(ChatyOptions));
