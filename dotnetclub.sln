@@ -34,9 +34,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s", "k8s", "{1F52EE92-F21E-4B51-A9EB-439294F84FA8}"
 ProjectSection(SolutionItems) = preProject
 	k8s\00-namespace.yaml = k8s\00-namespace.yaml
-	k8s\01-limitrange.yaml = k8s\01-limitrange.yaml
-	k8s\06-replicaset.yaml = k8s\06-replicaset.yaml
-	k8s\07-service.yaml = k8s\07-service.yaml
+	k8s\01-limit-range.yaml = k8s\01-limit-range.yaml
+	k8s\02-glusterfs-endpoint.yaml = k8s\02-glusterfs-endpoint.yaml
+	k8s\03-persistent-volume.yaml = k8s\03-persistent-volume.yaml
+	k8s\06-persistent-volume-claim.yaml = k8s\06-persistent-volume-claim.yaml
+	k8s\07-config-map.yaml = k8s\07-config-map.yaml
+	k8s\08-secret.yaml = k8s\08-secret.yaml
+	k8s\09-replica-set.yaml = k8s\09-replica-set.yaml
+	k8s\10-service.yaml = k8s\10-service.yaml
 EndProjectSection
 EndProject
 Global
