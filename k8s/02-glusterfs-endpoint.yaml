@@ -13,3 +13,8 @@ subsets:
     ports:
       - port: 24007
         name: glusterd
+  - addresses:
+      - ip: 192.168.1.76
+    ports:
+      - port: 24007
+        name: glusterd
