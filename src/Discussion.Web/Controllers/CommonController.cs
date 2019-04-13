@@ -144,7 +144,7 @@ namespace Discussion.Web.Controllers
             {
                 FileDownloadName = shouldDownload ? fileRecord.OriginalName : null,
                 EntityTag = entityTag,
-                LastModified = DateTime.UtcNow.AddDays(1)
+                LastModified = new DateTimeOffset(fileRecord.ModifiedAtUtc, TimeSpan.Zero)
             };
         }
     }

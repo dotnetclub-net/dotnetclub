@@ -94,6 +94,57 @@ namespace Discussion.Web.Tests.Specs.Controllers
             }
         }
 
+        [Fact]
+        public async Task should_down_file_server()
+        {
+            var file = await CreateUploadedFileAsync("some content");
+
+            var commonController = _app.CreateController<CommonController>();
+            var downloadResult = await commonController.DownloadFile(file.Slug, download: false) as FileStreamResult;
+
+            Assert.NotNull(downloadResult);
+            Assert.Equal("\"1d4f0c2abf7000c\"", downloadResult.EntityTag.Tag.Value);
+            Assert.True(downloadResult.LastModified.HasValue);
+            Assert.Equal("2019-04-12", downloadResult.LastModified.Value.UtcDateTime.ToString("yyyy-MM-dd"));
+        }
+       
+        [Fact]
+        public async Task should_down_file_server_with_if_non_match_etag()
+        {
+            var file = await CreateUploadedFileAsync("some content");
+
+            var commonController = _app.CreateController<CommonController>();
+            commonController.Request.Headers.Add("If-None-Match", "\"1d4f0c2abf7000c\"");
+            var downloadResult = await commonController.DownloadFile(file.Slug, download: false) as StatusCodeResult;
+            
+            Assert.NotNull(downloadResult);
+            Assert.Equal(304, downloadResult.StatusCode);
+        }
+        
+        [Fact]
+        public async Task should_down_file_server_with_if_modified_since()
+        {
+            var file = await CreateUploadedFileAsync("some content");
+
+            var commonController = _app.CreateController<CommonController>();
+            commonController.Request.Headers["If-Modified-Since"] = new DateTime(2019, 4, 13).ToString("R");
+            var downloadResult = await commonController.DownloadFile(file.Slug, download: false) as StatusCodeResult;
+            
+            Assert.NotNull(downloadResult);
+            Assert.Equal(304, downloadResult.StatusCode);
+        }
+
+        [Fact]
+        public void should_build_etag()
+       {
+            var fileModifiedAtUtc = DateTime.Parse("2002/2/13 0:00:00");
+            
+            var etag = _tagBuilder.EntityTagBuild(fileModifiedAtUtc,4166);
+            
+            Assert.Equal("\"1c1b4216127d046\"", etag.Tag.ToString());
+        }
+        
+        
         private async Task<FileRecord> CreateUploadedFileAsync(string fileContent)
         {
             var rand = StringUtility.Random(5);
@@ -147,54 +198,5 @@ namespace Discussion.Web.Tests.Specs.Controllers
             return urlHelper.Object;
         }
 
-        [Fact]
-        public async Task should_down_file_server()
-        {
-            var file = await CreateUploadedFileAsync("some content");
-
-            var commonController = _app.CreateController<CommonController>();
-            var downloadResult = await commonController.DownloadFile(file.Slug, download: false) as FileStreamResult;
-
-            Assert.NotNull(downloadResult);
-            Assert.Equal("\"1d4f0c2abf7000c\"", downloadResult.EntityTag.Tag.Value);
-        }   
-        
-       
-        [Fact]
-        public async Task should_down_file_server_with_if_non_match_etag()
-        {
-            var file = await CreateUploadedFileAsync("some content");
-
-            var commonController = _app.CreateController<CommonController>();
-            commonController.Request.Headers.Add("If-None-Match", "\"1d4f0c2abf7000c\"");
-            var downloadResult = await commonController.DownloadFile(file.Slug, download: false) as StatusCodeResult;
-            
-            Assert.NotNull(downloadResult);
-            Assert.Equal(304, downloadResult.StatusCode);
-        }
-        
-        [Fact]
-        public async Task should_down_file_server_with_if_modified_since()
-        {
-            var file = await CreateUploadedFileAsync("some content");
-
-            var commonController = _app.CreateController<CommonController>();
-            commonController.Request.Headers["If-Modified-Since"] = new DateTime(2019, 4, 13).ToString("R");
-            var downloadResult = await commonController.DownloadFile(file.Slug, download: false) as StatusCodeResult;
-            
-            Assert.NotNull(downloadResult);
-            Assert.Equal(304, downloadResult.StatusCode);
-        }
-
-
-        [Fact]
-        public void should_build_etag()
-       {
-            var fileModifiedAtUtc = DateTime.Parse("2002/2/13 0:00:00");
-            
-            var etag = _tagBuilder.EntityTagBuild(fileModifiedAtUtc,4166);
-            
-            Assert.Equal("\"1c1b4216127d046\"", etag.Tag.ToString());
-        }
     }
 }
