@@ -8,6 +8,7 @@ spec:
   volumeMode: Filesystem
   accessModes:
     - ReadWriteMany 
+  storageClassName: fast
   resources:
     requests:
       storage: 1Gi
