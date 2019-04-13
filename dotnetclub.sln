@@ -31,19 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discussion.Admin.Tests", "t
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discussion.Tests.Common", "test\Discussion.Tests.Common\Discussion.Tests.Common.csproj", "{5E41FD48-7E90-4A6F-A69D-D523B3F63744}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s", "k8s", "{1F52EE92-F21E-4B51-A9EB-439294F84FA8}"
-ProjectSection(SolutionItems) = preProject
-	k8s\00-namespace.yaml = k8s\00-namespace.yaml
-	k8s\01-limit-range.yaml = k8s\01-limit-range.yaml
-	k8s\02-glusterfs-endpoint.yaml = k8s\02-glusterfs-endpoint.yaml
-	k8s\03-persistent-volume.yaml = k8s\03-persistent-volume.yaml
-	k8s\06-persistent-volume-claim.yaml = k8s\06-persistent-volume-claim.yaml
-	k8s\07-config-map.yaml = k8s\07-config-map.yaml
-	k8s\08-secret.yaml = k8s\08-secret.yaml
-	k8s\09-replica-set.yaml = k8s\09-replica-set.yaml
-	k8s\10-service.yaml = k8s\10-service.yaml
-EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
