@@ -1,0 +1,41 @@
+# 如果使用静态 PV，请注释 06-persistent-volume-claim 中的 storageClassName 配置（以及此行）
+
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: local-glusterfs 
+subsets:
+  - addresses:
+      - ip: 192.168.1.74
+    ports:
+      - port: 24007
+        name: glusterd
+  - addresses:
+      - ip: 192.168.1.75
+    ports:
+      - port: 24007
+        name: glusterd
+  - addresses:
+      - ip: 192.168.1.76
+    ports:
+      - port: 24007
+        name: glusterd
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-gfs
+  annotations:
+    pv.beta.kubernetes.io/gid: "590" 
+spec:
+  capacity:
+    storage: 2Gi 
+  accessModes: 
+    - ReadWriteMany
+  glusterfs:
+    endpoints: local-glusterfs
+    path: gv0
+    readOnly: false
+  persistentVolumeReclaimPolicy: Retain

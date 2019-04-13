@@ -8,7 +8,7 @@ spec:
   volumeMode: Filesystem
   accessModes:
     - ReadWriteMany 
-  storageClassName: fast
+  storageClassName: fast     # 如果使用静态 PV，请注释此行
   resources:
     requests:
       storage: 1Gi
