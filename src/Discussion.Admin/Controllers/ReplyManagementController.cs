@@ -5,6 +5,7 @@ using Discussion.Core.Data;
 using Discussion.Core.Markdown;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -49,8 +50,8 @@ namespace Discussion.Admin.Controllers
                         HtmlContent = r.Content.MdToHtml(),
                         Author = new AuthorSummary
                         {
-                            Id = r.CreatedByUser.Id,
-                            DisplayName = r.CreatedByUser.DisplayName
+                            Id = r.CreatedByUser?.Id ?? 0, // todo: present wechat account
+                            DisplayName = r.Author.DisplayName
                         },
                         CreatedAt = r.CreatedAtUtc
                     })

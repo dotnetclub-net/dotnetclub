@@ -70,8 +70,7 @@ namespace Discussion.Web.Tests.Specs.Services
                 _weChatAccountRepo,
                 app.GetService<IFileSystem>(),
                 currentUser.Object,
-                optionsMock.Object, 
-                app.GetService<INameGenerator>());
+                optionsMock.Object);
             
             app.DeleteAll<FileRecord>();
             app.DeleteAll<WeChatAccount>();
@@ -224,15 +223,12 @@ namespace Discussion.Web.Tests.Specs.Services
             Assert.NotNull(importResult[0].CreatedByWeChatAccount);
             Assert.Equal("Wx_FIRST_PERSON", importResult[0].CreatedByWeChatAccount.WxId);
             Assert.NotEqual("someone", importResult[0].CreatedByWeChatAccount.DisplayName);
-            Assert.True(importResult[0].CreatedByWeChatAccount.DisplayName == importResult[2].CreatedByWeChatAccount.DisplayName);
 
             var wxAccounts = _weChatAccountRepo.All().OrderBy(a => a.Id).ToList();
             Assert.Equal(2, wxAccounts.Count);
             Assert.Equal("Wx_FIRST_PERSON", wxAccounts[0].WxId);
-            Assert.NotEqual("someone", wxAccounts[0].NickName);
             
             Assert.Equal("Wx_SECOND_PERSON", wxAccounts[1].WxId);
-            Assert.NotEqual("Another one", wxAccounts[1].NickName);
         }
         
         [Fact]

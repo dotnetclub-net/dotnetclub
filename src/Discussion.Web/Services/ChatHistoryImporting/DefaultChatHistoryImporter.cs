@@ -26,7 +26,6 @@ namespace Discussion.Web.Services.ChatHistoryImporting
         private readonly IFileSystem _fileSystem;
         private readonly ICurrentUser _currentUser;
         private readonly ChatyOptions _chatyOptions;
-        private readonly INameGenerator _nameGenerator;
 
         public DefaultChatHistoryImporter(IClock clock,
             HttpMessageInvoker httpClient,
@@ -34,7 +33,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
             IRepository<FileRecord> fileRepo,
             IRepository<WeChatAccount> weChatAccountRepo,
             IFileSystem fileSystem,
-            ICurrentUser currentUser, IOptions<ChatyOptions> chatyOptions, INameGenerator nameGenerator)
+            ICurrentUser currentUser, IOptions<ChatyOptions> chatyOptions)
         {
             _clock = clock;
             _httpClient = httpClient;
@@ -43,7 +42,6 @@ namespace Discussion.Web.Services.ChatHistoryImporting
             _weChatAccountRepo = weChatAccountRepo;
             _fileSystem = fileSystem;
             _currentUser = currentUser;
-            _nameGenerator = nameGenerator;
             _chatyOptions = chatyOptions.Value;
         }
 
@@ -123,8 +121,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
             {
                 wechatAccount = new WeChatAccount
                 {
-                    WxId = msg.SourceWxId,
-                    NickName = _nameGenerator.GenerateName()
+                    WxId = msg.SourceWxId
                 };
                 _weChatAccountRepo.Save(wechatAccount);
             }

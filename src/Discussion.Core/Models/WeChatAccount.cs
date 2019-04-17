@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Discussion.Core.Models.UserAvatar;
+using Discussion.Core.Utilities;
 
 namespace Discussion.Core.Models
 {
@@ -11,21 +12,11 @@ namespace Discussion.Core.Models
         public string WxAccount { get; set; }
 
         [NotMapped]
-        public string DisplayName => NickName;
-        public string NickName { get; set; }
-
-        [ForeignKey("AvatarFileId")]
-        public FileRecord AvatarFile { get; set; }
-        public int? AvatarFileId { get; set; }
+        public string DisplayName => RandomDisplayNameGenerator.Generate();
 
         public IUserAvatar GetAvatar()
         {
-            if (AvatarFileId == null)
-            {
-                return new DefaultAvatar();
-            }
-
-            return new StorageFileAvatar {StorageFileSlug = AvatarFile.Slug};
+            return new GravatarAvatar{ EmailAddress = $"{WxId}@wechat-user.com"};
         }
     }
 }
