@@ -30,8 +30,8 @@ namespace Discussion.Web.Tests.Specs.Services
         [Fact]
         public void should_generate_unique_names()
         {
-            var names = new List<string>(100);
-            var i = 100;
+            var names = new List<string>();
+            var i = 10;
             do
             {
                 names.Add(_nameGenerator.GenerateName());
