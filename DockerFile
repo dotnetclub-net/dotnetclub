@@ -1,11 +1,11 @@
 # How to run this image?
 # 1. (optional) At (WorkDir), Create your appsettings.json or appsettings.<env>.json
 # 2. (optional) At (WorkDir), Create your database file
-# 3. Execute docker run -d -v (WorkDir):/club-data -p 5000:5000 jijiechen/dotnetclub 
+# 3. Execute docker run -d -v (WorkDir):/club-data -p 5000:5000 jijiechen/dotnetclub
 
 
 
-FROM microsoft/dotnet:2.1.6-runtime
+FROM microsoft/dotnet:2.1.8-runtime
 
 ENV ASPNETCORE_URLS http://*:5000
 VOLUME /club-data

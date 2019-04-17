@@ -5,11 +5,11 @@ import * as utils from '../functions'
 var currentStatus = '';
 var actionUrl = '';
 
-export function setupRetrieve(original, actionApiUrl) {
+export function setupForgot(actionApiUrl) {
     actionUrl = actionApiUrl;
     updateOperations('send');
 
-    $('a.link.retrieve-operation').click(send);
+    $('a.link.forgot-operation').click(send);
 
     $('input[name=UsernameOrEmail]').click(function () {
         updateOperations('send');
@@ -18,8 +18,8 @@ export function setupRetrieve(original, actionApiUrl) {
 
 function updateOperations(status) {
     currentStatus = status;
-    $('.retrieve-operation').hide();
-    $('.retrieve-operation[data-status=' + currentStatus + ']').show();
+    $('.forgot-operation').hide();
+    $('.forgot-operation[data-status=' + currentStatus + ']').show();
 
     if (status === 'sent') {
         $('span[data-status=sent-2]').hide();
@@ -56,12 +56,12 @@ function send() {
             if (data.hasSucceeded) {
                 updateOperations('sent');
             } else {
-                $('span[data-status=error]').html(data.errorMessage)
+                $('span[data-status=error]').html(data.errorMessage);
                 updateOperations('error');
             }
         },
         error: function(data) {
-            $('span[data-status=error]').html('无法发送邮件，请稍后再试')
+            $('span[data-status=error]').html('无法发送邮件，请稍后再试');
             updateOperations('error');
         }
     });

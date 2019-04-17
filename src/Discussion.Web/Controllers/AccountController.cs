@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Discussion.Core.Communication.Email;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
 using Discussion.Web.Services.UserManagement;
@@ -18,19 +18,22 @@ namespace Discussion.Web.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
-        private readonly ILogger<AccountController> _logger;
-        private readonly IRepository<User> _userRepo;
-        private readonly IClock _clock;
-        private readonly SiteSettings _settings;
-        private readonly IUserService _userService;
+        readonly UserManager<User> _userManager;
+        readonly SignInManager<User> _signInManager;
+        readonly ILogger<AccountController> _logger;
+        readonly IRepository<User> _userRepo;
+        readonly IClock _clock;
+        readonly SiteSettings _settings;
+        readonly IUserService _userService;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IUserService userService,
-            ILogger<AccountController> logger, IRepository<User> userRepo, IClock clock, SiteSettings settings)
+            ILogger<AccountController> logger,
+            IRepository<User> userRepo,
+            IClock clock,
+            SiteSettings settings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -39,8 +42,10 @@ namespace Discussion.Web.Controllers
             _clock = clock;
             _settings = settings;
             _userService = userService;
+        
+            _userService = userService;
         }
-
+        
         [Route("/signin")]
         public IActionResult Signin([FromQuery]string returnUrl)
         {
@@ -53,7 +58,9 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/signin")]
-        public async Task<IActionResult> DoSignin([FromForm]UserViewModel viewModel, [FromQuery]string returnUrl)
+        public async Task<IActionResult> DoSignin(
+            [FromForm] UserViewModel viewModel,
+            [FromQuery] string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -99,6 +106,7 @@ namespace Discussion.Web.Controllers
             await _signInManager.SignOutAsync();
             return RedirectTo("/");
         }
+
 
         [Route("/register")]
         public IActionResult Register()
@@ -154,8 +162,8 @@ namespace Discussion.Web.Controllers
             return RedirectTo("/");
         }
 
-        [Route("/retrieve-password")]
-        public IActionResult RetrievePassword()
+        [Route("/forgot-password")]
+        public IActionResult ForgotPassword()
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -166,68 +174,76 @@ namespace Discussion.Web.Controllers
         }
 
         [HttpPost]
-        [Route("/retrieve-password")]
-        public async Task<IActionResult> DoRetrievePassword(RetrievePasswordModel model)
+        [Route("/forgot-password")]
+        public async Task<ApiResponse> DoForgotPassword(ForgotPasswordModel model)
         {
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning($"找回密码失败：用户名或邮箱 {model.UsernameOrEmail} 数据格式不正确。");
-                return View("RetrievePassword");
+                return ApiResponse.Error(ModelState);
             }
 
             try
             {
-                var user = GetUserByChecking(model);
-
+                var user = GetUserBy(model);
                 await _userService.SendEmailRetrievePasswordAsync(user, Request.Scheme);
-                _logger.LogInformation($"发送重置密码邮件成功：{user.UserName}");
+                _logger.LogInformation($"发送重置密码邮件成功：{user.ConfirmedEmail}");
+                return ApiResponse.NoContent();
             }
             catch (RetrievePasswordVerificationException e)
             {
-                ModelState.AddModelError(nameof(model.UsernameOrEmail), e.Message);
                 _logger.LogWarning($"找回密码失败：{model.UsernameOrEmail} {e.Message}");
-                return View("RetrievePassword");
+                return ApiResponse.Error(e.Message);
             }
-
-            return View("DoRetrievePassword");
         }
 
         [HttpGet]
         [Route("/reset-password")]
-        [AllowAnonymous]
-        public IActionResult ResetPassword(string token)
+        public IActionResult ResetPassword(ResetPasswordModel model)
         {
-            ViewData["token"] = token;
-            return View();
+            ModelState.Clear();
+
+            var userEmailToken = UserEmailToken.ExtractFromQueryString(model.Token);
+            if (userEmailToken == null)
+            {
+                ModelState.AddModelError(nameof(model.Token), "Token无法识别");
+                _logger.LogWarning($"重置密码失败：Token无法识别 {model.Token}");
+                return View(model);
+            }
+
+            model.Token = userEmailToken.Token;
+            model.UserId = userEmailToken.UserId;
+
+            return View(model);
         }
 
         [HttpPost]
         [Route("/reset-password")]
-        [AllowAnonymous]
-        public async Task<IActionResult> DoResetPassword(string token, string newPassword)
+        public async Task<IActionResult> DoResetPassword(ResetPasswordModel model)
         {
-            var tokenInEmail = token == null ? null : UserEmailToken.ExtractFromUrlQueryString(token);
-            if (tokenInEmail == null)
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.FindByIdAsync(model.UserId.ToString());
+            if (user == null)
             {
-                var msg = "重置密码失败：无法识别提供的 token";
-                ViewData["error"] = msg;
-                _logger.LogWarning(msg);
-                return View("DoResetPassword");
+                ModelState.AddModelError(nameof(model.UserId), "该用户不存在");
+                return View(model);
             }
 
-            User user = await _userManager.FindByIdAsync(tokenInEmail.UserId.ToString());
-            var result = await _userManager.ResetPasswordAsync(user, tokenInEmail.Token, newPassword);
-            if (result.Errors?.Count() > 0)
-            {
-                foreach (var err in result.Errors)
-                {
-                    ViewData["error"] += $"{err.Code}:{err.Description}";
-                }
-            }
-            return View(result);
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+
+            if (result.Errors.Any())
+                result.Errors.ToList()
+                    .ForEach(e => ModelState.AddModelError(e.Code, e.Description));
+
+            _logger.LogInformation($"重置密码成功：{user.UserName}");
+
+            model.Succeeded = true;
+
+            return View(model);
         }
 
-        private User GetUserByChecking(RetrievePasswordModel model)
+        User GetUserBy(ForgotPasswordModel model)
         {
             var usernameOrEmail = model.UsernameOrEmail.ToLower();
 
@@ -243,7 +259,7 @@ namespace Discussion.Web.Controllers
             var user = users.FirstOrDefault(e => e.EmailAddressConfirmed);
 
             if (user == null)
-                throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
+               throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
 
             return user;
         }

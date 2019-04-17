@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+data:
+  appsettings.json: |-
+    {
+        "sqliteConnectionString": "Data Source=/club-data/dotnetclub.db",
+        "Logging": {
+          "LogLevel": {
+            "Default": "Warning"
+          },
+          "PathFormat": "/club-data/logs/log-{Date}.log",
+          "FileSizeLimitBytes": 10485760
+        },
+        "DataProtectionOptions": {
+          "DisableAutomaticKeyGeneration" : true,
+          "KeyRepositoryPath": "/data-protection-keys/",
+          "ApplicationName": "dotnetclub"
+        }
+    }

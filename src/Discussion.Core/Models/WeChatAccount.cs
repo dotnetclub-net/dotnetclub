@@ -7,6 +7,9 @@ namespace Discussion.Core.Models
     {
         public int UserId { get; set; }
         
+        [ForeignKey("UserId")]
+        public User User { get; set; }
+        
         public string WxId { get; set; }
         public string WxAccount { get; set; }
 
@@ -14,18 +17,14 @@ namespace Discussion.Core.Models
         public string DisplayName => NickName;
         public string NickName { get; set; }
 
-        [ForeignKey("AvatarFileId")]
-        public FileRecord AvatarFile { get; set; }
-        public int? AvatarFileId { get; set; }
-
         public IUserAvatar GetAvatar()
         {
-            if (AvatarFileId == null)
+            if (UserId > 0 && User != null)
             {
-                return new DefaultAvatar();
+                return User.GetAvatar();
             }
-
-            return new StorageFileAvatar {StorageFileSlug = AvatarFile.Slug};
+            
+            return new GravatarAvatar { EmailAddress = $"{WxId}@wechat-user.com"};
         }
     }
 }

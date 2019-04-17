@@ -62,6 +62,7 @@ namespace Discussion.Web.Controllers
                                         .Include(t => t.LastRepliedByUser)
                                             .ThenInclude(u => u.AvatarFile)
                                         .Include(t => t.LastRepliedByWeChatAccount)
+                                            .ThenInclude(wx => wx.User)
                                             .ThenInclude(u => u.AvatarFile)
                                         .OrderByDescending(topic => topic.CreatedAtUtc)
                                         .Page(PageSize, page);
@@ -104,6 +105,7 @@ namespace Discussion.Web.Controllers
             {
                 var topic = _topicService.CreateTopic(model);
                 _logger.LogInformation($"创建话题成功：{userName}：{topic.Title}(id: {topic.Id})");
+                // ReSharper disable once Mvc.ActionNotResolved
                 return RedirectToAction("Index", new { topic.Id });
             }
             catch (InvalidOperationException ex)

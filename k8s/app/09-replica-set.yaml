@@ -1,0 +1,44 @@
+kind: ReplicaSet
+apiVersion: apps/v1
+metadata:
+  name: web-rs
+  labels:
+    name: web-rs
+spec:
+  replicas: 2
+  selector:
+    matchLabels: 
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      volumes:
+        - name: web-data
+          persistentVolumeClaim: 
+            claimName: web-claim
+        - name: web-config-data
+          configMap: 
+            name: web-config
+        - name: web-protection-keys-repo
+          secret: 
+            secretName: web-protection-keys
+      securityContext:
+            runAsUser: 5000
+            fsGroup: 5000
+      containers:
+        - name: dotnetclub
+          image: jijiechen/dotnetclub:201902240624
+          ports:
+            - name: http
+              containerPort: 5000
+          volumeMounts:
+            - mountPath: /club-data
+              name: web-data
+            - mountPath: /club-data/appsettings.json
+              name: web-config-data
+              subPath: appsettings.json
+            - mountPath: /data-protection-keys
+              name: web-protection-keys-repo
+          

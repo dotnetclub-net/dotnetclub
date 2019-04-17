@@ -13,20 +13,19 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         {
             _app = app;
         }
-        
-        
+
         [Fact]
         public void should_require_old_password_and_new_password()
         {
             var viewModel = new ChangePasswordViewModel();
-            
+
             var modelState = _app.ValidateModel(viewModel);
-            
+
             Assert.False(modelState.IsValid);
             modelState.Keys.ShouldContain("OldPassword");
             modelState.Keys.ShouldContain("NewPassword");
         }
-        
+
         [Theory]
         [InlineData("passWord", true)]
         [InlineData("p@ssw0rd", true)]
@@ -40,15 +39,14 @@ namespace Discussion.Web.Tests.Specs.ViewModels
         public void should_validate_new_password_using_password_rules(string pwd, bool valid)
         {
             var viewModel = new ChangePasswordViewModel{OldPassword = "9029384AB", NewPassword = pwd};
-            
+
             var modelState = _app.ValidateModel(viewModel);
-            
+
             modelState.IsValid.ShouldEqual(valid);
             if (!valid)
             {
                 modelState.Keys.ShouldContain("NewPassword");
             }
         }
-        
     }
 }

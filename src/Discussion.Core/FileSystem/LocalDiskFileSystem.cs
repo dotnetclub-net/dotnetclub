@@ -23,53 +23,44 @@ namespace Discussion.Core.FileSystem
 
         public async Task<IList<IFile>> ListFilesAsync(string path)
         {
-            return await Task.Factory.StartNew(() =>
-            {
-                var dir = MapStorage(path);
-                return new DirectoryInfo(dir)
-                    .GetFiles()
-                    .Select(f => (IFile)(new LocalDiskFile(f, _storagePath)))
-                    .ToList();
-            });
+            var dir = MapStorage(path);
+            var files = new DirectoryInfo(dir)
+                .GetFiles()
+                .Select(f => (IFile)(new LocalDiskFile(f, _storagePath)))
+                .ToList();
+            
+            return await Task.FromResult(files);
         }
 
         public async Task<IFile> GetFileAsync(string path)
         {
-            return await Task.Factory.StartNew(() =>
+            var fileInfo = new FileInfo(MapStorage(path));
+            if (!fileInfo.Exists)
             {
-                var fileInfo = new FileInfo(MapStorage(path));
-                if (!fileInfo.Exists)
-                {
-                    throw new FileNotFoundException("File does not exist", path);
-                }
+                throw new FileNotFoundException("File does not exist", path);
+            }
 
-                return CreateFileObject(fileInfo.FullName);
-            });
+            return await Task.FromResult(CreateFileObject(fileInfo.FullName));
         }
 
         public async Task DeleteFileAsync(string path)
         {
-            await Task.Factory.StartNew(() =>
-            {
-                var fullPath = MapStorage(path);
-                File.Delete(fullPath);
-            });
+            var fullPath = MapStorage(path);
+            File.Delete(fullPath);
+            await Task.CompletedTask;
         }
 
         public async Task<IFile> CreateFileAsync(string path)
         {   
-            return await Task.Factory.StartNew(() =>
+            var fullPath = MapStorage(path);
+            var dir = new FileInfo(fullPath).DirectoryName;
+            if (!Directory.Exists(dir))
             {
-                var fullPath = MapStorage(path);
-                var dir = new FileInfo(fullPath).DirectoryName;
-                if (!Directory.Exists(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                }
-                
-                File.Create(fullPath).Dispose();
-                return CreateFileObject(fullPath);
-            });
+                Directory.CreateDirectory(dir);
+            }
+            
+            File.Create(fullPath).Dispose();
+            return await Task.FromResult(CreateFileObject(fullPath));
         }
 
         private LocalDiskFile CreateFileObject(string path)
@@ -135,12 +126,12 @@ namespace Discussion.Core.FileSystem
 
             public async Task<Stream> OpenReadAsync()
             {
-                return await Task.Factory.StartNew(() => File.OpenRead(_fileInfo.FullName));
+                return await Task.FromResult(File.OpenRead(_fileInfo.FullName));
             }
 
             public async Task<Stream> OpenWriteAsync()
             {
-                return await Task.Factory.StartNew(() => File.OpenWrite(_fileInfo.FullName));
+                return await Task.FromResult(File.OpenWrite(_fileInfo.FullName));
             }
 
             public Task<string> GetPublicUrlAsync(TimeSpan timeout)
