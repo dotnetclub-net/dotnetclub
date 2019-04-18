@@ -1,0 +1,71 @@
+﻿@using Discussion.Core.Mvc
+@using Discussion.Web.Services.UserManagement.Avatar
+@inject IAvatarUrlService AvatarUrlService
+@model Discussion.Core.Models.WeChatAccount
+@{
+    Layout = "_UserLayout.cshtml";
+    ViewData["Title"] = "微信账号";
+}
+
+
+<h3>微信账号</h3>
+<fieldset class="form-group">
+    <label>
+        用户名
+    </label>
+    <div>@Context.DiscussionUser().UserName</div>
+</fieldset>
+<fieldset class="form-group @(Model == null ? "show" : "hide")">
+    <div rel="notice">
+        请稍候...
+    </div>
+    <div rel="qrcode" class="hide">
+        <img class="bot-qrcode" src="about:blank" />
+        <p>
+            请扫码并添加微信号 <strong class="bot-name"></strong> 为好友，完成后点击"下一步"。
+        </p>
+    </div>
+    <div rel="qrcode" class="hide">
+        <a rel="start-verify" class="link">已添加，下一步</a>
+    </div>
+</fieldset>
+<fieldset rel="verify" class="form-group hide">
+    <label for="VerificationCode">
+        验证码
+    </label>
+    <div>
+        <input type="number" name="VerificationCode" id="VerificationCode" class="form-control" maxlength="8"/>
+    </div>
+</fieldset>
+<button id="btn-verify" rel="verify" class="btn btn-default hide">验证并绑定</button>
+<fieldset class="form-group @(Model != null ? "show" : "hide")">
+    <label>
+        微信账号
+    </label>
+    <div>
+        <input type="text" title="不可更改已绑定的微信号" value="@(Model?.WxAccount ?? Model?.WxId)" disabled="disabled" class="form-control"/> 
+    </div>
+</fieldset>
+
+@* 为什么要绑定微信号？
+
+绑定微信号后：
+1. 向网站导入微信中的消息
+2. 可以认领已由他人导入、但作者是你的消息（后续会增加的功能） 
+*@
+
+
+
+@section Tail{
+    <script>
+        $(function() {
+            var wechatAccount = '@(Model?.WxAccount ?? Model?.WxId)';
+            if (!wechatAccount) {
+                var getBotInfoUrl = '@Url.Action("GetChatyBotInfo", "User")';
+                var verifyUrl = '@Url.Action("VerifyWeChatAccountByCode", "User")';
+
+                window.DiscussionApp.user.wechat.setupVerifyWeChatAcount(getBotInfoUrl, verifyUrl);   
+            }
+        });
+    </script>
+}

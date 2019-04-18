@@ -1,5 +1,10 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Communication.Sms;
@@ -10,13 +15,19 @@ using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
+using Discussion.Web.Services.ChatHistoryImporting;
+using Discussion.Web.Services.UserManagement;
+using Discussion.Web.Tests.Specs.Services;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
@@ -430,6 +441,66 @@ namespace Discussion.Web.Tests.Specs.Controllers
         
         // *todo: should auto invalid after 1 year
         
+        #endregion
+
+        #region Binding WeChat Account
+
+        [Fact]
+        public async void should_get_chaty_qrcode()
+        {
+            var options = new ChatyOptions
+            {
+                ServiceBaseUrl = "http://chaty/"
+            };
+            var optionsMock = new Mock<IOptions<ChatyOptions>>();
+            optionsMock.SetupGet(o => o.Value).Returns(options);
+            
+            var httpClient = StubHttpClient.Create().When(req =>
+            {
+                if (req.RequestUri.ToString().Contains("bot/info"))
+                {
+                    var chatyStatus = new
+                    {
+                        qrcode = "some-qr-code-content",
+                        name = "Bot",
+                        weixin = "wx_98kLS",
+                        chatyId = "983795"
+                    };
+                    
+                    return new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(JsonConvert.SerializeObject(chatyStatus))
+                        {
+                            Headers =
+                            {
+                                ContentType = new MediaTypeHeaderValue("application/json")
+                            }
+                        }
+                    };
+                }
+                
+                return null;
+            });
+
+            var userCtrl = new UserController(null,null, 
+                _theApp.GetService<ILogger<UserController>>(), optionsMock.Object, httpClient);
+            
+            var requestResult = await userCtrl.GetChatyBotInfo();
+            
+            Assert.True(requestResult.HasSucceeded);
+            var actualRequest = httpClient.RequestsSent.FirstOrDefault();
+            Assert.NotNull(actualRequest);
+            Assert.Contains("/bot/info", actualRequest.RequestUri.ToString());
+            Assert.Equal(HttpMethod.Get, actualRequest.Method);
+
+            dynamic qrCodeResult = requestResult.Result;
+            string qrcodeContent = qrCodeResult.QrCode;
+            string name = qrCodeResult.Name;
+            
+            Assert.Equal("some-qr-code-content", qrcodeContent);
+            Assert.Equal("Bot", name);
+        }
+
         #endregion
 
         #region Helpers

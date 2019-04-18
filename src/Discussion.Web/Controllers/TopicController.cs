@@ -140,21 +140,20 @@ namespace Discussion.Web.Controllers
             chatDetailRequest.RequestUri = new Uri(apiPath);
 
             var response = await _httpClient.SendAsync(chatDetailRequest, CancellationToken.None);
+            var jsonStream = await response.Content.ReadAsStreamAsync();
+            string responseString;
+            using (var reader = new StreamReader(jsonStream, Encoding.UTF8))
+            {
+                responseString = reader.ReadToEnd();
+            }
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("无法导入对话 因为无法从 chaty 获取聊天内容");
+                _logger.LogWarning($"无法导入对话 因为无法从 chaty 获取聊天内容。获得了 {response.StatusCode} 响应代码。响应内容：{responseString}");
                 return BadRequest();
             }
             
-            ChatMessage[] messages;
-            var jsonStream = await response.Content.ReadAsStreamAsync();
-            using (var reader = new StreamReader(jsonStream, Encoding.UTF8))
-            {
-                var jsonString = reader.ReadToEnd();
-                messages = JsonConvert.DeserializeObject<ChatMessage[]>(jsonString, new ChatMessageContentJsonConverter());
-            }
-
+            var messages = JsonConvert.DeserializeObject<ChatMessage[]>(responseString, new ChatMessageContentJsonConverter());
             var replies = await _chatHistoryImporter.Import(messages);
             var actionResult = CreateTopic(model);
             if (!(actionResult is RedirectToActionResult redirectResult))

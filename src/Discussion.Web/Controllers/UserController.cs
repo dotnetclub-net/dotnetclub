@@ -1,6 +1,12 @@
+using System;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
@@ -12,6 +18,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Core.Logging;
+using Discussion.Web.Services.ChatHistoryImporting;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Discussion.Web.Controllers
 {
@@ -19,16 +28,21 @@ namespace Discussion.Web.Controllers
     [Authorize]
     public class UserController: Controller
     {
-        public const string ConfigKeyRequireUserPhoneNumberVerified = "RequireUserPhoneNumberVerified";
-
         private readonly UserManager<User> _userManager;
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
+        private readonly HttpMessageInvoker _httpClient;
+        private readonly ChatyOptions _chatyOptions;
 
-        public UserController(UserManager<User> userManager, IUserService userService, ILogger<UserController> logger)
+        public UserController(UserManager<User> userManager, IUserService userService, ILogger<UserController> logger, 
+            IOptions<ChatyOptions> chatyOptions, HttpMessageInvoker httpClient)
         {
             _userManager = userManager;
             _userService = userService;
+            
+            _httpClient = httpClient;
+            _chatyOptions = chatyOptions.Value;
+            
             _logger = logger;
         }
 
@@ -182,6 +196,41 @@ namespace Discussion.Web.Controllers
             }
 
             return ApiResponse.NoContent();
+        }
+
+        [Route("bind-wechat-account/get-chaty-bot-info")]
+        public async Task<ApiResponse> GetChatyBotInfo()
+        {
+            var serviceBaseUrl = _chatyOptions.ServiceBaseUrl.TrimEnd('/');
+            var apiPath = $"{serviceBaseUrl}/bot/info";
+            
+            var chatDetailRequest = new HttpRequestMessage();
+            chatDetailRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", _chatyOptions.ApiToken);
+            chatDetailRequest.Method = HttpMethod.Get;
+            chatDetailRequest.RequestUri = new Uri(apiPath);
+
+            var response = await _httpClient.SendAsync(chatDetailRequest, CancellationToken.None);
+            var jsonStream = await response.Content.ReadAsStreamAsync();
+            string responseString;
+            using (var reader = new StreamReader(jsonStream, Encoding.UTF8))
+            {
+                responseString = reader.ReadToEnd();
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning($"无法获取 Chaty 状态。获得了 {response.StatusCode} 响应代码。响应内容：{responseString}");
+                return ApiResponse.Error("chaty", "无法获取 Chaty 状态");
+            }
+
+            return ApiResponse.ActionResult(JsonConvert.DeserializeObject<ChatyBotInfoViewModel>(responseString));
+        }
+
+        [HttpPost]
+        [Route("bind-wechat-account/verify-chaty-code")]
+        public IActionResult VerifyWeChatAccountByCode()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

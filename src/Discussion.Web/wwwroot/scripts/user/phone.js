@@ -95,7 +95,7 @@ function verify() {
     }
 
     if (!(/^\d{6}$/.test(code))) {
-        alert('验证码格式不正确，请输入收到的6位验证码');
+        alert('验证码格式不正确，请输入收到的 6 位验证码');
         codeInput.focus();
         codeInput.select();
         return;
