@@ -47,8 +47,6 @@ namespace Discussion.Web.Services.TopicManagement
                 .Include(r => r.CreatedByUser)
                     .ThenInclude(u => u.AvatarFile)
                 .Include(r => r.CreatedByWeChatAccount)
-                    .ThenInclude(wx => wx.User)
-                    .ThenInclude(u => u.AvatarFile)
                 .ToList();
 
             // todo:   _eventBus.Publish(new TopicViewedEvent{ TopicId = topicId });

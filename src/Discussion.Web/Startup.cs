@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -105,7 +105,6 @@ namespace Discussion.Web
             services.AddScoped<ITagBuilder, ETagBuilder>();
 
             services.AddScoped<IChatHistoryImporter, DefaultChatHistoryImporter>();
-            services.AddSingleton<INameGenerator, DefaultNameGenerator>();
             var chatyConfig = _appConfiguration.GetSection(nameof(ChatyOptions));
             if (chatyConfig != null && !string.IsNullOrEmpty(chatyConfig[nameof(ChatyOptions.ServiceBaseUrl)]))
             {
