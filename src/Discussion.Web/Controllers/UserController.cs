@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Web.Services.UserManagement;
@@ -33,14 +35,16 @@ namespace Discussion.Web.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly HttpMessageInvoker _httpClient;
         private readonly ChatyOptions _chatyOptions;
+        private readonly IRepository<WeChatAccount> _wechatAccountRepo;
 
         public UserController(UserManager<User> userManager, IUserService userService, ILogger<UserController> logger, 
-            IOptions<ChatyOptions> chatyOptions, HttpMessageInvoker httpClient)
+            IOptions<ChatyOptions> chatyOptions, HttpMessageInvoker httpClient, IRepository<WeChatAccount> wechatAccountRepo)
         {
             _userManager = userManager;
             _userService = userService;
             
             _httpClient = httpClient;
+            _wechatAccountRepo = wechatAccountRepo;
             _chatyOptions = chatyOptions.Value;
             
             _logger = logger;
@@ -197,8 +201,18 @@ namespace Discussion.Web.Controllers
 
             return ApiResponse.NoContent();
         }
+        
+        [HttpPost]
+        [Route("wechat")]
+        public IActionResult WeChatAccount([FromForm] string code)
+        {
+            var userId = HttpContext.DiscussionUser().Id;
+            var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == userId);
 
-        [Route("bind-wechat-account/get-chaty-bot-info")]
+            return View(weChatAccount);
+        }
+
+        [Route("wechat/get-chaty-bot-info")]
         public async Task<ApiResponse> GetChatyBotInfo()
         {
             var serviceBaseUrl = _chatyOptions.ServiceBaseUrl.TrimEnd('/');
@@ -220,17 +234,66 @@ namespace Discussion.Web.Controllers
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning($"无法获取 Chaty 状态。获得了 {response.StatusCode} 响应代码。响应内容：{responseString}");
-                return ApiResponse.Error("chaty", "无法获取 Chaty 状态");
+                return ApiResponse.NoContent(HttpStatusCode.InternalServerError);
             }
 
             return ApiResponse.ActionResult(JsonConvert.DeserializeObject<ChatyBotInfoViewModel>(responseString));
         }
 
         [HttpPost]
-        [Route("bind-wechat-account/verify-chaty-code")]
-        public IActionResult VerifyWeChatAccountByCode()
+        [Route("wechat/verify-chaty-code")]
+        public async Task<ApiResponse> VerifyWeChatAccountByCode([FromForm] string code)
         {
-            throw new System.NotImplementedException();
+            var serviceBaseUrl = _chatyOptions.ServiceBaseUrl.TrimEnd('/');
+            var apiPath = $"{serviceBaseUrl}/bot/pair";
+            
+            var verifyCodeRequest = new HttpRequestMessage();
+            verifyCodeRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", _chatyOptions.ApiToken);
+            verifyCodeRequest.Method = HttpMethod.Post;
+            verifyCodeRequest.RequestUri = new Uri(apiPath);
+            verifyCodeRequest.Content = new FormUrlEncodedContent(new[]{ new KeyValuePair<string, string>("code", code) });
+
+            var response = await _httpClient.SendAsync(verifyCodeRequest, CancellationToken.None);
+            var jsonStream = await response.Content.ReadAsStreamAsync();
+            string responseString;
+            using (var reader = new StreamReader(jsonStream, Encoding.UTF8))
+            {
+                responseString = reader.ReadToEnd();
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning($"无法获取 Chaty 状态。获得了 {response.StatusCode} 响应代码。响应内容：{responseString}");
+                return ApiResponse.NoContent(HttpStatusCode.InternalServerError);
+            }
+
+            var userId = HttpContext.DiscussionUser().Id;
+            var verifyResult = JsonConvert.DeserializeObject<ChatyVerifyResultViewModel>(responseString);
+            if (verifyResult.Id == null)
+            {
+                _logger.LogWarning($"验证微信账号时，验证码错误。用户 Id: {userId}");
+                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+            }
+            
+            var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.WxId == verifyResult.Id && wxa.UserId == 0);
+            if (weChatAccount == null)
+            {
+                weChatAccount = new WeChatAccount()
+                {
+                    WxId = verifyResult.Id,
+                    UserId = userId,
+                    WxAccount = verifyResult.Weixin
+                };
+                _wechatAccountRepo.Save(weChatAccount);
+            }
+            else
+            {
+                weChatAccount.UserId = userId;
+                weChatAccount.WxAccount = verifyResult.Weixin;
+                _wechatAccountRepo.Save(weChatAccount);
+            }
+            
+            return ApiResponse.NoContent();
         }
     }
 }

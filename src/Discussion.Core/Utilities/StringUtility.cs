@@ -63,5 +63,26 @@ namespace Discussion.Core.Utilities
             
             return one.Equals(theOther, StringComparison.CurrentCultureIgnoreCase);
         }
+
+        public static string SafeSubstring(this string str, int startIndex, int length)
+        {
+            if (str == null)
+            {
+                return null;
+            }
+
+            startIndex = Math.Max(startIndex, 0);
+            startIndex = Math.Min(startIndex, str.Length - 1);
+            
+            length = Math.Max(length, 0);
+            length = Math.Min(str.Length - startIndex, length);
+
+            return str.Substring(startIndex, length);
+        }
+        
+        public static string SafeSubstring(this string str, int startIndex)
+        {
+            return str?.SafeSubstring(startIndex, str.Length);
+        }
     }
 }

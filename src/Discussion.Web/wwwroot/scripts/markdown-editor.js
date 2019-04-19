@@ -16,7 +16,7 @@ import * as imageUploader from './editor/image-uploader'
 import * as imageResizing from './editor/image-resize'
 
 
-export function setupEditor() {
+export function setupEditor(userCanImport) {
     var editorOptions = defaultEditorOptions();
 
     $('#content-editor').summernote(editorOptions);
@@ -52,14 +52,50 @@ export function setupEditor() {
         }
 
         button.attr('disabled', 'disabled');
-        $.post(window.createTopicUrl, newTopic)
+        var url = window.createTopicUrl; 
+        var importChatId = $('input[name=import-chat-id]').val();
+        if(importChatId){
+            newTopic.chatId = importChatId;
+            url = window.createWithImportingUrl;
+        }
+        $.post(url, newTopic)
             .done(function () {
                 location.replace("/");
             }).fail(function(){
-                console.log('error on creating new topic');
+                console.error('error on creating new topic');
                 button.removeAttr('disabled');
+                alert('无法创建新的话题');
             });
     });
+    
+    if(userCanImport){
+        $.getJSON(window.loadChatySessionListUrl)
+            .done(function (data) {
+                if(!data.hasSucceeded){
+                    return;
+                }
+              
+                data.result.forEach(function (item) {
+                    var li = $('<li class="importable-chat-item">');
+                    li.text(item.messageSummaryList.join('<br />'));
+                    li.attr('attr-chat-id', item.chatId);
+                    $('.topic-import-chaty-section .importable-chats').append(li); 
+                });
+
+                $('.topic-import-chaty-section .importable-chats li').click(function () {
+                    $('.topic-import-chaty-section .importable-chats li').removeClass('selected');
+                    
+                    var inputBox = $('input[name=import-chat-id]');
+                    var thisChatId = $(this).attr('attr-chat-id');
+                    if(inputBox.val() === thisChatId){
+                        inputBox.val();
+                    }else {
+                        inputBox.val(thisChatId);
+                        $(this).addClass('selected');
+                    }
+                });
+            });
+    }
 }
 
 function defaultEditorOptions(){

@@ -1,3 +1,4 @@
+using Discussion.Core.Utilities;
 using Newtonsoft.Json;
 
 namespace Discussion.Web.Services.ChatHistoryImporting
@@ -24,6 +25,8 @@ namespace Discussion.Web.Services.ChatHistoryImporting
     {
         [JsonProperty("_type")]
         public MessageType Type { get; set; }
+        
+        public abstract string Summary { get; } 
     }
 
     public class TextChatMessageContent : MessageContent
@@ -35,6 +38,8 @@ namespace Discussion.Web.Services.ChatHistoryImporting
         
         [JsonProperty("_text")]
         public string Text { get; set; }
+
+        public override string Summary => Text == null ? "[空消息]" : Text.SafeSubstring(0, 10) + "...";
     }
 
     public class UrlChatMessageContent : MessageContent
@@ -52,6 +57,8 @@ namespace Discussion.Web.Services.ChatHistoryImporting
         
         [JsonProperty("_description")]
         public string Description { get; set; }
+        
+        public override string Summary => "[链接]";
     }
 
     public class FileChatMessageContent : MessageContent
@@ -66,6 +73,8 @@ namespace Discussion.Web.Services.ChatHistoryImporting
         
         [JsonProperty("_originalFileName")]
         public string FileName { get; set; }
+        
+        public override string Summary => $"[文件 {FileName}]";
     }
     
     public enum MessageType {

@@ -483,7 +483,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             });
 
             var userCtrl = new UserController(null,null, 
-                _theApp.GetService<ILogger<UserController>>(), optionsMock.Object, httpClient);
+                _theApp.GetService<ILogger<UserController>>(), optionsMock.Object, httpClient, 
+                _theApp.GetService<IRepository<WeChatAccount>>());
             
             var requestResult = await userCtrl.GetChatyBotInfo();
             

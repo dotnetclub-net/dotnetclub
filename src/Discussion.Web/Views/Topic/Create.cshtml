@@ -1,7 +1,9 @@
 ﻿@using Discussion.Core.Models
-@inject Discussion.Core.Models.SiteSettings SiteSettings
+@inject SiteSettings SiteSettings
+@model bool
 @{
     ViewData["Title"] = "创建新主题";
+    var userCanImportFromWeChat = Model;
 }
 
 @if (SiteSettings.CanCreateNewTopics())
@@ -15,6 +17,17 @@
             <div id="content-editor"></div>
         </div>
     </div>
+    
+    if (userCanImportFromWeChat)
+     {
+         <div class="row topic-import-chaty-section hide clearfix">
+             <ul class="importable-chats">
+                 
+             </ul>
+             <input type="hidden" name="import-chat-id" value=""/>
+         </div>
+     }
+
     <div class="row topic-submit-section clearfix">
         <button id="submit-create" class="btn btn-default submit-create-btn">创建</button>
         <div id="topic-type-dropdown" class="dropdown topic-type-dropdown">
@@ -34,14 +47,17 @@
 else
 {
     <div class="row clearfix">
-        <h3>当前暂不允许创建新的话题，请稍后再来。</h3>
+        <h3>当前暂不允许创建新的话题，请稍后再试。</h3>
     </div>
 }
 
 @section Tail{
     <script>
+        window.loadChatySessionListUrl = '@Url.Action("GetWeChatSessionList")';
         window.createTopicUrl = "@Url.Action("CreateTopic")";
+        window.createWithImportingUrl = '@Url.Action("ImportFromWeChat")';
         window.uploadUrl = '@Url.Action("UploadFile", "Common", new {category = "topic"})';
-        window.DiscussionApp.mdeditor.setupEditor();
+        
+        window.DiscussionApp.mdeditor.setupEditor( @(userCanImportFromWeChat ? "true" : "false") );
     </script>
 }
