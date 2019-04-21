@@ -41,7 +41,6 @@
       display: inline-block;
       margin-right: 5px;
     }
-    
   }
   
   .topic-content{
@@ -76,6 +75,7 @@
       float: left;
       width: 80px;
       margin-right:5px;
+      position: relative;
       text-align: center;
       vertical-align: middle;
       word-break: break-all;
@@ -91,6 +91,17 @@
       
       .username{
         margin-top:5px;
+      }
+
+      .imported-from-wechat-mark{
+        display: block;
+        width: 24px;
+        height: 24px;
+        background: url(/assets/wechat-logo.png);
+        position: absolute;
+        right: 8px;
+        top: 33px;
+        background-size: 24px;
       }
     }
     

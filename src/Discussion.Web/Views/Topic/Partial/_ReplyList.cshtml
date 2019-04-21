@@ -1,3 +1,4 @@
+@using Discussion.Core.Models
 @using Discussion.Web.Services.UserManagement.Avatar
 @inject IAvatarUrlService AvatarUrlService
 @model TopicViewModel
@@ -13,7 +14,13 @@
             {
                 <div class="reply-item">
                     <dl class="reply-author">
-                        <dd><img src="@AvatarUrlService.GetAvatarUrl(reply.Author)" class="avatar"/></dd>
+                        <dd>
+                            <img src="@AvatarUrlService.GetAvatarUrl(reply.Author)" class="avatar"/>
+                            @if (reply.Author is WeChatAccount)
+                            {
+                                <a title="从微信对话导入的用户" class="imported-from-wechat-mark"></a>
+                            }
+                        </dd>
                         <dd class="username">@reply.Author.DisplayName</dd>
                     </dl>
                     <div class="reply-content">

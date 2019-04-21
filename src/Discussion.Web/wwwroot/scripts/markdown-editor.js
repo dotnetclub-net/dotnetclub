@@ -70,16 +70,17 @@ export function setupEditor(userCanImport) {
     
     if(userCanImport){
         $.getJSON(window.loadChatySessionListUrl)
-            .done(function (data) {
+            .then(function (data) {
                 if(!data.hasSucceeded){
                     return;
                 }
               
                 data.result.forEach(function (item) {
                     var li = $('<li class="importable-chat-item">');
-                    li.text(item.messageSummaryList.join('<br />'));
+                    li.html(item.messageSummaryList.join('<br />'));
                     li.attr('attr-chat-id', item.chatId);
-                    $('.topic-import-chaty-section .importable-chats').append(li); 
+                    $('.topic-import-chaty-section .importable-chats').append(li);
+                    $('.topic-import-chaty-section').removeClass('hide').addClass('show');
                 });
 
                 $('.topic-import-chaty-section .importable-chats li').click(function () {
@@ -88,7 +89,7 @@ export function setupEditor(userCanImport) {
                     var inputBox = $('input[name=import-chat-id]');
                     var thisChatId = $(this).attr('attr-chat-id');
                     if(inputBox.val() === thisChatId){
-                        inputBox.val();
+                        inputBox.val('');
                     }else {
                         inputBox.val(thisChatId);
                         $(this).addClass('selected');

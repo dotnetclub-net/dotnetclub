@@ -12,6 +12,7 @@ $brand-lightest:                  lighten(#aa6cb7, 20%);
 $gray-body-background:          #e1e1e1;
 $gray-inner-border: 			#f0f0f0;
 $gray-content-hover:            #f5f5f5;
+$gray-content:                  lighten($gray-body-background, 20%);
 $text-color:                    #333;
 
 

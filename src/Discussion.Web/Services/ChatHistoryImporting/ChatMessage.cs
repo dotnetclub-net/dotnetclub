@@ -39,7 +39,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
         [JsonProperty("_text")]
         public string Text { get; set; }
 
-        public override string Summary => Text == null ? "[空消息]" : Text.SafeSubstring(0, 10) + "...";
+        public override string Summary => string.IsNullOrEmpty(Text) ? "[空消息]" : Text.SafeSubstring(0, 20) + "...";
     }
 
     public class UrlChatMessageContent : MessageContent
@@ -74,7 +74,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
         [JsonProperty("_originalFileName")]
         public string FileName { get; set; }
         
-        public override string Summary => $"[文件 {FileName}]";
+        public override string Summary => "[文件]";
     }
     
     public enum MessageType {

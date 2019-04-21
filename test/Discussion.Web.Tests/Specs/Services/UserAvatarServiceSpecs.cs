@@ -51,7 +51,7 @@ namespace Discussion.Web.Tests.Specs.Services
             var avatarUrl = services.GetService<IAvatarUrlService>().GetAvatarUrl(user);
 
             var hash = Md5Hash(user.EmailAddress);
-            Assert.Equal($"https://www.gravatar.com/avatar/{hash}?size=160", avatarUrl);
+            Assert.Equal($"https://www.gravatar.com/avatar/{hash}?size=160&d=robohash", avatarUrl);
         }
 
         private string Md5Hash(string emailAddress)

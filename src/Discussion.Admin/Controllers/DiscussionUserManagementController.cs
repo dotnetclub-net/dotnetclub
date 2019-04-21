@@ -89,7 +89,7 @@ namespace Discussion.Admin.Controllers
             if (avatar is GravatarAvatar gravatarAvatar)
             {
                 var hash = Md5Hash(gravatarAvatar.EmailAddress);
-                return $"https://www.gravatar.com/avatar/{hash}?size=160";
+                return $"https://www.gravatar.com/avatar/{hash}?size=160&d=robohash";
             }
 
             return $"https://{_settings.PublicHostName}/assets/default-avatar.jpg";

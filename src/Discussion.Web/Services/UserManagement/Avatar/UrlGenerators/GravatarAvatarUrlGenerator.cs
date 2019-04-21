@@ -12,14 +12,14 @@ namespace Discussion.Web.Services.UserManagement.Avatar.UrlGenerators
 
         public GravatarAvatarUrlGenerator()
         {
-            this._md5 = MD5.Create();
+            _md5 = MD5.Create();
         }
 
         
         public string GetUserAvatarUrl(GravatarAvatar avatar)
         {
             var hash = Md5Hash(avatar.EmailAddress);
-            return $"https://www.gravatar.com/avatar/{hash}?size=160";
+            return $"https://www.gravatar.com/avatar/{hash}?size=160&d=robohash";
         }
         
         

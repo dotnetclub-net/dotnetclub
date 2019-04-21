@@ -232,7 +232,7 @@ namespace Discussion.Web.Controllers
             }
             
             var messages = JsonConvert.DeserializeObject<string[]>(responseString);
-            var timestampList = messages.Select(long.Parse).OrderByDescending(x => x).Take(4).Select(x => x.ToString()).ToList();
+            var timestampList = messages.Select(long.Parse).OrderByDescending(x => x).Take(6).Select(x => x.ToString()).ToList();
             var messageList = new List<ChatyMessageListItemViewModel>();
             foreach (var timestampChatId in timestampList)
             {
