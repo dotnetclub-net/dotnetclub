@@ -2,7 +2,7 @@ language: csharp
 matrix:
   include:
     - os: linux
-      dist: trusty
+      dist: xenial
 addons:
   chrome: stable
   apt:
