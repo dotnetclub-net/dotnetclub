@@ -202,7 +202,6 @@ namespace Discussion.Web.Controllers
             return ApiResponse.NoContent();
         }
         
-        [HttpPost]
         [Route("wechat")]
         public IActionResult WeChatAccount([FromForm] string code)
         {
@@ -272,7 +271,7 @@ namespace Discussion.Web.Controllers
             if (verifyResult.Id == null)
             {
                 _logger.LogWarning($"验证微信账号时，验证码错误。用户 Id: {userId}");
-                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+                return ApiResponse.Error("验证失败");
             }
             
             var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.WxId == verifyResult.Id && wxa.UserId == 0);

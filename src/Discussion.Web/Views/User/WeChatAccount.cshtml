@@ -21,12 +21,15 @@
     </div>
     <div rel="qrcode" class="hide">
         <img class="bot-qrcode" src="about:blank" />
-        <p>
+        <p rel="start-verify" class="hide">
             请扫码并添加微信号 <strong class="bot-name"></strong> 为好友，完成后点击"下一步"。
         </p>
-    </div>
-    <div rel="qrcode" class="hide">
-        <a rel="start-verify" class="link">已添加，下一步</a>
+        <p rel="verify" class="hide">
+            请扫码并添加微信号 <strong class="bot-name"></strong> 为好友，并输入从微信收到的验证码。
+        </p>
+        <p rel="start-verify" class="hide">
+            <a class="link">已添加，下一步</a>
+        </p>
     </div>
 </fieldset>
 <fieldset rel="verify" class="form-group hide">

@@ -12,8 +12,8 @@ export function setupVerifyWeChatAcount(getBotInfoUrl, verifyUrl){
 function fetchBotInfo() {
     $.getJSON(_getBotInfoUrl).then(data => {
         const notice = $('[rel=notice]');
-        if(!data.hasSucceeded){
-            notice.text('暂时无法绑定微信账号，请稍后再试');
+        if(!data.hasSucceeded || !data.result.qrCode){
+            notice.text('暂时无法绑定微信账号，请稍后再试：服务不可用');
             return;
         }
 
@@ -22,13 +22,16 @@ function fetchBotInfo() {
         generateQrCode(data.result.qrCode, (qrUrl) => {
             $('.bot-qrcode').attr('src', qrUrl); 
         });
-        $('[rel=qrcode]').removeClass('hide').addClass('show');
-        $('a[rel=start-verify]').click(() =>{
+        $('[rel=qrcode],[rel=start-verify]').removeClass('hide').addClass('show');
+        $('[rel=start-verify]>a.link').click(() =>{
+            $('[rel=start-verify]').removeClass('show').addClass('hide');
             $('[rel=verify]').removeClass('hide').addClass('show');
         });
         $('#btn-verify').click(() =>{
             verify();
         });
+    }).fail(function () {
+        notice.text('暂时无法绑定微信账号，请稍后再试：网络失败');
     });
 }
 
@@ -74,7 +77,7 @@ function verify() {
             if (data.hasSucceeded) {
                 location.reload();
             } else {
-                alert('无法验证你输入的验证码：' + data.message);
+                alert('无法验证你输入的验证码：' + (data.message || ''));
             }
         },
         error: function() {
