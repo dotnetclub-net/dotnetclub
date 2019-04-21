@@ -12,7 +12,8 @@ namespace Discussion.Core.Models
         public string WxAccount { get; set; }
 
         [NotMapped]
-        public string DisplayName => RandomDisplayNameGenerator.Generate();
+        public string DisplayName => _displayName ?? (_displayName = RandomDisplayNameGenerator.Generate());
+        private string _displayName;
 
         public IUserAvatar GetAvatar()
         {

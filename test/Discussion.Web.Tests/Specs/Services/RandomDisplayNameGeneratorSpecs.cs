@@ -20,6 +20,17 @@ namespace Discussion.Web.Tests.Specs.Services
         }
         
         [Fact]
+        public void should_not_generate_name_a_second_time_for_same_wechat_account()
+        {
+            var weChatAccount = new WeChatAccount();
+            
+            var name1 = weChatAccount.DisplayName;
+            var name2 = weChatAccount.DisplayName;
+
+            Assert.True(name1 == name2);
+        }
+        
+        [Fact]
         public void should_generate_unique_names()
         {
             var account = new WeChatAccount();
@@ -27,7 +38,7 @@ namespace Discussion.Web.Tests.Specs.Services
             var i = 20;
             do
             {
-                names.Add(account.DisplayName);
+                names.Add(RandomDisplayNameGenerator.Generate());
             } while (--i > 0);
 
             var distinctNames = names.Distinct().ToList();
