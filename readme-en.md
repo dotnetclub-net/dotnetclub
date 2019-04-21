@@ -1,7 +1,7 @@
-dotnetClub.net
+dotnet club
 ----------------------
 
-**Welcome to the dotnetClub.net project. [点此查看中文说明](https://github.com/jijiechen/dotnetclub/blob/dev/Readme.md)。**
+**Welcome to the dotnet club project. [点此查看中文说明](https://github.com/jijiechen/dotnetclub/blob/dev/Readme.md)。**
 
 This project is source code for a discussion website, it demonstrates how ASP.NET Core can be used to make a user generated web application. The online instance of this project is hosted at [dotnetclub.net](http://dotnetclub.net) which is exactly a real community for discussing .NET Core technical topics.
 
@@ -23,6 +23,11 @@ This project is a web application based on the [.NET Core 2.1](https://www.micro
 
 
 ### Using the source
+
+This project has following development dependencies:
+- .NET Core SDK version 2.1.504
+- Node.js version 8.x or above
+- Yarn installed
 
 First, clone this repository and compile it to get everything ready:
 
@@ -56,7 +61,7 @@ To execute tests:
 It's recommended to run this application using [Docker](https://www.docker.com/). You can run the application using this command after docker is installed:
 
 ```sh
-docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201811180438
+docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201902240624
 ```
 
 You can also compile and run it locally, in that case you'll need .NET Core SDK and node.js tools, and also Mono if you are not working on a Windows PC. After you get a good environment, it's pretty simple to run locally when following these steps:
@@ -70,6 +75,8 @@ dotnet ./Discussion.Web.dll
 ```
 
 By default, the application will generate a temporary Sqlite database, which will be deleted on process exiting.  If you want to persiste your data, please configure your connection string in configuration files (`appsettings.json`, or `appsettings.<env>.js`)
+
+For more information, please refer to the [wiki documentation](https://github.com/jijiechen/dotnetclub/wiki/%E5%9C%A8%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E4%B8%AD%E4%BD%93%E9%AA%8C-Discussion.Web) which currently only available in Chinese.
 
 &nbsp;
 

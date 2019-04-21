@@ -1,7 +1,7 @@
-dotnetClub.net
+dotnet club
 ----------------------
 
-**欢迎关注 dotnetClub.net 项目。 [Click here to see English readme](https://github.com/jijiechen/dotnetclub/blob/dev/readme-en.md).**
+**欢迎关注 dotnet club 项目。 [Click here to see English readme](https://github.com/jijiechen/dotnetclub/blob/dev/readme-en.md).**
 
 本项目是一个论坛网站的源码，完整地展示了如何用 ASP.NET Core 技术开发一个用户参与的 Web 应用。您可以在 [dotnetclub.net](http://dotnetclub.net) 直接访问本项目的在线实例，并且在该网站上参与 .NET Core 相关技术的讨论。
 
@@ -25,9 +25,13 @@ dotnetClub.net
 
 ### 使用源代码
 
+在开发环境中，项目有下列依赖项：
+
+- .NET Core 2.1 SDK （版本 2.1.504）
+- Node.js 版本 v8.x 以上
+- 安装 Yarn 
 
 首先，克隆当前仓库，并完成编译一次，就可以将所需要的环境准备好：
-
 
 ``` 
 git clone https://github.com/jijiechen/dotnetclub.git
@@ -60,7 +64,7 @@ cd dotnetclub
 如果只是要运行本项目，您可以直接使用 [Docker](https://www.docker.com/) 来安装。下面的命令可以帮助您在本地运行一个示例：
 
 ```sh
-docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201811180438
+docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201902240624
 ```
 
 您也可以直接在本地编译并运行，但您需要在本地安装 .NET Core SDK、node.js （如果是在非 Windows 电脑上，还需要 Mono）等一系列依赖才能编译。环境准备就绪后，实际的编译过程很简单：
@@ -75,6 +79,8 @@ dotnet ./Discussion.Web.dll
 ```
 
 默认情况下，应用程序会自动创建一个 Sqlite 数据库用于存储，这个数据库会在进程退出时失效。因此，如果你需要留存这些数据话，请修改 `appsettings.json` 或者 `appsettings.<环境>.json` 配置文件来配置数据库位置。
+
+详细情况，请参考项目的 [Wiki 文档](https://github.com/jijiechen/dotnetclub/wiki/%E5%9C%A8%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E4%B8%AD%E4%BD%93%E9%AA%8C-Discussion.Web)。
 
 &nbsp;
 
