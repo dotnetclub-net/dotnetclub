@@ -7,7 +7,7 @@
     <IsPackable>false</IsPackable>
     <SpaRoot>ClientApp\</SpaRoot>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
-    <DnClubExcludes>publish\**;logs\**</DnClubExcludes>
+    <DnClubExcludes>publish\**;logs\**;appsettings.Development.json</DnClubExcludes>
   </PropertyGroup>
 
   <ItemGroup>

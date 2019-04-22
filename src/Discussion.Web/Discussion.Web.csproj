@@ -14,7 +14,7 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <StartupObject>Discussion.Web.Startup</StartupObject>
-    <DnClubExcludes>publish\**;logs\**;dotnetclub.db;uploaded\**;</DnClubExcludes>
+    <DnClubExcludes>publish\**;logs\**;dotnetclub.db;uploaded\**;appsettings.Development.json</DnClubExcludes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
