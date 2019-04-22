@@ -36,6 +36,9 @@
     <Compile Remove="$(DnClubExcludes)" />
     <EmbeddedResource Remove="$(DnClubExcludes)" />
     <Content Remove="$(DnClubExcludes)" />
+    <None Update="Dockerfile">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Discussion.Core\Discussion.Core.csproj" />

@@ -4,7 +4,13 @@
 var target = Argument("target", "Default");
 var imagetag = Argument("imagetag", string.Empty);
 
-// ./build.sh --target=build-all
+var collectCoverageData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COLLECT_COVERAGE_DATA"));
+var dockerExists = false;
+try{ Execute("docker --version"); dockerExists = true; }catch{ }
+
+
+
+// ./build.sh --target=ci
 
 // Available methods: https://github.com/cake-build/cake/blob/develop/src/Cake.Core/Scripting/ScriptHost.cs
 Task("Default")
@@ -23,6 +29,7 @@ Task("clean")
         var directoriesToDelete = new DirectoryPath[]{
             Directory("./src/Discussion.Web/publish"),
             Directory("./src/Discussion.Web/wwwroot/dist"),
+            Directory("./src/Discussion.Admin/publish"),
             Directory("./src/Discussion.Admin/ClientApp/dist")
         }.Where(DirectoryExists).ToArray();
 
@@ -34,7 +41,7 @@ Task("clean")
         DotNetCoreClean("./dotnetclub.sln");
     });
 
-Task("build")
+Task("build:web")
   .Does(() =>
     {
         DoInDirectory("./src/Discussion.Web/", () =>
@@ -55,8 +62,46 @@ Task("build")
             Execute("npm run dev");
             Execute("npm run prod");
         });
+    });
+
+Task("test:web")
+  .Does((context) =>
+    {
+        DoInDirectory("./test/Discussion.Web.Tests/", () =>
+        {
+            if(collectCoverageData){
+                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=\\\"[*]Discussion.Tests.Common.*\\\"");
+            }else{
+                DotNetCoreTest();
+            }
+        });
+    });
 
 
+Task("package:web")
+  .WithCriteria(() => !IsRunningOnWindows())
+  .Does((context) =>
+    {
+        DoInDirectory("./src/Discussion.Web/", () =>
+        {
+            Execute("dotnet publish -c Release -o publish");
+        });
+        CopyFile("src/Discussion.Migrations/bin/Release/netcoreapp2.1/Discussion.Migrations.deps.json", "./src/Discussion.Web/publish/Discussion.Migrations.deps.json");
+        CopyFile("src/Discussion.Migrations/bin/Release/netcoreapp2.1/Discussion.Migrations.runtimeconfig.json", "./src/Discussion.Web/publish/Discussion.Migrations.runtimeconfig.json");
+
+        if(dockerExists){
+            if(string.IsNullOrWhiteSpace(imagetag)){
+                var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
+                imagetag = $"jijiechen/dotnetclub:{now}";
+            }
+
+            Execute($"docker build ./src/Discussion.Web/publish -t {imagetag} -f ./src/Discussion.Web/publish/Dockerfile");
+        }
+    });
+
+Task("build:admin")
+  .Does(() =>
+    {
         DoInDirectory("./src/Discussion.Admin/", () =>
         {
             Execute("dotnet build");
@@ -68,24 +113,12 @@ Task("build")
         });
     });
 
-Task("test")
+Task("test:admin")
   .Does((context) =>
     {
-        var isLinux = context.Environment.Platform.Family == Cake.Core.PlatformFamily.Linux;
-        var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TRAVIS"));
-
-        DoInDirectory("./test/Discussion.Web.Tests/", () =>
-        {
-            if(isLinux && isCI){
-                Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=\\\"[*]Discussion.Tests.Common.*\\\"");
-            }else{
-                DotNetCoreTest();
-            }
-        });
-
         DoInDirectory("./test/Discussion.Admin.Tests/", () =>
         {
-            if(isLinux && isCI){
+            if(collectCoverageData){
                 Execute("dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=\\\"[*]Discussion.Tests.Common.*\\\"");
             }else{
                 DotNetCoreTest();
@@ -99,45 +132,47 @@ Task("test")
     });
 
 
-Task("package")
+Task("package:admin")
   .WithCriteria(() => !IsRunningOnWindows())
   .Does((context) =>
     {
-        DoInDirectory("./src/Discussion.Web/", () =>
-        {
-            Execute("dotnet publish -c Release -o publish");
-        });
         DoInDirectory("./src/Discussion.Admin/", () =>
         {
             Execute("dotnet publish -c Release -o publish");
         });
- 
-        var isMac = context.Environment.Platform.Family == Cake.Core.PlatformFamily.OSX;
-        var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TRAVIS"));
-        var skipDocker = isCI && isMac;
 
-        if(!skipDocker){
+        if(dockerExists){
             if(string.IsNullOrWhiteSpace(imagetag)){
                 var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-                imagetag = $"jijiechen/dotnetclub:{now}";
-            } 
+                imagetag = $"jijiechen/dotnetclub-adm:{now}";
+            }
 
-            CopyFile("./DockerFile", "./src/Discussion.Web/publish/DockerFile");
-            
-            CopyFile("src/Discussion.Migrations/bin/Release/netcoreapp2.1/Discussion.Migrations.deps.json", "./src/Discussion.Web/publish/Discussion.Migrations.deps.json");
-            CopyFile("src/Discussion.Migrations/bin/Release/netcoreapp2.1/Discussion.Migrations.runtimeconfig.json", "./src/Discussion.Web/publish/Discussion.Migrations.runtimeconfig.json");
-
-            Execute($"docker build ./src/Discussion.Web/publish -t {imagetag} -f ./src/Discussion.Web/publish/DockerFile");
+            Execute($"docker build ./src/Discussion.Admin/publish -t {imagetag} -f ./src/Discussion.Admin/publish/Dockerfile");
         }
     });
 
 
+Task("ci:web")
+   .IsDependentOn("clean")
+   .IsDependentOn("build:web")
+   .IsDependentOn("test:web")
+   .IsDependentOn("package:web");
+
+Task("ci:admin")
+   .IsDependentOn("clean")
+   .IsDependentOn("build:admin")
+   .IsDependentOn("test:admin")
+   .IsDependentOn("package:admin");
 
 Task("ci")
-   .IsDependentOn("clean")
-   .IsDependentOn("build")
-   .IsDependentOn("test")
-   .IsDependentOn("package");
+   .IsDependentOn("ci:web")
+   .IsDependentOn("ci:admin");
+
+
+
+
+
+
 
 
 void Execute(string command, string workingDir = null){
