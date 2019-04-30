@@ -18,7 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Scratches", "_Scratches", 
 		build.cake = build.cake
 		build.ps1 = build.ps1
 		build.sh = build.sh
-		DockerFile = DockerFile
 		readme-en.md = readme-en.md
 		readme.md = readme.md
 	EndProjectSection
