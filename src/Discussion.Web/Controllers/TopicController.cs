@@ -6,7 +6,6 @@ using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
@@ -20,7 +19,6 @@ using Discussion.Web.Services.ChatHistoryImporting;
 using Discussion.Web.Services.TopicManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Discussion.Web.Controllers
@@ -31,26 +29,24 @@ namespace Discussion.Web.Controllers
         private readonly IRepository<Topic> _topicRepo;
         private readonly ITopicService _topicService;
         private readonly ILogger<TopicController> _logger;
-        private readonly ChatyOptions _chatyOptions;
         private readonly IChatHistoryImporter _chatHistoryImporter;
-        private readonly HttpMessageInvoker _httpClient;
         private readonly IRepository<Reply> _replyRepo;
         private readonly IRepository<WeChatAccount> _wechatAccountRepo;
+        private readonly ChatyApiService _chatyApiService;
 
         public TopicController(IRepository<Topic> topicRepo, 
             ITopicService topicService, 
-            ILogger<TopicController> logger,
-            IOptions<ChatyOptions> chatyOptions, IChatHistoryImporter chatHistoryImporter, HttpMessageInvoker httpClient,
-            IRepository<Reply> replyRepo, IRepository<WeChatAccount> wechatAccountRepo)
+            ILogger<TopicController> logger, IChatHistoryImporter chatHistoryImporter,
+            IRepository<Reply> replyRepo, IRepository<WeChatAccount> wechatAccountRepo,
+            ChatyApiService chatyApiService)
         {
             _topicRepo = topicRepo;
             _topicService = topicService;
             _logger = logger;
-            _chatyOptions = chatyOptions?.Value;
             _chatHistoryImporter = chatHistoryImporter;
-            _httpClient = httpClient;
             _replyRepo = replyRepo;
             _wechatAccountRepo = wechatAccountRepo;
+            _chatyApiService = chatyApiService;
         }
 
 
@@ -122,12 +118,6 @@ namespace Discussion.Web.Controllers
         [Route("/topics/import-from-wechat")]
         public async Task<ActionResult> ImportFromWeChat(ChatHistoryImportingModel model)
         {
-            if (string.IsNullOrEmpty(_chatyOptions.ServiceBaseUrl))
-            {
-                _logger.LogWarning("无法导入对话，因为尚未配置 chaty 服务所在的位置");
-                return BadRequest();
-            }
-
             var userId = HttpContext.DiscussionUser().Id;
             var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == userId);
             if (weChatAccount == null)
@@ -136,7 +126,7 @@ namespace Discussion.Web.Controllers
                 return BadRequest();
             }
 
-            var messages = await GetChatyMessages(weChatAccount.WxId, model.ChatId);
+            var messages = await _chatyApiService.GetMessagesInChat(weChatAccount.WxId, model.ChatId);
             if (messages == null)
             {
                 return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
@@ -164,43 +154,10 @@ namespace Discussion.Web.Controllers
             return redirectResult;
         }
 
-        private async Task<ChatMessage[]> GetChatyMessages(string wxId, string chatId)
-        {
-            var serviceBaseUrl = _chatyOptions.ServiceBaseUrl.TrimEnd('/');
-            var apiPath = $"{serviceBaseUrl}/chat/detail/{wxId}/{chatId}";
-
-            var chatDetailRequest = new HttpRequestMessage();
-            chatDetailRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", _chatyOptions.ApiToken);
-            chatDetailRequest.Method = HttpMethod.Get;
-            chatDetailRequest.RequestUri = new Uri(apiPath);
-
-            var response = await _httpClient.SendAsync(chatDetailRequest, CancellationToken.None);
-            var jsonStream = await response.Content.ReadAsStreamAsync();
-            string responseString;
-            using (var reader = new StreamReader(jsonStream, Encoding.UTF8))
-            {
-                responseString = reader.ReadToEnd();
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogWarning($"无法导入对话 因为无法从 chaty 获取聊天内容。获得了 {response.StatusCode} 响应代码。响应内容：{responseString}");
-                return null;
-            }
-
-            return JsonConvert.DeserializeObject<ChatMessage[]>(responseString, new ChatMessageContentJsonConverter());
-        }
-
         [Authorize]
         [Route("/topics/wechat-session-list")]
         public async Task<ApiResponse> GetWeChatSessionList()
         {
-            if (string.IsNullOrEmpty(_chatyOptions.ServiceBaseUrl))
-            {
-                _logger.LogWarning("无法导入对话，因为尚未配置 chaty 服务所在的位置");
-                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
-            }
-
             var userId = HttpContext.DiscussionUser().Id;
             var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == userId);
             if (weChatAccount == null)
@@ -208,45 +165,11 @@ namespace Discussion.Web.Controllers
                 _logger.LogWarning("无法导入对话，因为当前用户未绑定微信号");
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }
-            
-            var serviceBaseUrl = _chatyOptions.ServiceBaseUrl.TrimEnd('/');
-            var apiPath = $"{serviceBaseUrl}/chat/list/{weChatAccount.WxId}";
-            
-            var chatDetailRequest = new HttpRequestMessage();
-            chatDetailRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", _chatyOptions.ApiToken);
-            chatDetailRequest.Method = HttpMethod.Get;
-            chatDetailRequest.RequestUri = new Uri(apiPath);
 
-            var response = await _httpClient.SendAsync(chatDetailRequest, CancellationToken.None);
-            var jsonStream = await response.Content.ReadAsStreamAsync();
-            string responseString;
-            using (var reader = new StreamReader(jsonStream, Encoding.UTF8))
-            {
-                responseString = reader.ReadToEnd();
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogWarning($"无法导入对话 因为无法从 chaty 获取聊天列表。获得了 {response.StatusCode} 响应代码。响应内容：{responseString}");
-                return ApiResponse.NoContent(HttpStatusCode.InternalServerError);
-            }
-            
-            var messages = JsonConvert.DeserializeObject<string[]>(responseString);
-            var timestampList = messages.Select(long.Parse).OrderByDescending(x => x).Take(6).Select(x => x.ToString()).ToList();
-            var messageList = new List<ChatyMessageListItemViewModel>();
-            foreach (var timestampChatId in timestampList)
-            {
-                var chatyMessages = await GetChatyMessages(weChatAccount.WxId, timestampChatId);
-                var summaryList = chatyMessages.Take(5).Select(msg => msg.Content.Summary).ToArray();
-                
-                messageList.Add(new ChatyMessageListItemViewModel
-                {
-                    ChatId = timestampChatId, 
-                    MessageSummaryList = summaryList
-                });
-            }
-           
-            return ApiResponse.ActionResult(messageList);
+            var messageList = await _chatyApiService.GetMessageList(weChatAccount.WxId);
+            return messageList == null 
+                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError) 
+                : ApiResponse.ActionResult(messageList);
         }
     }
 }

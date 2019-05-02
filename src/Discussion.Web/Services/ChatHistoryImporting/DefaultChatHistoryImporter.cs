@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
@@ -12,37 +11,33 @@ using Discussion.Core.FileSystem;
 using Discussion.Core.Models;
 using Discussion.Core.Time;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Services.ChatHistoryImporting
 {
     public class DefaultChatHistoryImporter : IChatHistoryImporter
     {
         private readonly IClock _clock;
-        private readonly HttpMessageInvoker _httpClient;
         private readonly IUrlHelper _urlHelper;
         private readonly IRepository<FileRecord> _fileRepo;
         private readonly IRepository<WeChatAccount> _weChatAccountRepo;
         private readonly IFileSystem _fileSystem;
         private readonly ICurrentUser _currentUser;
-        private readonly ChatyOptions _chatyOptions;
+        private readonly ChatyApiService _chatyApiService;
 
         public DefaultChatHistoryImporter(IClock clock,
-            HttpMessageInvoker httpClient,
             IUrlHelper urlHelper,
             IRepository<FileRecord> fileRepo,
             IRepository<WeChatAccount> weChatAccountRepo,
             IFileSystem fileSystem,
-            ICurrentUser currentUser, IOptions<ChatyOptions> chatyOptions)
+            ICurrentUser currentUser, ChatyApiService chatyApiService)
         {
             _clock = clock;
-            _httpClient = httpClient;
             _urlHelper = urlHelper;
             _fileRepo = fileRepo;
             _weChatAccountRepo = weChatAccountRepo;
             _fileSystem = fileSystem;
             _currentUser = currentUser;
-            _chatyOptions = chatyOptions.Value;
+            _chatyApiService = chatyApiService;
         }
 
         public async Task<List<Reply>> Import(ChatMessage[] wechatMessages)
@@ -169,21 +164,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
 
         private async Task<string> FetchToLocal(string fileName, string fileId)
         {
-            var serviceBaseUrl = _chatyOptions.ServiceBaseUrl.TrimEnd('/');
-            var apiPath = $"{serviceBaseUrl}/chat/file/{fileId}";
-            
-            var downloadRequest = new HttpRequestMessage();
-            downloadRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", _chatyOptions.ApiToken);
-            downloadRequest.Method = HttpMethod.Get;
-            downloadRequest.RequestUri = new Uri(apiPath);
-
-            var response = await _httpClient.SendAsync(downloadRequest, CancellationToken.None);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new InvalidOperationException($"无法下载文件 {fileName} (id: {fileId})");
-            }
-            var downloadedStream = await response.Content.ReadAsStreamAsync();
+            var downloadedStream = await _chatyApiService.DownloadChatFile(fileId, fileName);
             return await SaveFile(fileName, downloadedStream);
         }
 

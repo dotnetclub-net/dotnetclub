@@ -13,6 +13,7 @@ using Discussion.Web.Services;
 using Discussion.Web.Services.ChatHistoryImporting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
@@ -60,17 +61,17 @@ namespace Discussion.Web.Tests.Specs.Services
             };
             var optionsMock = new Mock<IOptions<ChatyOptions>>();
             optionsMock.SetupGet(o => o.Value).Returns(options);
+            var chatyApiService = new ChatyApiService(optionsMock.Object, httpClient, app.GetService<ILogger<ChatyApiService>>());
             
             _fileRepo = app.GetService<IRepository<FileRecord>>();
             _weChatAccountRepo = app.GetService<IRepository<WeChatAccount>>();
             _importer = new DefaultChatHistoryImporter(app.GetService<IClock>(),
-                httpClient,
                 urlHelper.Object,
                 _fileRepo,
                 _weChatAccountRepo,
                 app.GetService<IFileSystem>(),
                 currentUser.Object,
-                optionsMock.Object);
+                chatyApiService);
             
             app.DeleteAll<FileRecord>();
             app.DeleteAll<WeChatAccount>();

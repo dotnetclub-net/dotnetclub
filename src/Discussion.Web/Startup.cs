@@ -110,7 +110,8 @@ namespace Discussion.Web
             {
                 services.Configure<ChatyOptions>(chatyConfig);
             }
-
+            services.AddScoped<ChatyApiService>();
+            
             services.AddScoped<ITopicService, DefaultTopicService>();
             // todo: cache site settings!
             services.AddScoped(sp =>

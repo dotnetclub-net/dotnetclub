@@ -481,10 +481,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 
                 return null;
             });
-
+            var chatyApiService = new ChatyApiService(optionsMock.Object, httpClient, _theApp.GetService<ILogger<ChatyApiService>>());
             var userCtrl = new UserController(null,null, 
-                _theApp.GetService<ILogger<UserController>>(), optionsMock.Object, httpClient, 
-                _theApp.GetService<IRepository<WeChatAccount>>());
+                _theApp.GetService<ILogger<UserController>>(), 
+                _theApp.GetService<IRepository<WeChatAccount>>(),
+                chatyApiService);
             
             var requestResult = await userCtrl.GetChatyBotInfo();
             

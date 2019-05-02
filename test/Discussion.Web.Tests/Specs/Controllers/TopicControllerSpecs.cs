@@ -181,7 +181,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 null,
                 null,
                 null,
-                null,
                 null)
             {
                 ControllerContext =
