@@ -1,5 +1,7 @@
 @using Discussion.Core.Mvc
+@using Discussion.Web.Services.ChatHistoryImporting
 @inject Discussion.Core.Models.SiteSettings SiteSettings
+@inject ChatyApiService ChatyApiService
 @{
     Layout = "../Shared/_Layout.cshtml";
     var suggestVerifying = SiteSettings.RequireUserPhoneNumberVerified && !Context.DiscussionUser().PhoneNumberId.HasValue;
@@ -17,7 +19,10 @@
                 <ul>
                     <li>@Html.ActionLink("基本信息", "Settings", "User")</li>
                     <li>@Html.ActionLink("手机验证", "VerifyPhoneNumber", "User")</li>
-                    <li>@Html.ActionLink("微信账号", "WeChatAccount", "User")</li>
+                    @if (ChatyApiService.IsChatySupported())
+                    {
+                        <li>@Html.ActionLink("微信账号", "WeChatAccount", "User")</li>
+                    }
                     <li>@Html.ActionLink("修改密码", "ChangePassword", "User")</li>
                 </ul>
             </div>
@@ -28,7 +33,10 @@
             <div class="panel-heading">
                 @Html.ActionLink("基本信息", "Settings", "User")
                 @Html.ActionLink("手机验证", "VerifyPhoneNumber", "User")
-                @Html.ActionLink("微信账号", "WeChatAccount", "User")
+                @if (ChatyApiService.IsChatySupported())
+                {
+                    <li>@Html.ActionLink("微信账号", "WeChatAccount", "User")</li>
+                }
                 @Html.ActionLink("修改密码", "ChangePassword", "User")
             </div>
         </div>

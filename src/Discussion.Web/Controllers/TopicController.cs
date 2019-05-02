@@ -84,7 +84,8 @@ namespace Discussion.Web.Controllers
         public ActionResult Create()
         {
             var userId = HttpContext.DiscussionUser().Id;
-            var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == userId);
+            var chatySupported = _chatyApiService.IsChatySupported();
+            var weChatAccount = chatySupported ? _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == userId) : null;
             return View(weChatAccount != null);
         }
 
@@ -104,6 +105,7 @@ namespace Discussion.Web.Controllers
             {
                 var topic = _topicService.CreateTopic(model);
                 _logger.LogInformation($"创建话题成功：{userName}：{topic.Title}(id: {topic.Id})");
+                // ReSharper disable once Mvc.ActionNotResolved
                 return RedirectToAction("Index", new { topic.Id });
             }
             catch (InvalidOperationException ex)

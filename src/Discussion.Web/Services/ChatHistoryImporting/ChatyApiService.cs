@@ -27,6 +27,11 @@ namespace Discussion.Web.Services.ChatHistoryImporting
             _logger = logger;
         }
 
+        public bool IsChatySupported()
+        {
+            return _chatyOptions != null && !string.IsNullOrEmpty(_chatyOptions.ServiceBaseUrl);
+        }
+
         public async Task<ChatMessage[]> GetMessagesInChat(string wxId, string chatId)
         {
             var responseString = await InvokeChatyStringApi($"/chat/detail/{wxId}/{chatId}", HttpMethod.Get, null, "调取对话中的消息");
