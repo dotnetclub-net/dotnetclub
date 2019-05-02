@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Discussion.Core.Data;
+using Discussion.Core.FileSystem;
 using Discussion.Core.Models;
 using Discussion.Core.Pagination;
 using Discussion.Core.Time;
@@ -8,12 +12,16 @@ using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services;
+using Discussion.Web.Services.ChatHistoryImporting;
 using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.Tests.Fixtures;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -29,6 +37,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             _app = app.Reset();
             _app.DeleteAll<Topic>();
+            _app.DeleteAll<WeChatAccount>();
             _author = _app.CreateUser();
         }
 
@@ -106,13 +115,101 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 Content = "**This is the content of this markdown**\r\n* markdown content is greate*",
                 Type = TopicType.Job
             };
-            topicController.CreateTopic(model);
+            
+            var actionResult = topicController.CreateTopic(model);
 
+            var topicCreated = VerifyTopicCreated(actionResult, model);
+            topicCreated.LastRepliedAt.ShouldBeNull();
+            topicCreated.ReplyCount.ShouldEqual(0);
+            topicCreated.ViewCount.ShouldEqual(0);
+        }
+
+
+        public class StubChatyApiService : ChatyApiService
+        {
+            public StubChatyApiService() : base(null, null, null)
+            {
+            }
+        }
+        
+        [Fact]
+        public async Task should_create_topic_and_import_chat_session()
+        {
+            var mockUser = _app.MockUser();
+
+            var chatyApiService = new Mock<StubChatyApiService>();
+            const string wxId = "wx_account_id";
+            const string chatId = "1234214";
+            const string authorWxId = "Wx_879LKJGSJJ";
+            chatyApiService
+                .Setup(chaty => chaty.GetMessageList(wxId))
+                .Returns(Task.FromResult(new List<ChatyMessageListItemViewModel>()
+                {
+                    new ChatyMessageListItemViewModel()
+                    {
+                        ChatId = chatId,
+                        MessageSummaryList = new []{"导入的消息概要1"}
+                    }
+                }));
+            chatyApiService
+                .Setup(chaty => chaty.GetMessagesInChat(wxId, chatId))
+                .Returns(Task.FromResult(new []
+                {
+                    new ChatMessage
+                    {
+                        SourceName = "某人",
+                        SourceTime = "2018/12/02 12:00:09",
+                        SourceTimestamp = 1547558937,
+                        SourceWxId = authorWxId,
+                        Content = new TextChatMessageContent()
+                        {
+                            Text = "导入的消息概要1 微信消息正文"
+                        }
+                    }
+                }));
+            var wxAccountRepo = _app.GetService<IRepository<WeChatAccount>>();
+            wxAccountRepo.Save(new WeChatAccount()
+            {
+                WxId = wxId,
+                UserId = mockUser.Id
+            });
+            
+            var topicController = CreateControllerWithChatyApiService(chatyApiService.Object);
+            var model = new ChatHistoryImportingModel
+            {
+                Title = "first topic imported form wechat",
+                Content = "**This is the content of this markdown**\r\n* markdown content is greate*",
+                ChatId = chatId,
+                Type = TopicType.Job
+            };
+            var actionResult = await topicController.ImportFromWeChat(model);
+
+            var topicCreated = VerifyTopicCreated(actionResult, model);
+            Assert.NotNull(topicCreated.LastRepliedAt);
+            topicCreated.LastRepliedAt.Value.ToString("dddd/MM/dd hh:mm:ss").ShouldNotEqual("2018/12/02 12:00:09");
+
+            var author = wxAccountRepo.All().Single(wx => wx.WxId == authorWxId);
+            topicCreated.LastRepliedBy.ShouldBeNull();
+            topicCreated.LastRepliedByWeChat.ShouldEqual(author.Id);
+            topicCreated.ReplyCount.ShouldEqual(1);
+            topicCreated.ViewCount.ShouldEqual(0);
+
+            var importedReply = _app.GetService<IRepository<Reply>>().All().Where(reply => reply.TopicId == topicCreated.Id).ToList();
+            Assert.NotNull(importedReply[0].CreatedByWeChat);
+            importedReply[0].CreatedByWeChat.Value.ShouldEqual(author.Id);
+            importedReply[0].CreatedBy.ShouldBeNull();
+            importedReply[0].Content.ShouldEqual("导入的消息概要1 微信消息正文");
+            importedReply.Count.ShouldEqual(1);
+        }
+
+        private Topic VerifyTopicCreated(ActionResult actionResult, TopicCreationModel model)
+        {
+            Assert.IsType<RedirectToActionResult>(actionResult);
+            
             var repo = _app.GetService<IRepository<Topic>>();
             var allTopics = repo.All().ToList();
 
             var createdTopic = allTopics.Find(topic => topic.Title == model.Title);
-
             createdTopic.ShouldNotBeNull();
             createdTopic.Title.ShouldEqual(model.Title);
             createdTopic.Content.ShouldEqual(model.Content);
@@ -122,12 +219,10 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var createdAt = DateTime.UtcNow - createdTopic.CreatedAtUtc;
             Assert.True(createdAt.TotalMilliseconds >= 0);
             Assert.True(createdAt.TotalMinutes < 2);
-
-            createdTopic.LastRepliedAt.ShouldBeNull();
-            createdTopic.ReplyCount.ShouldEqual(0);
-            createdTopic.ViewCount.ShouldEqual(0);
+            
+            return createdTopic;
         }
-        
+
         [Fact]
         public void should_not_create_topic_if_require_verified_phone_number_but_user_has_no()
         {
@@ -192,6 +287,47 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 }
             };
             return topicController;
+        }
+
+        private TopicController CreateControllerWithChatyApiService(ChatyApiService chatyApiService)
+        {
+            var chatHistoryImporter = new DefaultChatHistoryImporter(new SystemClock(),
+                CreateMockUrlHelper("http://dotnetclub/download/file"),
+                _app.GetService<IRepository<FileRecord>>(),
+                _app.GetService<IRepository<WeChatAccount>>(),
+                _app.GetService<IFileSystem>(),
+                _app.GetService<ICurrentUser>(),
+                chatyApiService);
+
+            var httpContext = new DefaultHttpContext
+            {
+                User = _app.User, RequestServices = _app.ApplicationServices
+            };
+            var topicController = new TopicController(
+                _app.GetService<IRepository<Topic>>(), 
+                _app.GetService<ITopicService>(), 
+                _app.GetService<ILogger<TopicController>>(), 
+                chatHistoryImporter,
+                _app.GetService<IRepository<Reply>>(), 
+                _app.GetService<IRepository<WeChatAccount>>(),
+                chatyApiService)
+            {
+                ControllerContext =
+                {
+                    HttpContext = httpContext
+                }
+            };
+
+            _app.GetService<IHttpContextAccessor>().HttpContext = httpContext;
+            return topicController;
+            
+            
+            IUrlHelper CreateMockUrlHelper(string fileLink)
+            {
+                var urlHelper = new Mock<IUrlHelper>();
+                urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>())).Returns(fileLink);
+                return urlHelper.Object;
+            }
         }
 
         #endregion

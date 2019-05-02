@@ -22,7 +22,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
 
         public ChatyApiService(IOptions<ChatyOptions> chatyOptions, HttpMessageInvoker httpClient, ILogger<ChatyApiService> logger)
         {
-            _chatyOptions = chatyOptions.Value;
+            _chatyOptions = chatyOptions?.Value;
             _httpClient = httpClient;
             _logger = logger;
         }

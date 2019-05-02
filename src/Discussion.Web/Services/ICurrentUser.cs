@@ -11,13 +11,13 @@ namespace Discussion.Web.Services
 
     public class HttpContextCurrentUser : ICurrentUser
     {
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public HttpContextCurrentUser(IHttpContextAccessor httpContextAccessor)
         {
-            _httpContext = httpContextAccessor.HttpContext;
+            _httpContextAccessor = httpContextAccessor;
         }
         
-        public User DiscussionUser => _httpContext.DiscussionUser();
+        public User DiscussionUser => _httpContextAccessor.HttpContext.DiscussionUser();
     }
 }
