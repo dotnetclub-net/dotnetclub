@@ -18,6 +18,7 @@ using Discussion.Web.Controllers;
 using Discussion.Web.Services.ChatHistoryImporting;
 using Discussion.Web.Services.UserManagement;
 using Discussion.Web.Tests.Specs.Services;
+using Discussion.Web.Tests.Stubs;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

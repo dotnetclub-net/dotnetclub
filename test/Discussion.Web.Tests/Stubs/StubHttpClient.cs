@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Discussion.Web.Tests.Specs.Services
+namespace Discussion.Web.Tests.Stubs
 {
     public class StubHttpClient : HttpMessageInvoker
     {

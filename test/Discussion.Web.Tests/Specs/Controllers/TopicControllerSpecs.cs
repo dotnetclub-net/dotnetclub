@@ -15,6 +15,7 @@ using Discussion.Web.Services;
 using Discussion.Web.Services.ChatHistoryImporting;
 using Discussion.Web.Services.TopicManagement;
 using Discussion.Web.Tests.Fixtures;
+using Discussion.Web.Tests.Stubs;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,8 +41,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _app.DeleteAll<WeChatAccount>();
             _author = _app.CreateUser();
         }
-
-
+        
         #region List Topics
         
         // ReSharper disable PossibleNullReferenceException
@@ -124,14 +124,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topicCreated.ViewCount.ShouldEqual(0);
         }
 
-
-        public class StubChatyApiService : ChatyApiService
-        {
-            public StubChatyApiService() : base(null, null, null)
-            {
-            }
-        }
-        
         [Fact]
         public async Task should_create_topic_and_import_chat_session()
         {
