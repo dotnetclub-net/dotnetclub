@@ -32,7 +32,7 @@ namespace Discussion.Web.Controllers
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
         private readonly IRepository<WeChatAccount> _wechatAccountRepo;
-        private ChatyApiService _chatyApiService;
+        private readonly ChatyApiService _chatyApiService;
 
         public UserController(UserManager<User> userManager, IUserService userService, ILogger<UserController> logger, 
             IRepository<WeChatAccount> wechatAccountRepo, ChatyApiService chatyApiService)
@@ -211,7 +211,7 @@ namespace Discussion.Web.Controllers
             var statusResponse = await _chatyApiService.GetChatyBotStatus();
             return statusResponse == null 
                 ? ApiResponse.NoContent(HttpStatusCode.InternalServerError) 
-                : ApiResponse.ActionResult(JsonConvert.DeserializeObject<ChatyBotInfoViewModel>(statusResponse));
+                : ApiResponse.ActionResult(statusResponse);
         }
 
         [HttpPost]

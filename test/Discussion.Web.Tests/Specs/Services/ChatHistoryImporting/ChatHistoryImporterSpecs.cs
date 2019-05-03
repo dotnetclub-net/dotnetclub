@@ -21,7 +21,7 @@ using Newtonsoft.Json;
 using Xunit;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
-namespace Discussion.Web.Tests.Specs.Services
+namespace Discussion.Web.Tests.Specs.Services.ChatHistoryImporting
 {
     [Collection("WebSpecs")]
     public class ChatHistoryImporterSpecs

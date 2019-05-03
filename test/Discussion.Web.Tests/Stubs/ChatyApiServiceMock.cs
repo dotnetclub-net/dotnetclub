@@ -10,9 +10,9 @@ namespace Discussion.Web.Tests.Stubs
     /// 当使用 Virtuosity.Fody 时，父类的各个方法将默认标记为 virtual
     /// 请参考：https://github.com/Fody/Virtuosity
     /// </remarks>
-    public class StubChatyApiService : ChatyApiService
+    public class ChatyApiServiceMock : ChatyApiService
     {
-        public StubChatyApiService() : base(null, null, null)
+        public ChatyApiServiceMock() : base(null, null, null)
         {
         }
     }

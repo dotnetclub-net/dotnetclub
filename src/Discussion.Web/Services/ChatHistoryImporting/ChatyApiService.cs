@@ -66,9 +66,12 @@ namespace Discussion.Web.Services.ChatHistoryImporting
             return messageList;
         }
 
-        public async Task<string> GetChatyBotStatus()
+        public async Task<ChatyBotInfoViewModel> GetChatyBotStatus()
         {
-            return await InvokeChatyStringApi("/bot/info", HttpMethod.Get, null, "获取 Chaty 状态");
+            var status = await InvokeChatyStringApi("/bot/info", HttpMethod.Get, null, "获取 Chaty 状态");
+            return status == null 
+                ? null 
+                : JsonConvert.DeserializeObject<ChatyBotInfoViewModel>(status);
         }
         
         public async Task<ChatyVerifyResultViewModel> VerifyWeChatAccount(string code)

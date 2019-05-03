@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Discussion.Web.Tests.Stubs
 {
@@ -21,6 +23,37 @@ namespace Discussion.Web.Tests.Stubs
         {
             _stubs.Add(stub);
             return this;
+        }
+
+        public StubHttpClient Json(string path, object jsonObject)
+        {
+            return When(req =>
+            {
+                if (req.RequestUri.PathAndQuery != path) return null;
+                
+                var json = JsonConvert.SerializeObject(jsonObject);
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(json)
+                    {
+                        Headers =
+                        {
+                            ContentType = new MediaTypeHeaderValue("application/json")
+                        }
+                    }
+                };
+
+            });
+        }
+        
+        public StubHttpClient StatusCode(string path, HttpStatusCode statusCode)
+        {
+            return When(req =>
+            {
+                if (req.RequestUri.PathAndQuery != path) return null;
+                
+                return new HttpResponseMessage(statusCode);
+            });
         }
 
         public static StubHttpClient Create()
@@ -47,11 +80,11 @@ namespace Discussion.Web.Tests.Stubs
                 foreach (var handler in HttpClient._stubs)
                 {
                     var response = handler(request);
-                    if (request != null)
+                    if (response != null)
                         return Task.FromResult(response);
                 }
 
-                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound){ Content = new StringContent("")});
             }
         }
     }
