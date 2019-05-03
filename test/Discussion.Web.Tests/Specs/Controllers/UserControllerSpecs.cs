@@ -20,6 +20,7 @@ using Discussion.Web.Services.UserManagement;
 using Discussion.Web.Tests.Specs.Services;
 using Discussion.Web.Tests.Stubs;
 using Discussion.Web.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -449,61 +450,75 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public async void should_get_chaty_qrcode()
         {
-            var options = new ChatyOptions
-            {
-                ServiceBaseUrl = "http://chaty/"
-            };
-            var optionsMock = new Mock<IOptions<ChatyOptions>>();
-            optionsMock.SetupGet(o => o.Value).Returns(options);
-            
-            var httpClient = StubHttpClient.Create().When(req =>
-            {
-                if (req.RequestUri.ToString().Contains("bot/info"))
+            var chatyApiService = new Mock<ChatyApiServiceMock>();
+            chatyApiService.Setup(chaty => chaty.GetChatyBotStatus())
+                .Returns(Task.FromResult(new ChatyBotInfoViewModel()
                 {
-                    var chatyStatus = new
-                    {
-                        qrcode = "some-qr-code-content",
-                        name = "Bot",
-                        weixin = "wx_98kLS",
-                        chatyId = "983795"
-                    };
-                    
-                    return new HttpResponseMessage(HttpStatusCode.OK)
-                    {
-                        Content = new StringContent(JsonConvert.SerializeObject(chatyStatus))
-                        {
-                            Headers =
-                            {
-                                ContentType = new MediaTypeHeaderValue("application/json")
-                            }
-                        }
-                    };
-                }
-                
-                return null;
-            });
-            var chatyApiService = new ChatyApiService(optionsMock.Object, httpClient, _theApp.GetService<ILogger<ChatyApiService>>());
+                    QrCode = "some-qr-code-content",
+                    Name = "Bot"
+                }))
+                .Verifiable();
+            
             var userCtrl = new UserController(null,null, 
                 _theApp.GetService<ILogger<UserController>>(), 
                 _theApp.GetService<IRepository<WeChatAccount>>(),
-                chatyApiService);
+                chatyApiService.Object);
             
             var requestResult = await userCtrl.GetChatyBotInfo();
             
             Assert.True(requestResult.HasSucceeded);
-            var actualRequest = httpClient.RequestsSent.FirstOrDefault();
-            Assert.NotNull(actualRequest);
-            Assert.Contains("/bot/info", actualRequest.RequestUri.ToString());
-            Assert.Equal(HttpMethod.Get, actualRequest.Method);
-
             dynamic qrCodeResult = requestResult.Result;
             string qrcodeContent = qrCodeResult.QrCode;
             string name = qrCodeResult.Name;
             
             Assert.Equal("some-qr-code-content", qrcodeContent);
             Assert.Equal("Bot", name);
+            chatyApiService.Verify();
         }
-
+         
+        [Fact]
+        public async void should_verify_wechat_account()
+        {
+            var user = _theApp.MockUser();
+            var chatyApiService = new Mock<ChatyApiServiceMock>();
+            chatyApiService.Setup(chaty => chaty.VerifyWeChatAccount("123456"))
+                .Returns(Task.FromResult(new ChatyVerifyResultViewModel()
+                {
+                    Id= "verified_wx_id",
+                    Name = "Bot"
+                }))
+                .Verifiable();
+            var httpContext = new DefaultHttpContext
+            {
+                User = _theApp.User, 
+                RequestServices = _theApp.ApplicationServices
+            };
+            _theApp.GetService<IHttpContextAccessor>().HttpContext = httpContext;
+            
+            var userCtrl = new UserController(null,null, 
+                _theApp.GetService<ILogger<UserController>>(), 
+                _theApp.GetService<IRepository<WeChatAccount>>(),
+                chatyApiService.Object)
+            {
+                ControllerContext =
+                {
+                    HttpContext = httpContext
+                }
+            };
+            
+            var requestResult = await userCtrl.VerifyWeChatAccountByCode("123456");
+            
+            Assert.True(requestResult.HasSucceeded);
+            chatyApiService.Verify();
+            
+            var wechatAccountRepo = _theApp.GetService<IRepository<WeChatAccount>>();
+            var wechatAccount = wechatAccountRepo.All().FirstOrDefault(wx => wx.UserId == user.Id);
+            
+            Assert.NotNull(wechatAccount);
+            Assert.Equal("verified_wx_id", wechatAccount.WxId);
+            Assert.Equal(user.Id, wechatAccount.UserId);
+        }
+        
         #endregion
 
         #region Helpers

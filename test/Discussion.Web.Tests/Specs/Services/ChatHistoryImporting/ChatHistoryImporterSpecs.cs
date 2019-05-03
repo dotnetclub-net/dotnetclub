@@ -34,35 +34,13 @@ namespace Discussion.Web.Tests.Specs.Services.ChatHistoryImporting
         {
             var urlHelper = new Mock<IUrlHelper>();
             urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>())).Returns("http://mock-url/");
-                
-            var httpClient = StubHttpClient.Create().When(req =>
-            {
-                var ms = new MemoryStream();
-                ms.Write(Encoding.UTF8.GetBytes("This is file content"));
-                ms.Seek(0, SeekOrigin.Begin);
-                    
-                return new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StreamContent(ms)
-                    {
-                        Headers =
-                        {
-                            ContentType = new MediaTypeHeaderValue("application/octet-stream")
-                        }
-                    }
-                };
-            });
-                
+
             var currentUser = new Mock<ICurrentUser>();
             currentUser.SetupGet(u => u.DiscussionUser).Returns(new User {Id = 42});
-                
-            var options = new ChatyOptions
-            {
-                ServiceBaseUrl = "http://chaty/"
-            };
-            var optionsMock = new Mock<IOptions<ChatyOptions>>();
-            optionsMock.SetupGet(o => o.Value).Returns(options);
-            var chatyApiService = new ChatyApiService(optionsMock.Object, httpClient, app.GetService<ILogger<ChatyApiService>>());
+            
+            var chatyApiService = new Mock<ChatyApiServiceMock>();
+            chatyApiService.Setup(chaty => chaty.DownloadChatFile(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult((Stream)new MemoryStream()));
             
             _fileRepo = app.GetService<IRepository<FileRecord>>();
             _weChatAccountRepo = app.GetService<IRepository<WeChatAccount>>();
@@ -72,7 +50,7 @@ namespace Discussion.Web.Tests.Specs.Services.ChatHistoryImporting
                 _weChatAccountRepo,
                 app.GetService<IFileSystem>(),
                 currentUser.Object,
-                chatyApiService);
+                chatyApiService.Object);
             
             app.DeleteAll<FileRecord>();
             app.DeleteAll<WeChatAccount>();

@@ -129,7 +129,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         {
             var mockUser = _app.MockUser();
 
-            var chatyApiService = new Mock<StubChatyApiService>();
+            var chatyApiService = new Mock<ChatyApiServiceMock>();
             const string wxId = "wx_account_id";
             const string chatId = "1234214";
             const string authorWxId = "Wx_879LKJGSJJ";
