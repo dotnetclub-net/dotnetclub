@@ -262,22 +262,18 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var topicService = new DefaultTopicService(siteSettings, userMock.Object, topicRepo.Object, null, new SystemClock());
             var topicController = new TopicController(
-                topicRepo.Object, 
-                topicService, 
-                NullLogger<TopicController>.Instance,
-                null,
-                null,
-                null,
-                null)
-            {
-                ControllerContext =
+                    topicRepo.Object,
+                    topicService,
+                    NullLogger<TopicController>.Instance,
+                    null,
+                    null,
+                    null,
+                    null)
+                .WithHttpContext(new DefaultHttpContext
                 {
-                    HttpContext = new DefaultHttpContext
-                    {
-                        User = _app.User, RequestServices = _app.ApplicationServices
-                    }
-                }
-            };
+                    User = _app.User, RequestServices = _app.ApplicationServices
+                });
+            
             return topicController;
         }
 
@@ -296,19 +292,14 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 User = _app.User, RequestServices = _app.ApplicationServices
             };
             var topicController = new TopicController(
-                _app.GetService<IRepository<Topic>>(), 
-                _app.GetService<ITopicService>(), 
-                _app.GetService<ILogger<TopicController>>(), 
-                chatHistoryImporter,
-                _app.GetService<IRepository<Reply>>(), 
-                _app.GetService<IRepository<WeChatAccount>>(),
-                chatyApiService)
-            {
-                ControllerContext =
-                {
-                    HttpContext = httpContext
-                }
-            };
+                    _app.GetService<IRepository<Topic>>(),
+                    _app.GetService<ITopicService>(),
+                    _app.GetService<ILogger<TopicController>>(),
+                    chatHistoryImporter,
+                    _app.GetService<IRepository<Reply>>(),
+                    _app.GetService<IRepository<WeChatAccount>>(),
+                    chatyApiService)
+                .WithHttpContext(httpContext);
 
             _app.GetService<IHttpContextAccessor>().HttpContext = httpContext;
             return topicController;

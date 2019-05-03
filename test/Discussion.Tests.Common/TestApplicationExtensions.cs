@@ -48,7 +48,7 @@ namespace Discussion.Tests.Common
             }
             return app.GetService<IControllerFactory>().CreateController(new ControllerContext(actionContext)) as T;
         }
-
+        
         public static T GetService<T>(this TestApplication app) where T : class
         {
             return app.ApplicationServices.GetService<T>();

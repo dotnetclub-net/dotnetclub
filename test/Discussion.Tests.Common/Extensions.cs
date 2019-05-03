@@ -24,6 +24,26 @@ namespace Discussion.Tests.Common
         {
             return controller.HttpContext.RequestServices.GetService<T>();
         }
+        
+        public static T WithHttpContext<T>(this T controller, HttpContext httpContext, ActionContext actionContext = null) where T: ControllerBase
+        {
+            if (actionContext != null)
+            {
+                controller.ControllerContext = new ControllerContext(actionContext)
+                {
+                    HttpContext = httpContext
+                };
+            }
+            else
+            {
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = httpContext
+                };
+            }
+
+            return controller;
+        }
 
         public static TestApplicationExtensions.FakeRoute GetFakeRouter(this ControllerBase controller)
         {

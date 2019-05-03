@@ -494,17 +494,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 RequestServices = _theApp.ApplicationServices
             };
             _theApp.GetService<IHttpContextAccessor>().HttpContext = httpContext;
-            
-            var userCtrl = new UserController(null,null, 
-                _theApp.GetService<ILogger<UserController>>(), 
+
+            var userCtrl = new UserController(null, null,
+                _theApp.GetService<ILogger<UserController>>(),
                 _theApp.GetService<IRepository<WeChatAccount>>(),
                 chatyApiService.Object)
-            {
-                ControllerContext =
-                {
-                    HttpContext = httpContext
-                }
-            };
+                .WithHttpContext(httpContext);
             
             var requestResult = await userCtrl.VerifyWeChatAccountByCode("123456");
             

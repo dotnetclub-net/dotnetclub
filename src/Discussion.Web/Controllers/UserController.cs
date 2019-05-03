@@ -66,6 +66,7 @@ namespace Discussion.Web.Controllers
             if (identityResult.Succeeded)
             {
                 _logger.LogIdentityResult(action, identityResult, user.UserName);
+                // ReSharper disable once Mvc.ActionNotResolved
                 return RedirectToAction("Settings");
             }
 
