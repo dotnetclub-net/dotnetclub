@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Discussion.Core.Utilities;
 using Discussion.Web.Services.ChatHistoryImporting;
 using Discussion.Web.Tests.Stubs;
 using Discussion.Web.ViewModels;
@@ -23,6 +24,7 @@ namespace Discussion.Web.Tests.Specs.Services.ChatHistoryImporting
     {
         private readonly StubHttpClient _httpClient;
         private readonly ChatyApiService _normalChatyApiService;
+        private readonly string _userAllowedToUseChaty = "user_in_list";
 
         public ChatyApiServiceSpecs()
         {
@@ -109,22 +111,47 @@ namespace Discussion.Web.Tests.Specs.Services.ChatHistoryImporting
                 });
             
             var chatyOptions = new Mock<IOptions<ChatyOptions>>();
-            chatyOptions.SetupGet(op => op.Value).Returns(new ChatyOptions{ ServiceBaseUrl = "http://localhost:3000"});
+            chatyOptions.SetupGet(op => op.Value).Returns(new ChatyOptions
+            {
+                ServiceBaseUrl = "http://localhost:3000",
+                AllowedUsers = string.Format("{0},someone_else", _userAllowedToUseChaty)
+            });
             _normalChatyApiService = new ChatyApiService(chatyOptions.Object, _httpClient, NullLogger<ChatyApiService>.Instance);
         }
 
         [Theory]
         [MemberData(nameof(GetChatyNotSupportedScenarios))]
-        public void should_check_supporting_as_false(ChatyApiService service)
+        public void should_check_support_as_false(ChatyApiService service)
         {
-            Assert.False(service.IsChatySupported());
+            Assert.False(service.IsChatySupported(_userAllowedToUseChaty));
         }
         
         [Fact]
-        public void should_check_supporting_as_true()
+        public void should_check_support_as_false_when_user_not_in_list()
         {
-            Assert.True(_normalChatyApiService.IsChatySupported());
+            Assert.False(_normalChatyApiService.IsChatySupported("user_not_in_list"));
+        }
+        
+        [Fact]
+        public void should_check_support_as_true_when_user_in_list()
+        {
+            Assert.True(_normalChatyApiService.IsChatySupported(_userAllowedToUseChaty));
             Assert.Equal(0, _httpClient.RequestsSent.Count);
+        }
+        
+        [Fact]
+        public void should_check_support_as_true_when_allowed_users_not_configured()
+        {
+            var optionsWithoutAllowedUsers = new Mock<IOptions<ChatyOptions>>();
+            optionsWithoutAllowedUsers.SetupGet(op => op.Value).Returns(new ChatyOptions()
+            {
+                ServiceBaseUrl = "http://abcd",
+                AllowedUsers = null
+            });
+
+            var chatyApiService = new ChatyApiService(optionsWithoutAllowedUsers.Object, null, null);
+
+            Assert.True(chatyApiService.IsChatySupported(StringUtility.Random(6)));
         }
         
         public static IEnumerable<object[]> GetChatyNotSupportedScenarios()

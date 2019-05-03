@@ -4,7 +4,9 @@
 @inject ChatyApiService ChatyApiService
 @{
     Layout = "../Shared/_Layout.cshtml";
-    var suggestVerifying = SiteSettings.RequireUserPhoneNumberVerified && !Context.DiscussionUser().PhoneNumberId.HasValue;
+    
+    var user = Context.DiscussionUser();
+    var suggestVerifying = SiteSettings.RequireUserPhoneNumberVerified && !user.PhoneNumberId.HasValue;
 }
 
 @section Head{
@@ -19,7 +21,7 @@
                 <ul>
                     <li>@Html.ActionLink("基本信息", "Settings", "User")</li>
                     <li>@Html.ActionLink("手机验证", "VerifyPhoneNumber", "User")</li>
-                    @if (ChatyApiService.IsChatySupported())
+                    @if (ChatyApiService.IsChatySupported(user.UserName))
                     {
                         <li>@Html.ActionLink("微信账号", "WeChatAccount", "User")</li>
                     }
@@ -33,7 +35,7 @@
             <div class="panel-heading">
                 @Html.ActionLink("基本信息", "Settings", "User")
                 @Html.ActionLink("手机验证", "VerifyPhoneNumber", "User")
-                @if (ChatyApiService.IsChatySupported())
+                @if (ChatyApiService.IsChatySupported(user.UserName))
                 {
                     <li>@Html.ActionLink("微信账号", "WeChatAccount", "User")</li>
                 }

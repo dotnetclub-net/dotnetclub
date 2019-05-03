@@ -4,5 +4,7 @@ namespace Discussion.Web.Services.ChatHistoryImporting
     {
         public string ServiceBaseUrl { get; set; }
         public string ApiToken { get; set; }
+        
+        public string AllowedUsers { get; set; }
     }
 }

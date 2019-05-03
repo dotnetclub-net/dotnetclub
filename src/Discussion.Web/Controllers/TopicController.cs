@@ -83,9 +83,10 @@ namespace Discussion.Web.Controllers
         [Route("/topics/create")]
         public ActionResult Create()
         {
-            var userId = HttpContext.DiscussionUser().Id;
-            var chatySupported = _chatyApiService.IsChatySupported();
-            var weChatAccount = chatySupported ? _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == userId) : null;
+            var user = HttpContext.DiscussionUser();
+            var chatySupported = _chatyApiService.IsChatySupported(user.UserName);
+            var weChatAccount = chatySupported ? _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id) : null;
+            
             return View(weChatAccount != null);
         }
 

@@ -27,9 +27,31 @@ namespace Discussion.Web.Services.ChatHistoryImporting
             _logger = logger;
         }
 
-        public bool IsChatySupported()
+        public bool IsChatySupported(string username)
         {
-            return _chatyOptions != null && !string.IsNullOrEmpty(_chatyOptions.ServiceBaseUrl);
+            if (_chatyOptions == null)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(_chatyOptions.ServiceBaseUrl))
+            {
+                return false;
+            }
+
+            var allowedUsers = _chatyOptions.AllowedUsers;
+            if (string.IsNullOrEmpty(allowedUsers))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrEmpty(username))
+            {
+                return false;
+            }
+            
+            var allAllowedUsers = allowedUsers.Split(new[] {';', ','}, StringSplitOptions.RemoveEmptyEntries);
+            return allAllowedUsers.Contains(username);
         }
 
         public async Task<ChatMessage[]> GetMessagesInChat(string wxId, string chatId)
