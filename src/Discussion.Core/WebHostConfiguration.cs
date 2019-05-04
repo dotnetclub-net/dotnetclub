@@ -27,11 +27,10 @@ namespace Discussion.Core
                 .UseKestrel(options => options.Configure(hostConfiguration.GetSection("Kestrel")))
                 .ConfigureAppConfiguration(BuildApplicationConfiguration)
                 .ConfigureLogging((hostingContext, logging) =>
-                {
-                    logging.AddConsole(config => config.IncludeScopes = true);
-                    FileLogging.Configure(logging,
-                        hostingContext.Configuration.GetSection(ConfigKeyLogging),
-                        hostingContext.HostingEnvironment.IsDevelopment());
+                {   
+                    var loggingConfiguration = hostingContext.Configuration.GetSection(ConfigKeyLogging);
+                    logging.AddSeriConsoleLogger(loggingConfiguration);
+                    logging.AddSeriFileLogger(loggingConfiguration);
                 });
         }
 

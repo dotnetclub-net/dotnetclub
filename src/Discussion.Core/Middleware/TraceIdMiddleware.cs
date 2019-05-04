@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
 
 namespace Discussion.Core.Middleware
 {
@@ -43,8 +44,11 @@ namespace Discussion.Core.Middleware
             {
                 context.Items[HttpContextTraceIdKey] = traceId;
                 context.Response.Headers.Add(_options.HeaderName, traceId);
-                    
-                await AwaitHttpPipeline(context);
+
+                using (LogContext.PushProperty("TraceId", traceId))
+                {
+                    await AwaitHttpPipeline(context);
+                }
             }
         }
 

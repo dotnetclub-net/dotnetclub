@@ -149,7 +149,7 @@ namespace Discussion.Web
 
                 var loggingConfig = _appConfiguration.GetSection(WebHostConfiguration.ConfigKeyLogging);
                 SqliteMigrator.Migrate(connStr, migrationLogging =>
-                    FileLogging.Configure(migrationLogging, loggingConfig, true /* enable full logging for migrations */));
+                    FileLoggingExtensions.AddSeriFileLogger(migrationLogging, loggingConfig /* enable full logging for migrations */));
 
                 _startupLogger.LogCritical("数据库结构创建完成");
             }, _startupLogger);
