@@ -94,7 +94,7 @@ namespace Discussion.Tests.Common
             }
             Environment.SetEnvironmentVariable("DOTNETCLUB_Logging:Console:LogLevel:Default", "Warning");
             
-            Configuration.ConfigureHost(hostBuilder);
+            WebHostConfiguration.Configure(hostBuilder);
             hostBuilder.ConfigureLogging(loggingBuilder =>
             {
                 loggingBuilder.SetMinimumLevel(LogLevel.Trace);

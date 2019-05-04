@@ -33,8 +33,8 @@ namespace Discussion.Admin
 
         private static void Main()
         {
-            var host = Configuration
-                .ConfigureHost(new WebHostBuilder(), addCommandLineArguments: true)
+            var host = WebHostConfiguration
+                .Configure(new WebHostBuilder(), addCommandLineArguments: true)
                 .UseStartup<Startup>()
                 .Build();
 

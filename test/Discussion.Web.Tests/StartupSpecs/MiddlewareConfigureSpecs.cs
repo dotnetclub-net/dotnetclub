@@ -73,6 +73,23 @@ namespace Discussion.Web.Tests.StartupSpecs
         }
         
         [Fact]
+        public async Task logs_should_contain_request_id_as_scope()
+        {
+            var staticFile = IntegrationTests.NotFoundSpecs.NotFoundStaticFile;
+            
+            await server.SendAsync(ctx =>
+            {
+                ctx.Request.Method = "GET";
+                ctx.Request.Path = staticFile;
+            });
+
+            var logs = _app.GetLogs();
+            var logItem = logs.FirstOrDefault(item => item.Category.StartsWith("Microsoft.AspNetCore.StaticFiles"));
+            Assert.NotNull(logItem);
+            Assert.False(string.IsNullOrEmpty(logItem.Scope));
+        }
+        
+        [Fact]
         public void should_use_temporary_database_when_no_database_connection_string_specified()
         {
             var app = TestDiscussionWebApp.BuildTestApplication<Startup>(new TestDiscussionWebApp(initialize: false), "UnitTest");

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Discussion.Tests.Common
 {
-    public class StubLoggerProvider : ILoggerProvider, IDisposable
+    public class StubLoggerProvider : ILoggerProvider
     {
         public ILogger CreateLogger(string categoryName)
         {
@@ -12,21 +12,32 @@ namespace Discussion.Tests.Common
         }
 
         public ConcurrentStack<LogItem> LogItems { get; private set; } = new ConcurrentStack<LogItem>();
+        
+        private string CurrentScope { get; set; }
 
         public void Dispose()
         {
             LogItems.Clear();
+            CurrentScope = null;
             LogItems = null;
         }
 
         public class Logger : ILogger
         {
-            private class NoopDisposable : IDisposable
+            private class LogScope : IDisposable
             {
-                public static Logger.NoopDisposable Instance = new Logger.NoopDisposable();
+                private readonly StubLoggerProvider _provider;
+                private readonly string _parentScope;
+                public LogScope(StubLoggerProvider provider, string scope)
+                {
+                    _provider = provider;
+                    _parentScope = provider.CurrentScope;
+                    _provider.CurrentScope = scope;
+                }
 
                 public void Dispose()
                 {
+                    _provider.CurrentScope = _parentScope;
                 }
             }
 
@@ -35,7 +46,7 @@ namespace Discussion.Tests.Common
 
             public IDisposable BeginScope<TState>(TState state)
             {
-                return NoopDisposable.Instance;
+                return new LogScope(Provider, state.ToString());
             }
 
             public bool IsEnabled(LogLevel logLevel)
@@ -47,11 +58,12 @@ namespace Discussion.Tests.Common
             {
                 var log = new LogItem
                 {
-                    Category = this.Category,
+                    Category = Category,
                     Level = logLevel,
                     EventId = eventId,
                     State = state,
                     Exception = exception,
+                    Scope = Provider.CurrentScope,
                     Message = formatter.Invoke(state, exception)
                 };
                 Provider.LogItems.Push(log);
@@ -61,11 +73,12 @@ namespace Discussion.Tests.Common
             {
                 var log = new LogItem
                 {
-                    Category = this.Category,
+                    Category = Category,
                     Level = logLevel,
                     EventId = eventId.Id,
                     State = state,
                     Exception = exception,
+                    Scope = Provider.CurrentScope,
                     Message = formatter.Invoke(state, exception)
                 };
                 Provider.LogItems.Push(log);
@@ -79,6 +92,8 @@ namespace Discussion.Tests.Common
             public Exception Exception { get; set; }
             public int EventId { get; set; }
             public object State { get; set; }
+            
+            public string Scope { get; set; }
             public string Message { get; set; }
         }
     }

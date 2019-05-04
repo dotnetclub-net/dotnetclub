@@ -1,19 +1,20 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Discussion.Core.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Discussion.Core
 {
-    public static class Configuration
+    public static class WebHostConfiguration
     {
         public const string ConfigKeyLogging = "Logging";
         private const string EVariablePrefixHosting = "ASPNETCORE_";
         private const string EVariablePrefixAppSettings = "DOTNETCLUB_";
         
-        public static IWebHostBuilder ConfigureHost(IWebHostBuilder hostBuilder, bool addCommandLineArguments = false)
+        public static IWebHostBuilder Configure(IWebHostBuilder hostBuilder, bool addCommandLineArguments = false)
         {
             var basePath = Directory.GetCurrentDirectory();
             var hostSettingsBuilder = BuildHostConfiguration(basePath, addCommandLineArguments ? Environment.GetCommandLineArgs() : null);
@@ -27,8 +28,8 @@ namespace Discussion.Core
                 .ConfigureAppConfiguration(BuildApplicationConfiguration)
                 .ConfigureLogging((hostingContext, logging) =>
                 {
-                    logging.AddConsole();
-                    ConfigureFileLogging(logging,
+                    logging.AddConsole(config => config.IncludeScopes = true);
+                    FileLogging.Configure(logging,
                         hostingContext.Configuration.GetSection(ConfigKeyLogging),
                         hostingContext.HostingEnvironment.IsDevelopment());
                 });
@@ -65,24 +66,5 @@ namespace Discussion.Core
                     .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddEnvironmentVariables(prefix: EVariablePrefixAppSettings);
         }
-
-        public static void ConfigureFileLogging(ILoggingBuilder logging, IConfiguration loggingConfiguration, bool isDevelopment)
-        {
-            if (isDevelopment)
-            {
-                // Default is Information
-                // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-2.1
-                logging.SetMinimumLevel(LogLevel.Trace);
-            }
-
-            var seriConfigType = typeof(FileLoggerExtensions).Assembly.GetType("Serilog.Extensions.Logging.File.FileLoggingConfiguration");
-            var fileLoggingConfig = loggingConfiguration?.Get(seriConfigType);
-            if (fileLoggingConfig != null)
-            {
-                logging.AddFile(loggingConfiguration); // See doc at nghttps://github.com/serilog/serilog-extensions-logging-file
-            }
-            logging.AddConfiguration(loggingConfiguration);
-        }
-
     }
 }
