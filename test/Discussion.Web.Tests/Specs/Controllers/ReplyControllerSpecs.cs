@@ -62,6 +62,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var span = DateTime.UtcNow - topic.LastRepliedAt.Value;
             Assert.True(span.TotalSeconds > 0);
             Assert.True(span.TotalSeconds < 10);
+            
+            var replyCreatedLog = _app.GetLogs().FirstOrDefault(log => log.Message.Contains("添加回复成功"));
+            Assert.NotNull(replyCreatedLog);
+            Assert.Contains($"UserId: {user.Id}", replyCreatedLog.Message);
+            Assert.Contains($"TopicId: {topic.Id}", replyCreatedLog.Message);
+            Assert.Contains($"ReplyId: {replies[0].Id}", replyCreatedLog.Message);
         }
 
         [Fact]

@@ -189,6 +189,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
             registeredUser.ShouldNotBeNull();
             registeredUser.UserName.ShouldEqual(userName);
             registeredUser.Id.ShouldGreaterThan(0);
+            
+            var newUserLog = _app.GetLogs().FirstOrDefault(log => log.Message.Contains("用户注册成功"));
+            Assert.NotNull(newUserLog);
+            Assert.Contains($"UserId: {registeredUser.Id}", newUserLog.Message);
+            Assert.Contains($"UserName: {registeredUser.UserName}", newUserLog.Message);
         }
 
         [Fact]

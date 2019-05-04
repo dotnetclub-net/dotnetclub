@@ -150,7 +150,7 @@ namespace Discussion.Web.Controllers
                 return View("Register");
             }
 
-            _logger.LogInformation($"新用户注册：用户名 {registerModel.UserName}");
+            _logger.LogInformation($"用户注册成功：(UserId: {newUser.Id}, UserName: {newUser.UserName})");
             await _signInManager.PasswordSignInAsync(
                 registerModel.UserName,
                 registerModel.Password,

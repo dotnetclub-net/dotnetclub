@@ -77,7 +77,7 @@ namespace Discussion.Web.Controllers
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
             
-            _logger.LogInformation($"添加回复成功：{currentUser.UserName}：(topicId: {topic.Id} replyId: {reply.Id})");
+            _logger.LogInformation($"添加回复成功：(TopicId: {topic.Id} ReplyId: {reply.Id} UserId: {currentUser.Id}, UserName: {currentUser.UserName})");
             return NoContent();
         }
     }

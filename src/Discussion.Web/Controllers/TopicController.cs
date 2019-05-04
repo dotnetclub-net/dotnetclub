@@ -95,7 +95,8 @@ namespace Discussion.Web.Controllers
         [Route("/topics")]
         public ActionResult CreateTopic(TopicCreationModel model)
         {
-            var userName = HttpContext.DiscussionUser().UserName;
+            var user = HttpContext.DiscussionUser();
+            var userName = user.UserName;
             if (!ModelState.IsValid)
             {
                 _logger.LogModelState("创建话题", ModelState, userName);
@@ -105,13 +106,13 @@ namespace Discussion.Web.Controllers
             try
             {
                 var topic = _topicService.CreateTopic(model);
-                _logger.LogInformation($"创建话题成功：{userName}：{topic.Title}(id: {topic.Id})");
+                _logger.LogInformation($"创建话题成功：{topic.Title} (TopicId: {topic.Id}, UserId: {user.Id}, UserName: {user.UserName})");
                 // ReSharper disable once Mvc.ActionNotResolved
                 return RedirectToAction("Index", new { topic.Id });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning($"创建话题失败：{userName}：{ex.Message}");
+                _logger.LogWarning($"创建话题失败：(UserId: {user.Id}, UserName: {user.UserName})：{ex.Message}");
                 return BadRequest();
             }
         }
@@ -121,11 +122,11 @@ namespace Discussion.Web.Controllers
         [Route("/topics/import-from-wechat")]
         public async Task<ActionResult> ImportFromWeChat(ChatHistoryImportingModel model)
         {
-            var userId = HttpContext.DiscussionUser().Id;
-            var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == userId);
+            var user = HttpContext.DiscussionUser();
+            var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id);
             if (weChatAccount == null)
             {
-                _logger.LogWarning("无法导入对话，因为当前用户未绑定微信号");
+                _logger.LogWarning($"无法导入对话，因为当前用户 (UserId: {user.Id}, UserName: {user.UserName}) 未绑定微信号");
                 return BadRequest();
             }
 
@@ -154,6 +155,8 @@ namespace Discussion.Web.Controllers
             topic.LastRepliedByWeChatAccount = replies.Last().CreatedByWeChatAccount;
             topic.LastRepliedAt = replies.Last().CreatedAtUtc;
             _topicRepo.Update(topic);
+            
+            _logger.LogInformation($"导入对话成功：(TopicId: {topic.Id}, ChatId: {model.ChatId}, ReplyCount: {topic.ReplyCount}, UserId: {user.Id}, UserName: {user.UserName})");
             return redirectResult;
         }
 
@@ -161,11 +164,11 @@ namespace Discussion.Web.Controllers
         [Route("/topics/wechat-session-list")]
         public async Task<ApiResponse> GetWeChatSessionList()
         {
-            var userId = HttpContext.DiscussionUser().Id;
-            var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == userId);
+            var user = HttpContext.DiscussionUser();
+            var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id);
             if (weChatAccount == null)
             {
-                _logger.LogWarning("无法导入对话，因为当前用户未绑定微信号");
+                _logger.LogWarning($"无法加载对话列表，因为当前用户 (UserId: {user.Id}, UserName: {user.UserName}) 未绑定微信号");
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }
 

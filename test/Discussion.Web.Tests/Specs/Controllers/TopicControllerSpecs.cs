@@ -106,7 +106,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         public void should_create_topic()
         {
-            _app.MockUser();
+            var user = _app.MockUser();
             var topicController = _app.CreateController<TopicController>();
 
             var model = new TopicCreationModel()
@@ -122,6 +122,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
             topicCreated.LastRepliedAt.ShouldBeNull();
             topicCreated.ReplyCount.ShouldEqual(0);
             topicCreated.ViewCount.ShouldEqual(0);
+
+            var topicCreatedLog = _app.GetLogs().FirstOrDefault(log => log.Message.Contains("创建话题成功"));
+            Assert.NotNull(topicCreatedLog);
+            Assert.Contains($"UserId: {user.Id}", topicCreatedLog.Message);
+            Assert.Contains($"TopicId: {topicCreated.Id}", topicCreatedLog.Message);
+            Assert.Contains(topicCreated.Title, topicCreatedLog.Message);
         }
 
         [Fact]
@@ -192,6 +198,12 @@ namespace Discussion.Web.Tests.Specs.Controllers
             importedReply[0].CreatedBy.ShouldBeNull();
             importedReply[0].Content.ShouldEqual("导入的消息概要1 微信消息正文");
             importedReply.Count.ShouldEqual(1);
+            
+            var importedLog = _app.GetLogs().FirstOrDefault(log => log.Message.Contains("导入对话成功"));
+            Assert.NotNull(importedLog);
+            Assert.Contains($"ChatId: {chatId}", importedLog.Message);
+            Assert.Contains($"TopicId: {topicCreated.Id}", importedLog.Message);
+            Assert.Contains($"ReplyCount: {importedReply.Count}", importedLog.Message);
         }
 
         private Topic VerifyTopicCreated(ActionResult actionResult, TopicCreationModel model)
