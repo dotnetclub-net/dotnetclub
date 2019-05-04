@@ -105,6 +105,7 @@ namespace Discussion.Web
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseTracingId();
             SetupGlobalExceptionHandling(app);
             SetupHttpsSupport(app);
             
