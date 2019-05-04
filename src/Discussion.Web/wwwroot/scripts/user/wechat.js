@@ -31,6 +31,7 @@ function fetchBotInfo() {
             verify();
         });
     }).fail(function () {
+        const notice = $('[rel=notice]');
         notice.text('暂时无法绑定微信账号，请稍后再试：网络失败');
     });
 }

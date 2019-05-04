@@ -54,7 +54,11 @@ namespace Discussion.Web.Services.UserManagement
                 return updateEmailResult;
             }
 
-            user.AvatarFileId = userSettingsViewModel.AvatarFileId;
+            if (userSettingsViewModel.AvatarFileId.HasValue)
+            {
+                user.AvatarFileId = userSettingsViewModel.AvatarFileId;
+            }
+
             user.DisplayName = userSettingsViewModel.DisplayName;
             if (string.IsNullOrWhiteSpace(user.DisplayName))
             {
