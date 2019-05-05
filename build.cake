@@ -142,12 +142,15 @@ Task("package:admin")
         });
 
         if(dockerExists){
-            if(string.IsNullOrWhiteSpace(imagetag)){
+            var adminTag = imageTag;
+            if(string.IsNullOrWhiteSpace(adminTag)){
                 var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
-                imagetag = $"jijiechen/dotnetclub-adm:{now}";
+                adminTag = $"jijiechen/dotnetclub-adm:{now}";
+            }else{
+                adminTag = adminTag.Replace("dotnetclub:", "dotnetclub-adm:");
             }
-
-            Execute($"docker build ./src/Discussion.Admin/publish -t {imagetag} -f ./src/Discussion.Admin/publish/Dockerfile");
+            
+            Execute($"docker build ./src/Discussion.Admin/publish -t {adminTag} -f ./src/Discussion.Admin/publish/Dockerfile");
         }
     });
 
