@@ -142,7 +142,7 @@ Task("package:admin")
         });
 
         if(dockerExists){
-            var adminTag = imageTag;
+            var adminTag = imagetag;
             if(string.IsNullOrWhiteSpace(adminTag)){
                 var now = DateTime.UtcNow.ToString("yyyyMMddHHmm");
                 adminTag = $"jijiechen/dotnetclub-adm:{now}";
