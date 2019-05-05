@@ -29,7 +29,7 @@ spec:
             fsGroup: 5000
       containers:
         - name: dotnetclub
-          image: jijiechen/dotnetclub:201902240624
+          image: jijiechen/dotnetclub:201905050616
           ports:
             - name: http
               containerPort: 5000
