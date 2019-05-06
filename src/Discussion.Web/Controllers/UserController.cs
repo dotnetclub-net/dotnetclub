@@ -58,21 +58,21 @@ namespace Discussion.Web.Controllers
             var user = HttpContext.DiscussionUser();
             if (!ModelState.IsValid)
             {
-                _logger.LogModelState(action, ModelState, user.UserName);
+                _logger.LogModelState(action, ModelState, user.Id, user.UserName);
                 return View("Settings", user);
             }
 
             var identityResult = await _userService.UpdateUserInfoAsync(user, userSettingsViewModel);
             if (identityResult.Succeeded)
             {
-                _logger.LogIdentityResult(action, identityResult, user.UserName);
+                _logger.LogIdentityResult(action, identityResult, user.Id, user.UserName);
                 // ReSharper disable once Mvc.ActionNotResolved
                 return RedirectToAction("Settings");
             }
 
             var msg = string.Join(";", identityResult.Errors.Select(e => e.Description));
             ModelState.AddModelError(string.Empty, msg);
-            _logger.LogIdentityResult(action, identityResult, user.UserName);
+            _logger.LogIdentityResult(action, identityResult, user.Id, user.UserName);
             return View("Settings", user);
         }
 
@@ -80,16 +80,16 @@ namespace Discussion.Web.Controllers
         [Route("send-confirmation-mail")]
         public async Task<ApiResponse> SendEmailConfirmation()
         {
+            var user = HttpContext.DiscussionUser();
             try
             {
-                var user = HttpContext.DiscussionUser();
                 await _userService.SendEmailConfirmationMailAsync(user, Request.Scheme);
-                _logger.LogInformation($"发送确认邮件成功：{user.UserName}");
+                _logger.LogInformation("发送确认邮件成功：{@EmailConfirmation}", new {user.EmailAddress, user.UserName });
                 return  ApiResponse.NoContent();
             }
             catch (UserEmailAlreadyConfirmedException ex)
             {
-                _logger.LogWarning($"发送确认邮件失败：{ex.UserName}：{ex.Message}");
+                _logger.LogWarning("发送确认邮件失败：{@EmailConfirmation}", new {user.EmailAddress, user.UserName, Result = ex.Message});
                 return ApiResponse.Error(ex.Message);
             }
         }
@@ -102,12 +102,12 @@ namespace Discussion.Web.Controllers
             var tokenInEmail = UserEmailToken.ExtractFromQueryString(token);
             if (tokenInEmail == null)
             {
-                _logger.LogWarning("确认邮件地址失败：无法识别提供的 token");
+                _logger.LogWarning("确认邮件地址失败：{@EmailConfirmation}", new {Token = token, Result = "无法识别提供的 token"});
                 return View(false);
             }
 
             var result = await _userService.ConfirmEmailAsync(tokenInEmail);
-            _logger.LogIdentityResult("确认邮件地址", result);
+            _logger.LogIdentityResult("确认邮件地址", result, tokenInEmail.UserId);
             return View(result.Succeeded);
         }
 
@@ -125,7 +125,7 @@ namespace Discussion.Web.Controllers
             var user = HttpContext.DiscussionUser();
             if (!ModelState.IsValid)
             {
-                _logger.LogModelState("修改密码", ModelState, user.UserName);
+                _logger.LogModelState("修改密码", ModelState, user.Id, user.UserName);
                 return View(getActionName, viewModel);
             }
 
@@ -137,11 +137,11 @@ namespace Discussion.Web.Controllers
                 {
                     ModelState.AddModelError(err.Code, err.Description);
                 });
-                _logger.LogIdentityResult("修改密码", changeResult, user.UserName);
+                _logger.LogIdentityResult("修改密码", changeResult, user.Id, user.UserName);
                 return View(getActionName, viewModel);
             }
 
-            _logger.LogIdentityResult("修改密码", changeResult, user.UserName);
+            _logger.LogIdentityResult("修改密码", changeResult, user.Id, user.UserName);
             return RedirectToAction(getActionName);
         }
 
@@ -159,18 +159,18 @@ namespace Discussion.Web.Controllers
             var badRequestResponse = ApiResponse.NoContent(HttpStatusCode.BadRequest);
             if (string.IsNullOrEmpty(phoneNumber) || !Regex.IsMatch(phoneNumber, "\\d{11}"))
             {
-                _logger.LogWarning($"发送手机验证短信失败：{user.UserName}：号码 {phoneNumber} 不正确");
+                _logger.LogWarning("发送手机验证短信失败：{@PhoneNumberVerification}", new { user.UserName, UserId = user.Id, PhoneNumber = phoneNumber, Result = "号码不正确" });
                 return badRequestResponse;
             }
 
             try
             {
                 await _userService.SendPhoneNumberVerificationCodeAsync(user, phoneNumber);
-                _logger.LogInformation($"发送手机验证短信成功：{user.UserName}");
+                _logger.LogInformation("发送手机验证短信成功：{@PhoneNumberVerification}", new { user.UserName, UserId = user.Id, PhoneNumber = phoneNumber,});
             }
             catch(PhoneNumberVerificationFrequencyExceededException)
             {
-                _logger.LogWarning($"发送手机验证短信失败：{user.UserName}：超出调用限制");
+                _logger.LogWarning("发送手机验证短信失败：{@PhoneNumberVerification}", new { user.UserName, UserId = user.Id, PhoneNumber = phoneNumber, Result = "超出调用限制" });
                 return badRequestResponse;
             }
 
@@ -186,12 +186,13 @@ namespace Discussion.Web.Controllers
             try
             {
                 _userService.VerifyPhoneNumberByCode(user, code);
-                _logger.LogInformation($"验证手机号码成功：{user.UserName}");
+                _logger.LogInformation("验证手机号码成功：{@PhoneNumberVerification}", new { user.UserName, UserId = user.Id, user.VerifiedPhoneNumber.PhoneNumber, Code = code });
             }
             catch (PhoneNumberVerificationCodeInvalidException)
             {
-                _logger.LogWarning($"验证手机号码失败：{user.UserName}：验证码不正确或已过期");
-                return ApiResponse.Error("code", "验证码不正确或已过期");
+                const string errorMessage = "验证码不正确或已过期";
+                _logger.LogWarning("验证手机号码失败：{@PhoneNumberVerification}", new { user.UserName, UserId = user.Id, Result = errorMessage, Code = code});
+                return ApiResponse.Error("code", errorMessage);
             }
 
             return ApiResponse.NoContent();
@@ -225,27 +226,28 @@ namespace Discussion.Web.Controllers
                 return ApiResponse.NoContent(HttpStatusCode.InternalServerError);
             }
 
-            var userId = HttpContext.DiscussionUser().Id;
+            var user = HttpContext.DiscussionUser();
             if (verifyResult.Id == null)
             {
-                _logger.LogWarning($"验证微信账号时，验证码错误。用户 Id: {userId}");
+                _logger.LogWarning("验证微信账号失败：{@WeChatAccountVerification}", new { user.UserName, UserId = user.Id, Code = code, Result = "验证码不正确或已过期" });
                 return ApiResponse.Error("验证失败");
             }
             
+            _logger.LogInformation("验证微信账号成功：{@WeChatAccountVerification}", new { user.UserName, UserId = user.Id, Code = code });
             var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.WxId == verifyResult.Id && wxa.UserId == 0);
             if (weChatAccount == null)
             {
                 weChatAccount = new WeChatAccount()
                 {
                     WxId = verifyResult.Id,
-                    UserId = userId,
+                    UserId = user.Id,
                     WxAccount = verifyResult.Weixin
                 };
                 _wechatAccountRepo.Save(weChatAccount);
             }
             else
             {
-                weChatAccount.UserId = userId;
+                weChatAccount.UserId = user.Id;
                 weChatAccount.WxAccount = verifyResult.Weixin;
                 _wechatAccountRepo.Save(weChatAccount);
             }

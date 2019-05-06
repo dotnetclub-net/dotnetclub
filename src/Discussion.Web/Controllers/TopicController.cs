@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Logging;
@@ -19,7 +14,6 @@ using Discussion.Web.Services.ChatHistoryImporting;
 using Discussion.Web.Services.TopicManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Discussion.Web.Controllers
 {
@@ -99,20 +93,20 @@ namespace Discussion.Web.Controllers
             var userName = user.UserName;
             if (!ModelState.IsValid)
             {
-                _logger.LogModelState("创建话题", ModelState, userName);
+                _logger.LogModelState("创建话题", ModelState, user.Id, userName);
                 return BadRequest();
             }
 
             try
             {
                 var topic = _topicService.CreateTopic(model);
-                _logger.LogInformation($"创建话题成功：{topic.Title} (TopicId: {topic.Id}, UserId: {user.Id}, UserName: {user.UserName})");
+                _logger.LogInformation("创建话题成功：{@NewTopicAttempt}", new {topic.Title, topic.Id, UserId = user.Id, user.UserName });
                 // ReSharper disable once Mvc.ActionNotResolved
                 return RedirectToAction("Index", new { topic.Id });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning($"创建话题失败：(UserId: {user.Id}, UserName: {user.UserName})：{ex.Message}");
+                _logger.LogWarning("创建话题失败：{@NewTopicAttempt}", new { UserId = user.Id, user.UserName, Result = ex.Message });
                 return BadRequest();
             }
         }
@@ -126,7 +120,7 @@ namespace Discussion.Web.Controllers
             var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id);
             if (weChatAccount == null)
             {
-                _logger.LogWarning($"无法导入对话，因为当前用户 (UserId: {user.Id}, UserName: {user.UserName}) 未绑定微信号");
+                _logger.LogWarning("导入对话失败：{@ImportAttempt}", new { UserId = user.Id, user.UserName, Result = "未绑定微信号" });
                 return BadRequest();
             }
 
@@ -156,7 +150,7 @@ namespace Discussion.Web.Controllers
             topic.LastRepliedAt = replies.Last().CreatedAtUtc;
             _topicRepo.Update(topic);
             
-            _logger.LogInformation($"导入对话成功：(TopicId: {topic.Id}, ChatId: {model.ChatId}, ReplyCount: {topic.ReplyCount}, UserId: {user.Id}, UserName: {user.UserName})");
+            _logger.LogInformation("导入对话成功：{@ImportAttempt}", new {TopicId = topic.Id, model.ChatId, topic.ReplyCount, UserId = user.Id, user.UserName});
             return redirectResult;
         }
 
@@ -168,7 +162,7 @@ namespace Discussion.Web.Controllers
             var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id);
             if (weChatAccount == null)
             {
-                _logger.LogWarning($"无法加载对话列表，因为当前用户 (UserId: {user.Id}, UserName: {user.UserName}) 未绑定微信号");
+                _logger.LogWarning("加载对话列表失败：{@ImportAttempt}", new { UserId = user.Id, user.UserName, Result = "未绑定微信号" });
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }
 

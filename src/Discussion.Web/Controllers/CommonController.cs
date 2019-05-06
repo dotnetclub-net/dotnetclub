@@ -92,7 +92,7 @@ namespace Discussion.Web.Controllers
                 ? await storageFile.GetPublicUrlAsync(TimeSpan.MaxValue)
                 : Url.Action("DownloadFile", "Common", new { slug = fileRecord.Slug }, Request.Scheme);
 
-            _logger.LogInformation($"上传文件成功：{fileRecord.OriginalName}, {fileRecord.Size} bytes, {fileRecord.StoragePath}, (id: {fileRecord.Id})");
+            _logger.LogInformation("上传文件成功：{@UploadedFile}", new {fileRecord.OriginalName, fileRecord.Size, fileRecord.StoragePath, fileRecord.Id});
             return ApiResponse.ActionResult(new
             {
                 FileId = fileRecord.Id,

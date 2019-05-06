@@ -192,8 +192,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             
             var newUserLog = _app.GetLogs().FirstOrDefault(log => log.Message.Contains("用户注册成功"));
             Assert.NotNull(newUserLog);
-            Assert.Contains($"UserId: {registeredUser.Id}", newUserLog.Message);
-            Assert.Contains($"UserName: {registeredUser.UserName}", newUserLog.Message);
+            Assert.Contains($"UserId = {registeredUser.Id}", newUserLog.Message);
+            Assert.Contains($"UserName = {registeredUser.UserName}", newUserLog.Message);
         }
 
         [Fact]
@@ -374,11 +374,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var model = new ResetPasswordModel {Token = "hello"};
 
             var controller = _app.CreateController<AccountController>();
-            var result = controller.ResetPassword(model);
+            controller.ResetPassword(model);
 
             controller.ModelState.IsValid.ShouldBeFalse();
             controller.ModelState[nameof(model.Token)].Errors.First()
-                .ErrorMessage.ShouldEqual("Token无法识别");
+                .ErrorMessage.ShouldEqual("无法识别的凭证");
         }
 
         [Fact]
@@ -396,7 +396,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var result = await controller.DoResetPassword(model) as ViewResult;
 
             controller.ModelState.IsValid.ShouldBeFalse();
-            controller.ModelState["InvalidToken"].Errors.First()
+            controller.ModelState["Token"].Errors.First()
                 .ErrorMessage.ShouldEqual("验证令牌不正确");
         }
 

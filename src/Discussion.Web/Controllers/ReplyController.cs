@@ -39,27 +39,27 @@ namespace Discussion.Web.Controllers
 
             if (!_siteSettings.CanAddNewReplies())
             {
-                var ex = new FeatureDisabledException();
-                _logger.LogWarning($"添加回复失败：{currentUser.UserName}：{ex.Message}");
+                _logger.LogWarning("添加回复失败：{@ReplyAttempt}", new {currentUser.UserName, Result= new FeatureDisabledException().Message});
                 return BadRequest();
             }
 
             if (_siteSettings.RequireUserPhoneNumberVerified && !currentUser.PhoneNumberId.HasValue)
             {
-                var ex = new UserVerificationRequiredException();
-                _logger.LogWarning($"添加回复失败：{currentUser.UserName}：{ex.Message}");
+                _logger.LogWarning("添加回复失败：{@ReplyAttempt}", new {currentUser.UserName, Result = new UserVerificationRequiredException().Message});
                 return BadRequest();
             }
             
             var topic = _topicRepo.Get(topicId);
             if (topic == null)
             {
-                ModelState.AddModelError("TopicId", "话题不存在");
+                var errorMessage = "话题不存在";
+                _logger.LogWarning("添加回复失败：{@ReplyAttempt}", new {currentUser.UserName, Result = errorMessage});
+                ModelState.AddModelError("TopicId", errorMessage);
             }
 
             if (!ModelState.IsValid)
             {
-                _logger.LogModelState("添加回复", ModelState, currentUser.UserName);
+                _logger.LogModelState("添加回复", ModelState, currentUser.Id, currentUser.UserName);
                 return BadRequest(ModelState);
             }
 
@@ -77,7 +77,7 @@ namespace Discussion.Web.Controllers
             topic.ReplyCount += 1;
             _topicRepo.Update(topic);
             
-            _logger.LogInformation($"添加回复成功：(TopicId: {topic.Id} ReplyId: {reply.Id} UserId: {currentUser.Id}, UserName: {currentUser.UserName})");
+            _logger.LogInformation("添加回复成功：{@ReplyAttempt}", new {TopicId = topic.Id, topic.ReplyCount, ReplyId = reply.Id, UserId = currentUser.Id, currentUser.UserName});
             return NoContent();
         }
     }

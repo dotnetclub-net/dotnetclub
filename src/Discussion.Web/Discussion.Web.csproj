@@ -14,7 +14,7 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <StartupObject>Discussion.Web.Startup</StartupObject>
-    <DnClubExcludes>publish\**;logs\**;dotnetclub.db;uploaded\**;appsettings.Development.json</DnClubExcludes>
+    <DnClubExcludes>publish\**;logs\**;dotnetclub.db;uploaded\**;appsettings.Development.json;appsettings.Production.json;</DnClubExcludes>
     <DisableFody Condition=" '$(Configuration)' != 'Debug' ">true</DisableFody>
   </PropertyGroup>
   <ItemGroup>

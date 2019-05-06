@@ -76,11 +76,11 @@ namespace Discussion.Web.Controllers
 
                 var logLevel = result.Succeeded ? LogLevel.Information : LogLevel.Warning;
                 var resultDesc = result.Succeeded ? "成功" : "失败";
-                _logger.Log(logLevel, $"用户登录{resultDesc}：用户名 {viewModel.UserName}：{result}");
+                _logger.Log(logLevel, $"用户登录{resultDesc}：{{@LoginAttempt}}", new {viewModel.UserName, Result = result.ToString()} );
             }
             else
             {
-                _logger.LogWarning($"用户登录失败：用户名 {viewModel.UserName}：数据格式不正确。");
+                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {viewModel.UserName, Result = "数据格式不正确"});
             }
 
             if (!result.Succeeded)
@@ -122,14 +122,14 @@ namespace Discussion.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogInformation($"用户注册失败：用户名 {registerModel.UserName}：数据格式不正确。");
+                _logger.LogInformation("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = "数据格式不正确"});
                 return View("Register");
             }
 
             if (!_settings.CanRegisterNewUsers())
             {
                 const string errorMessage = "已关闭用户注册";
-                _logger.LogWarning($"用户注册失败：用户名 {registerModel.UserName}：{errorMessage}");
+                _logger.LogWarning("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = errorMessage});
                 ModelState.AddModelError("UserName", errorMessage);
                 return View("Register");
             }
@@ -146,11 +146,11 @@ namespace Discussion.Web.Controllers
             {
                 var errorMessage = string.Join(";", result.Errors.Select(err => err.Description));
                 ModelState.AddModelError("UserName", errorMessage);
-                _logger.LogWarning($"用户注册失败：用户名 {registerModel.UserName}：{errorMessage}");
+                _logger.LogWarning("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = errorMessage});
                 return View("Register");
             }
 
-            _logger.LogInformation($"用户注册成功：(UserId: {newUser.Id}, UserName: {newUser.UserName})");
+            _logger.LogInformation("用户注册成功：{@RegisterAttempt}", new {registerModel.UserName, UserId = newUser.Id});
             await _signInManager.PasswordSignInAsync(
                 registerModel.UserName,
                 registerModel.Password,
@@ -176,7 +176,7 @@ namespace Discussion.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning($"找回密码失败：用户名或邮箱 {model.UsernameOrEmail} 数据格式不正确。");
+                _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new {model.UsernameOrEmail, Result = "数据格式不正确"});
                 return ApiResponse.Error(ModelState);
             }
 
@@ -184,12 +184,12 @@ namespace Discussion.Web.Controllers
             {
                 var user = GetUserBy(model);
                 await _userService.SendEmailRetrievePasswordAsync(user, Request.Scheme);
-                _logger.LogInformation($"发送重置密码邮件成功：{user.ConfirmedEmail}");
+                _logger.LogInformation("发送重置密码邮件成功：{ConfirmedEmail}", user.ConfirmedEmail);
                 return ApiResponse.NoContent();
             }
             catch (RetrievePasswordVerificationException e)
             {
-                _logger.LogWarning($"找回密码失败：{model.UsernameOrEmail} {e.Message}");
+                _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new {model.UsernameOrEmail, Result = e.Message});
                 return ApiResponse.Error(e.Message);
             }
         }
@@ -200,17 +200,18 @@ namespace Discussion.Web.Controllers
         {
             ModelState.Clear();
 
+            bool ret;
             var userEmailToken = UserEmailToken.ExtractFromQueryString(model.Token);
             if (userEmailToken == null)
             {
-                ModelState.AddModelError(nameof(model.Token), "Token无法识别");
-                _logger.LogWarning($"重置密码失败：Token无法识别 {model.Token}");
-                return View(model);
+                var errorMessage = "无法识别的凭证";
+                ModelState.AddModelError(nameof(model.Token), errorMessage);
+                _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new {model.Token, model.UserId, Result = errorMessage});
+                return View("ResetPassword", model);
             }
-
+            
             model.Token = userEmailToken.Token;
             model.UserId = userEmailToken.UserId;
-
             return View(model);
         }
 
@@ -218,24 +219,33 @@ namespace Discussion.Web.Controllers
         [Route("/reset-password")]
         public async Task<IActionResult> DoResetPassword(ResetPasswordModel model)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             var user = await _userManager.FindByIdAsync(model.UserId.ToString());
             if (user == null)
             {
-                ModelState.AddModelError(nameof(model.UserId), "该用户不存在");
+                var errorMessage = "用户不存在";
+                ModelState.AddModelError(nameof(model.UserId), errorMessage);
+                _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new { model.Token, model.UserId, Result = errorMessage});
                 return View(model);
             }
 
             var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
-
             if (result.Errors.Any())
-                result.Errors.ToList()
-                    .ForEach(e => ModelState.AddModelError(e.Code, e.Description));
-
-            _logger.LogInformation($"重置密码成功：{user.UserName}");
-
-            model.Succeeded = true;
+            {
+                var msg = string.Join(";", result.Errors.Select(e => e.Description));
+                ModelState.AddModelError(nameof(model.Token), msg);
+                _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new { model.Token, model.UserId, Result = msg});
+                model.Succeeded = false;
+            }
+            else
+            {
+                _logger.LogInformation("重置密码成功：{UserName}", user.UserName);
+                model.Succeeded = true;
+            }
 
             return View(model);
         }

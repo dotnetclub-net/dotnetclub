@@ -125,8 +125,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             var topicCreatedLog = _app.GetLogs().FirstOrDefault(log => log.Message.Contains("创建话题成功"));
             Assert.NotNull(topicCreatedLog);
-            Assert.Contains($"UserId: {user.Id}", topicCreatedLog.Message);
-            Assert.Contains($"TopicId: {topicCreated.Id}", topicCreatedLog.Message);
+            Assert.Contains($"UserId = {user.Id}", topicCreatedLog.Message);
+            Assert.Contains($"Id = {topicCreated.Id}", topicCreatedLog.Message);
             Assert.Contains(topicCreated.Title, topicCreatedLog.Message);
         }
 
@@ -201,9 +201,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             
             var importedLog = _app.GetLogs().FirstOrDefault(log => log.Message.Contains("导入对话成功"));
             Assert.NotNull(importedLog);
-            Assert.Contains($"ChatId: {chatId}", importedLog.Message);
-            Assert.Contains($"TopicId: {topicCreated.Id}", importedLog.Message);
-            Assert.Contains($"ReplyCount: {importedReply.Count}", importedLog.Message);
+            Assert.Contains($"ChatId = {chatId}", importedLog.Message);
+            Assert.Contains($"TopicId = {topicCreated.Id}", importedLog.Message);
+            Assert.Contains($"ReplyCount = {importedReply.Count}", importedLog.Message);
         }
 
         private Topic VerifyTopicCreated(ActionResult actionResult, TopicCreationModel model)
