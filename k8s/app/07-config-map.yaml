@@ -7,13 +7,23 @@ data:
     {
         "sqliteConnectionString": "Data Source=/club-data/dotnetclub.db",
         "Logging": {
-          "LogLevel": {
-            "Discussion": "Information",
-            "Default": "Warning"
+          "File": {
+            "PathFormat": "logs/log-{Date}.log",
+            "FileSizeLimitBytes": 20971520,
+            "OutputTemplate": "[{Level:u3}] {Timestamp:o} {SourceContext} {TraceId}{NewLine}  {Message} {NewLine}{Exception}",
+            "LogLevel": {
+              "Discussion": "Information",
+              "Default": "Warning"
+            }
           },
-          "PathFormat": "logs/log-{Date}.log",
-          "FileSizeLimitBytes": 20971520,
-          "OutputTemplate": "[{Level:u3}] {Timestamp:o} {SourceContext} {TraceId}{NewLine}  {Message} {NewLine}{Exception}"
+          "Console": {
+            "Json": true,
+            "ElasticSearchJson": true,
+            "LogLevel": {
+              "Discussion": "Information",
+              "Default": "Warning"
+            }
+          }
         },
         "DataProtectionOptions": {
           "DisableAutomaticKeyGeneration" : true,
