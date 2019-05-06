@@ -58,10 +58,10 @@ To execute tests:
 
 ### Installation
 
-It's recommended to run this application using [Docker](https://www.docker.com/). You can run the application using this command after docker is installed:
+It's recommended to run this application using [Docker](https://hub.docker.com/r/jijiechen/dotnetclub/tags). You can run the application using this command after docker is installed:
 
 ```sh
-docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201902240624
+docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201905061027
 ```
 
 You can also compile and run it locally, in that case you'll need .NET Core SDK and node.js tools, and also Mono if you are not working on a Windows PC. After you get a good environment, it's pretty simple to run locally when following these steps:

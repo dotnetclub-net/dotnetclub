@@ -61,10 +61,10 @@ cd dotnetclub
 ### 安装
 
 
-如果只是要运行本项目，您可以直接使用 [Docker](https://www.docker.com/) 来安装。下面的命令可以帮助您在本地运行一个示例：
+如果只是要运行本项目，您可以直接使用 [Docker](https://hub.docker.com/r/jijiechen/dotnetclub/tags) 来安装。下面的命令可以帮助您在本地运行一个示例：
 
 ```sh
-docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201902240624
+docker run -d --name club -p 5000:5000 jijiechen/dotnetclub:201905061027
 ```
 
 您也可以直接在本地编译并运行，但您需要在本地安装 .NET Core SDK、node.js （如果是在非 Windows 电脑上，还需要 Mono）等一系列依赖才能编译。环境准备就绪后，实际的编译过程很简单：
