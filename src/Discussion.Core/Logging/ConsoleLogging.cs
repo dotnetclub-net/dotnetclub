@@ -7,23 +7,30 @@ using Serilog;
 using Serilog.Configuration;
 using Serilog.Debugging;
 using Serilog.Events;
+using Serilog.Formatting.Compact;
+using Serilog.Formatting.Elasticsearch;
 
 namespace Discussion.Core.Logging
 {
     public static class ConsoleLogging
     {
-        const string DefaultOutputTemplate = "{Timestamp:o} {RequestId,13} [{Level:u3}] {Message} ({EventId:x8}){NewLine}{Exception}";
-        
         public static void AddSeriConsoleLogger(this ILoggingBuilder logging, IConfiguration configuration)
         {
-            var configuredOutputTemplate = configuration["outputTemplate"];
+            configuration = configuration?.GetSection("Console");
+            var consoleConfig = configuration?.Get<ConsoleLoggingConfiguration>();
+            if (consoleConfig == null)
+            {
+                return;
+            }
+
             var minimumLogLevel = GetMinimumLogLevel(configuration);
             var levelOverrides = GetLevelOverrides(configuration);
+            //  .WriteTo.Console(new CompactJsonFormatter())
 
             var loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Is(MicrosoftToSerilogLevel(minimumLogLevel))
                 .Enrich.FromLogContext()
-                .WriteTo.Async(ConfigureConsoleSink(configuredOutputTemplate));
+                .WriteTo.Async(ConfigureConsoleSink(consoleConfig));
 
             foreach (var keyValuePair in levelOverrides)
             {
@@ -35,14 +42,20 @@ namespace Discussion.Core.Logging
             logging.AddSerilog(consoleLogger, true);
         }
         
-        static Action<LoggerSinkConfiguration> ConfigureConsoleSink(string outputTemplate)
+        static Action<LoggerSinkConfiguration> ConfigureConsoleSink(ConsoleLoggingConfiguration consoleConfig)
         {
-            if (string.IsNullOrEmpty(outputTemplate))
+            if (!consoleConfig.Json)
             {
-                outputTemplate = DefaultOutputTemplate;
+                return w => w.Console(LogEventLevel.Verbose, consoleConfig.OutputTemplate);
             }
 
-            return w => w.Console(LogEventLevel.Verbose, outputTemplate);
+            if (consoleConfig.ElasticSearchJson)
+            {
+                return w => w.Console(new ElasticsearchJsonFormatter());
+            }
+
+            return w => w.Console(new CompactJsonFormatter());
+
         }
         
         static LogLevel GetMinimumLogLevel(IConfiguration configuration)
@@ -89,5 +102,14 @@ namespace Discussion.Core.Logging
             }
             return dictionary;
         }
+    }
+
+    public class ConsoleLoggingConfiguration
+    {
+        const string DefaultOutputTemplate = "{Timestamp:o} {RequestId,13} [{Level:u3}] {Message} ({EventId:x8}){NewLine}{Exception}";
+        public string OutputTemplate { get; set; } = DefaultOutputTemplate;
+        public bool Json { get; set; }
+        
+        public bool ElasticSearchJson { get; set; }
     }
 }
