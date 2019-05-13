@@ -69,9 +69,9 @@ namespace Discussion.Web
 
            services.AddDataServices(_appConfiguration, _startupLogger);
 
-           services.AddSingleton<IClock, SystemClock>();    
+           services.AddSingleton<IClock, SystemClock>();
            services.AddSingleton<HttpMessageInvoker>(new HttpClient());
-           
+
            services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
            services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
            services.AddScoped<ITagBuilder, ETagBuilder>();
@@ -88,7 +88,7 @@ namespace Discussion.Web
             services.AddChatyImportingServices(_appConfiguration);
 
             services.AddScoped<ITopicService, DefaultTopicService>();
-            
+
             // todo: cache site settings!
             services.AddScoped(sp =>
             {
@@ -108,19 +108,19 @@ namespace Discussion.Web
             app.UseTracingId();
             SetupGlobalExceptionHandling(app);
             SetupHttpsSupport(app);
-            
+
             app.UseMiddleware<SiteReadonlyMiddleware>();
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseMvc();
-            
+
             InitDatabaseIfNeeded(app);
         }
 
         private void SetupHttpsSupport(IApplicationBuilder app)
         {
-            if (!_hostingEnvironment.IsDevelopment() 
-                && bool.TryParse(_appConfiguration["HSTS"] ?? "False", out var useHsts) 
+            if (!_hostingEnvironment.IsDevelopment()
+                && bool.TryParse(_appConfiguration["HSTS"] ?? "False", out var useHsts)
                 && useHsts)
             {
                 app.UseHsts();
@@ -148,7 +148,7 @@ namespace Discussion.Web
                 _startupLogger.LogCritical("正在创建新的数据库结构...");
 
                 var loggingConfig = _appConfiguration.GetSection(WebHostConfiguration.ConfigKeyLogging);
-                SqliteMigrator.Migrate(connStr, migrationLogging =>
+                DatabaseMigrator.Migrate(connStr, migrationLogging =>
                     FileLoggingExtensions.AddSeriFileLogger(migrationLogging, loggingConfig /* enable full logging for migrations */));
 
                 _startupLogger.LogCritical("数据库结构创建完成");

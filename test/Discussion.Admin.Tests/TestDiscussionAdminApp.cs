@@ -19,22 +19,19 @@ namespace Discussion.Admin.Tests
         // to be the place to apply [CollectionDefinition] and all the
         // ICollectionFixture<> interfaces.
     }
-    
+
     public class TestDiscussionAdminApp : TestApplication
     {
         internal const string JwtIssuer = "testing";
         internal const string JwtAudience = "specs";
-        
+
         public TestDiscussionAdminApp()
         {
             InitAdminApp();
         }
-        
+
         private void InitAdminApp()
         {
-            var connectionStringEVKey = $"DOTNETCLUB_{ServiceExtensions.ConfigKeyConnectionString}";
-            Environment.SetEnvironmentVariable(connectionStringEVKey, "Data Source=:memory:");
-
             this.Init<Startup>(hostBuilder =>
             {
                 hostBuilder.ConfigureAppConfiguration((host, config) =>

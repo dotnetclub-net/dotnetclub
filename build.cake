@@ -149,7 +149,7 @@ Task("package:admin")
             }else{
                 adminTag = adminTag.Replace("dotnetclub:", "dotnetclub-adm:");
             }
-            
+
             Execute($"docker build ./src/Discussion.Admin/publish -t {adminTag} -f ./src/Discussion.Admin/publish/Dockerfile");
         }
     });
@@ -171,15 +171,19 @@ Task("ci")
    .IsDependentOn("ci:web")
    .IsDependentOn("ci:admin");
 
+Task("build")
+   .IsDependentOn("clean")
+   .IsDependentOn("build:web")
+   .IsDependentOn("build:admin");
 
-
-
-
-
+Task("test")
+   .IsDependentOn("clean")
+   .IsDependentOn("test:web")
+   .IsDependentOn("test:admin");
 
 
 void Execute(string command, string workingDir = null){
-    
+
  if (string.IsNullOrEmpty(workingDir))
         workingDir = System.IO.Directory.GetCurrentDirectory();
 
@@ -214,7 +218,6 @@ void Execute(string command, string workingDir = null){
             throw new Exception(string.Format("Exit code {0} from {1}", process.ExitCode, command));
     }
 }
-
 
 
 RunTarget(target);

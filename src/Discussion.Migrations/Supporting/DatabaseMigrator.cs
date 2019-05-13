@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Discussion.Migrations.Supporting
 {
-    public static class SqliteMigrator
+    public static class DatabaseMigrator
     {
         static void Main(string[] args)
         {
@@ -22,7 +22,7 @@ namespace Discussion.Migrations.Supporting
             {
                 downToVersion = downTargetVersion;
             }
-            
+
             Console.WriteLine($"Starting migrating...");
 
             try
@@ -56,7 +56,7 @@ namespace Discussion.Migrations.Supporting
             {
                 UpdateDatabase(scope.ServiceProvider, downToVersion);
             }
-            
+
             (services as IDisposable)?.Dispose();
         }
 
@@ -65,9 +65,9 @@ namespace Discussion.Migrations.Supporting
             return new ServiceCollection()
                 .AddFluentMigratorCore()
                 .ConfigureRunner(rb => rb
-                    .AddSQLite()
-                    .WithGlobalConnectionString(connectionString)
-                    .ScanIn(typeof(CreateArticleTable).Assembly).For.Migrations())
+                    .AddDatabase(connectionString)
+                    .ScanIn(typeof(CreateArticleTable).Assembly)
+                    .For.Migrations())
                 .AddLogging(logging =>
                 {
                     logging.AddFluentMigratorConsole();
