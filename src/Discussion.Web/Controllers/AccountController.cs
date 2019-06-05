@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
+using Discussion.Web.Services;
 using Discussion.Web.Services.UserManagement;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
@@ -45,7 +45,8 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("/signin")]
-        public IActionResult Signin([FromQuery]string returnUrl)
+        [IdentityServerAction(IdentityAction.Signin)]
+        public IActionResult Signin([FromQuery] string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -85,7 +86,7 @@ namespace Discussion.Web.Controllers
 
             if (!result.Succeeded)
             {
-                ModelState.Clear();   // 将真正的验证结果隐藏掉（如果有的话）
+                ModelState.Clear(); // 将真正的验证结果隐藏掉（如果有的话）
                 ModelState.AddModelError("UserName", "用户名或密码错误");
                 return View("Signin");
             }
@@ -99,6 +100,7 @@ namespace Discussion.Web.Controllers
         [HttpPost]
         [Route("/signout")]
         [Authorize]
+        [IdentityServerAction(IdentityAction.SignOut)]
         public async Task<IActionResult> DoSignOut()
         {
             await _signInManager.SignOutAsync();
@@ -106,6 +108,8 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("/register")]
+        [IdentityServerAction(IdentityAction.Register)]
+
         public IActionResult Register()
         {
             if (HttpContext.IsAuthenticated())
@@ -265,10 +269,11 @@ namespace Discussion.Web.Controllers
             var user = users.FirstOrDefault(e => e.EmailAddressConfirmed);
 
             if (user == null)
-               throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
+                throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
 
             return user;
         }
+
 
         IActionResult RedirectTo(string returnUrl)
         {
@@ -276,6 +281,7 @@ namespace Discussion.Web.Controllers
             {
                 returnUrl = "/";
             }
+
             return Redirect(returnUrl);
         }
     }

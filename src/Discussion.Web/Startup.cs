@@ -66,7 +66,7 @@ namespace Discussion.Web
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
                 options.Filters.Add(new ApiResponseMvcFilter());
             });
-
+            
            services.AddDataServices(_appConfiguration, _startupLogger);
 
            services.AddSingleton<IClock, SystemClock>();
@@ -102,7 +102,7 @@ namespace Discussion.Web
                        };
             });
         }
-
+        
         public void Configure(IApplicationBuilder app)
         {
             app.UseTracingId();

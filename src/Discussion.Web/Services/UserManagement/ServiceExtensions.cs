@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Communication.Sms;
 using Discussion.Core.Models.UserAvatar;
@@ -6,8 +7,13 @@ using Discussion.Web.Services.UserManagement.Avatar.UrlGenerators;
 using Discussion.Web.Services.UserManagement.EmailConfirmation;
 using Discussion.Web.Services.UserManagement.Identity;
 using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
+using IdentityModel;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Discussion.Web.Services.UserManagement
 {
@@ -31,6 +37,51 @@ namespace Discussion.Web.Services.UserManagement
             services.AddSingleton<IResetPasswordEmailBuilder, DefaultResetPasswordEmailBuilder>();
             
             services.AddScoped<IUserService, DefaultUserService>();
+            
+            var idConfig = appConfiguration.GetSection(nameof(IdentityServerOptions));
+            var idsEnable = bool.Parse(idConfig[nameof(IdentityServerOptions.IsEnable)]);
+            if (idsEnable)
+            {
+                JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+                services.AddAuthentication(options =>
+                    {
+                        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    })
+                    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
+                        options =>
+                        {
+                            options.Cookie.Name = "IdentityServerAdmin";
+                            
+                            // Issue: https://github.com/aspnet/Announcements/issues/318
+                            options.Cookie.SameSite = SameSiteMode.None;
+                        })
+                    .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+                    {
+                        options.Authority = idConfig[nameof(IdentityServerOptions.Authority)];
+                        options.RequireHttpsMetadata = bool.Parse(idConfig[nameof(IdentityServerOptions.RequireHttpsMetadata)]);
+                        options.ClientId = idConfig[nameof(IdentityServerOptions.ClientId)];
+                        options.ClientSecret = idConfig[nameof(IdentityServerOptions.ClientSecret)];
+                        options.SaveTokens = true;
+                        options.ResponseType = "code id_token";
+                        options.GetClaimsFromUserInfoEndpoint = true;
+                        
+                        options.Scope.Clear();
+                        options.Scope.Add(OidcConstants.StandardScopes.OpenId);
+                        options.Scope.Add(OidcConstants.StandardScopes.Profile);
+                        options.Scope.Add(OidcConstants.StandardScopes.Email);
+
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            NameClaimType = JwtClaimTypes.Name,
+                            RoleClaimType = JwtClaimTypes.Role
+                        };
+                    });
+            }
         }
     }
 }

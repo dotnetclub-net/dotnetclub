@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -19,8 +13,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Core.Logging;
+using Discussion.Web.Services;
 using Discussion.Web.Services.ChatHistoryImporting;
-using Newtonsoft.Json;
 
 namespace Discussion.Web.Controllers
 {
@@ -45,6 +39,7 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("settings")]
+        [IdentityServerAction(IdentityAction.Settings)]
         public IActionResult Settings()
         {
             return View(HttpContext.DiscussionUser());
@@ -254,5 +249,6 @@ namespace Discussion.Web.Controllers
             
             return ApiResponse.NoContent();
         }
+        
     }
 }
