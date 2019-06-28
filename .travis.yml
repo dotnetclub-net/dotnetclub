@@ -15,7 +15,7 @@ addons:
     - zlib1g
 
 mono: 5.4.1
-dotnet: 2.1.504
+dotnet: 2.2.300
 services:
   - docker
 
