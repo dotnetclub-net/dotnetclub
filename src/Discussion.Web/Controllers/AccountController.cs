@@ -200,7 +200,6 @@ namespace Discussion.Web.Controllers
         {
             ModelState.Clear();
 
-            bool ret;
             var userEmailToken = UserEmailToken.ExtractFromQueryString(model.Token);
             if (userEmailToken == null)
             {
