@@ -23,7 +23,8 @@ namespace Discussion.Web.Services
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            var configuration = context.HttpContext.RequestServices.GetService<IConfiguration>();
+            var httpContext = context.HttpContext;
+            var configuration = httpContext.RequestServices.GetService<IConfiguration>();
             var idConfig = configuration.GetSection(nameof(IdentityServerOptions));
             var idsEnable = bool.Parse(idConfig[nameof(IdentityServerOptions.IsEnable)]);
             if (idsEnable)
@@ -31,7 +32,7 @@ namespace Discussion.Web.Services
                 switch (_action)
                 {
                     case IdentityAction.Signin:
-                        if (!context.HttpContext.IsAuthenticated())
+                        if (!httpContext.IsAuthenticated())
                             context.Result = new ChallengeResult(OpenIdConnectDefaults.AuthenticationScheme);
                         break;
                     case IdentityAction.SignOut:
@@ -40,7 +41,10 @@ namespace Discussion.Web.Services
                                 CookieAuthenticationDefaults.AuthenticationScheme,
                                 OpenIdConnectDefaults.AuthenticationScheme
                             },
-                            new AuthenticationProperties {RedirectUri = "/"});
+                            new AuthenticationProperties
+                            {
+                                RedirectUri = new UriBuilder(httpContext.Request.Scheme, httpContext.Request.Host.Host).ToString()
+                            });
                         break;
                     case IdentityAction.Register:
                         context.Result = new RedirectResult(idConfig[nameof(IdentityServerOptions.RegisterUri)]);
