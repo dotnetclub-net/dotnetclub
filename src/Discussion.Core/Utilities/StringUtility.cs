@@ -8,7 +8,7 @@ namespace Discussion.Core.Utilities
         public static string Random(int length = 8)
         {
             var sb = new StringBuilder();
-            var random = new Random();
+            var random = new Random(Guid.NewGuid().GetHashCode());
             
             do
             {

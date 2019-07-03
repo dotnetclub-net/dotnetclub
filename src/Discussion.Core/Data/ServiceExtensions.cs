@@ -1,4 +1,5 @@
 using System;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
@@ -48,13 +49,13 @@ namespace Discussion.Core.Data
         static string NormalizeConnectionString(string configuredConnectionString, out bool createTemporary)
         {
             createTemporary = string.IsNullOrWhiteSpace(configuredConnectionString);
-            return createTemporary ? $"Data Source=dotnetclub-{DateTime.UtcNow:yyyyMMddhhmmss}-temp.db" : configuredConnectionString;
+            return createTemporary ? $"Data Source=dotnetclub-{StringUtility.Random(6)}-temp.db" : configuredConnectionString;
         }
 
         static Action<DbContextOptionsBuilder> PrepareDatabase(string connectionString)
         {
             // If use in-memory mode, then persist the db connection across ApplicationDbContext instances
-            if (connectionString.Contains("temp.db"))
+            if (connectionString.EndsWith("temp.db"))
                 return options => options.UseSqlite(new SqliteConnection(connectionString));
 
             return options => options.UseNpgsql(connectionString);
