@@ -39,7 +39,7 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("settings")]
-        [IdentityServerAction(IdentityAction.Settings)]
+        [IdentityUserActionHttpFilter(IdentityUserAction.ChangePassword)]
         public IActionResult Settings()
         {
             return View(HttpContext.DiscussionUser());

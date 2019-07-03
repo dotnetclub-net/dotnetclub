@@ -7,7 +7,7 @@ namespace Discussion.Web.Services
 
         public string Authority { get; set; }
 
-        public string RequireHttpsMetadata { get; set; }
+        public bool RequireHttpsMetadata { get; set; }
 
         public string ClientId { get; set; }
 
@@ -15,14 +15,6 @@ namespace Discussion.Web.Services
         
         public string RegisterUri { get; set; }
 
-        public string SettingsUri { get; set; }
-    }
-
-    public enum IdentityAction
-    {
-        Signin,
-        SignOut,
-        Register,
-        Settings
+        public string ChangePasswordUri { get; set; }
     }
 }

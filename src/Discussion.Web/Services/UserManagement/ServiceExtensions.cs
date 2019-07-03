@@ -38,9 +38,14 @@ namespace Discussion.Web.Services.UserManagement
             
             services.AddScoped<IUserService, DefaultUserService>();
             
-            var idConfig = appConfiguration.GetSection(nameof(IdentityServerOptions));
-            var idsEnable = bool.Parse(idConfig[nameof(IdentityServerOptions.IsEnable)]);
-            if (idsEnable)
+            var idpConfig = appConfiguration.GetSection(nameof(IdentityServerOptions));
+            if (idpConfig != null)
+            {
+                services.Configure<IdentityServerOptions>(idpConfig);
+            }
+
+            var parsedConfiguration = idpConfig?.Get<IdentityServerOptions>();
+            if (parsedConfiguration != null && parsedConfiguration.IsEnable)
             {
                 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
@@ -62,10 +67,10 @@ namespace Discussion.Web.Services.UserManagement
                         })
                     .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
                     {
-                        options.Authority = idConfig[nameof(IdentityServerOptions.Authority)];
-                        options.RequireHttpsMetadata = bool.Parse(idConfig[nameof(IdentityServerOptions.RequireHttpsMetadata)]);
-                        options.ClientId = idConfig[nameof(IdentityServerOptions.ClientId)];
-                        options.ClientSecret = idConfig[nameof(IdentityServerOptions.ClientSecret)];
+                        options.Authority = parsedConfiguration.Authority;
+                        options.RequireHttpsMetadata = parsedConfiguration.RequireHttpsMetadata;
+                        options.ClientId = parsedConfiguration.ClientId;
+                        options.ClientSecret = parsedConfiguration.ClientSecret;
                         options.SaveTokens = true;
                         options.ResponseType = "code id_token";
                         options.GetClaimsFromUserInfoEndpoint = true;

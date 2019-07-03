@@ -11,13 +11,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Discussion.Web.Services
 {
-    public class IdentityServerAction : Attribute, IActionFilter
+    public class IdentityUserActionHttpFilter : Attribute, IActionFilter
     {
-        private readonly IdentityAction _action;
+        private readonly IdentityUserAction _userAction;
 
-        public IdentityServerAction(IdentityAction action)
+        public IdentityUserActionHttpFilter(IdentityUserAction userAction)
         {
-            _action = action;
+            _userAction = userAction;
         }
 
 
@@ -29,13 +29,13 @@ namespace Discussion.Web.Services
             var idsEnable = bool.Parse(idConfig[nameof(IdentityServerOptions.IsEnable)]);
             if (idsEnable)
             {
-                switch (_action)
+                switch (_userAction)
                 {
-                    case IdentityAction.Signin:
+                    case IdentityUserAction.Signin:
                         if (!httpContext.IsAuthenticated())
                             context.Result = new ChallengeResult(OpenIdConnectDefaults.AuthenticationScheme);
                         break;
-                    case IdentityAction.SignOut:
+                    case IdentityUserAction.SignOut:
                         context.Result = new SignOutResult(new List<string>
                             {
                                 CookieAuthenticationDefaults.AuthenticationScheme,
@@ -46,11 +46,11 @@ namespace Discussion.Web.Services
                                 RedirectUri = new UriBuilder(httpContext.Request.Scheme, httpContext.Request.Host.Host).ToString()
                             });
                         break;
-                    case IdentityAction.Register:
+                    case IdentityUserAction.Register:
                         context.Result = new RedirectResult(idConfig[nameof(IdentityServerOptions.RegisterUri)]);
                         break;
-                    case IdentityAction.Settings:
-                        context.Result = new RedirectResult(idConfig[nameof(IdentityServerOptions.SettingsUri)]);
+                    case IdentityUserAction.ChangePassword:
+                        context.Result = new RedirectResult(idConfig[nameof(IdentityServerOptions.ChangePasswordUri)]);
                         break;
                 }
             }

@@ -13,6 +13,7 @@ using Discussion.Web.Services.UserManagement;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Controllers
 {
@@ -24,6 +25,7 @@ namespace Discussion.Web.Controllers
         readonly IRepository<User> _userRepo;
         readonly IClock _clock;
         readonly SiteSettings _settings;
+        private readonly IdentityServerOptions _idpOptions;
         readonly IUserService _userService;
 
         public AccountController(
@@ -33,7 +35,8 @@ namespace Discussion.Web.Controllers
             ILogger<AccountController> logger,
             IRepository<User> userRepo,
             IClock clock,
-            SiteSettings settings)
+            SiteSettings settings,
+            IOptions<IdentityServerOptions> idpOptions)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -41,11 +44,12 @@ namespace Discussion.Web.Controllers
             _userRepo = userRepo;
             _clock = clock;
             _settings = settings;
+            _idpOptions = idpOptions.Value;
             _userService = userService;
         }
 
         [Route("/signin")]
-        [IdentityServerAction(IdentityAction.Signin)]
+        [IdentityUserActionHttpFilter(IdentityUserAction.Signin)]
         public IActionResult Signin([FromQuery] string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
@@ -57,9 +61,7 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/signin")]
-        public async Task<IActionResult> DoSignin(
-            [FromForm] UserViewModel viewModel,
-            [FromQuery] string returnUrl)
+        public async Task<IActionResult> DoSignin([FromForm] UserViewModel viewModel, [FromQuery] string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -100,7 +102,7 @@ namespace Discussion.Web.Controllers
         [HttpPost]
         [Route("/signout")]
         [Authorize]
-        [IdentityServerAction(IdentityAction.SignOut)]
+        [IdentityUserActionHttpFilter(IdentityUserAction.SignOut)]
         public async Task<IActionResult> DoSignOut()
         {
             await _signInManager.SignOutAsync();
@@ -108,8 +110,7 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("/register")]
-        [IdentityServerAction(IdentityAction.Register)]
-
+        [IdentityUserActionHttpFilter(IdentityUserAction.Register)]
         public IActionResult Register()
         {
             if (HttpContext.IsAuthenticated())
@@ -124,6 +125,12 @@ namespace Discussion.Web.Controllers
         [Route("/register")]
         public async Task<IActionResult> DoRegister(UserViewModel registerModel)
         {
+            if (_idpOptions.IsEnable)
+            {            
+                _logger.LogWarning("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = "启用外部身份服务时，禁止注册本地账号"});
+                return BadRequest();
+            }
+            
             if (!ModelState.IsValid)
             {
                 _logger.LogInformation("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = "数据格式不正确"});

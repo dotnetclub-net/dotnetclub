@@ -1,10 +1,5 @@
 using System;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Communication.Sms;
@@ -15,9 +10,6 @@ using Discussion.Core.Utilities;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
-using Discussion.Web.Services.ChatHistoryImporting;
-using Discussion.Web.Services.UserManagement;
-using Discussion.Web.Tests.Specs.Services;
 using Discussion.Web.Tests.Stubs;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -27,9 +19,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Discussion.Web.Tests.Specs.Controllers
