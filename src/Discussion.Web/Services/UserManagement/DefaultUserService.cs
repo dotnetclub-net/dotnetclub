@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
@@ -11,11 +12,13 @@ using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Services.UserManagement
 {
     public class DefaultUserService : IUserService
     {
+        private readonly IdentityServerOptions _idpOptions;
         private readonly IRepository<User> _userRepo;
         private readonly UserManager<User> _userManager;
         private readonly IUrlHelper _urlHelper;
@@ -26,7 +29,7 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
         private readonly IClock _clock;
 
-        public DefaultUserService(IRepository<User> userRepo,
+        public DefaultUserService(IOptions<IdentityServerOptions> idpOptions, IRepository<User> userRepo,
             UserManager<User> userManager,
             IEmailDeliveryMethod emailDeliveryMethod,
             IUrlHelper urlHelper,
@@ -35,6 +38,7 @@ namespace Discussion.Web.Services.UserManagement
             IPhoneNumberVerificationService phoneNumberVerificationService,
             IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock)
         {
+            _idpOptions = idpOptions.Value;
             _userRepo = userRepo;
             _userManager = userManager;
             _emailDeliveryMethod = emailDeliveryMethod;
@@ -111,6 +115,11 @@ namespace Discussion.Web.Services.UserManagement
 
         public async Task SendEmailRetrievePasswordAsync(User user, string urlProtocol)
         {
+            if (_idpOptions.IsEnable)
+            {
+                throw new InvalidOperationException("用户的密码已由外部服务管理");
+            }
+            
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var model = new UserEmailToken { UserId = user.Id, Token = token };
 
