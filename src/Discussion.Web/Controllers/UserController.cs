@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Discussion.Core.Logging;
 using Discussion.Web.Services;
 using Discussion.Web.Services.ChatHistoryImporting;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Controllers
 {
@@ -27,19 +28,20 @@ namespace Discussion.Web.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly IRepository<WeChatAccount> _wechatAccountRepo;
         private readonly ChatyApiService _chatyApiService;
+        private readonly IdentityServerOptions _idpOptions;
 
         public UserController(UserManager<User> userManager, IUserService userService, ILogger<UserController> logger, 
-            IRepository<WeChatAccount> wechatAccountRepo, ChatyApiService chatyApiService)
+            IRepository<WeChatAccount> wechatAccountRepo, ChatyApiService chatyApiService, IOptions<IdentityServerOptions> idpOptions)
         {
             _userManager = userManager;
             _userService = userService;
             _wechatAccountRepo = wechatAccountRepo;
             _chatyApiService = chatyApiService;
+            _idpOptions = idpOptions?.Value;
             _logger = logger;
         }
 
         [Route("settings")]
-        [IdentityUserActionHttpFilter(IdentityUserAction.ChangePassword)]
         public IActionResult Settings()
         {
             return View(HttpContext.DiscussionUser());
@@ -107,6 +109,7 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("change-password")]
+        [IdentityUserActionHttpFilter(IdentityUserAction.ChangePassword)]
         public IActionResult ChangePassword()
         {
             return View();
@@ -118,6 +121,12 @@ namespace Discussion.Web.Controllers
         {
             var getActionName = "ChangePassword";
             var user = HttpContext.DiscussionUser();
+            if (_idpOptions.IsEnable)
+            {            
+                _logger.LogWarning("修改密码失败：{@ResetPasswordAttempt}", new { UserId = user.Id, user.UserName, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return BadRequest();
+            }
+            
             if (!ModelState.IsValid)
             {
                 _logger.LogModelState("修改密码", ModelState, user.Id, user.UserName);

@@ -452,7 +452,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var userCtrl = new UserController(null,null, 
                 _theApp.GetService<ILogger<UserController>>(), 
                 _theApp.GetService<IRepository<WeChatAccount>>(),
-                chatyApiService.Object);
+                chatyApiService.Object, null);
             
             var requestResult = await userCtrl.GetChatyBotInfo();
             
@@ -488,7 +488,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var userCtrl = new UserController(null, null,
                 _theApp.GetService<ILogger<UserController>>(),
                 _theApp.GetService<IRepository<WeChatAccount>>(),
-                chatyApiService.Object)
+                chatyApiService.Object, null)
                 .WithHttpContext(httpContext);
             
             var requestResult = await userCtrl.VerifyWeChatAccountByCode("123456");

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
@@ -66,6 +67,12 @@ namespace Discussion.Web.Controllers
             if (HttpContext.IsAuthenticated())
             {
                 return RedirectTo(returnUrl);
+            }
+            
+            if (_idpOptions.IsEnable)
+            {            
+                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {viewModel.UserName, Result = "启用外部身份服务时，禁止使用本地登录"});
+                return BadRequest();
             }
 
             var result = Microsoft.AspNetCore.Identity.SignInResult.Failed;
@@ -177,6 +184,12 @@ namespace Discussion.Web.Controllers
             {
                 return RedirectTo("/");
             }
+            
+            if (_idpOptions.IsEnable)
+            {            
+                _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new { UsernameOrEmail = string.Empty, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return BadRequest();
+            }
 
             return View();
         }
@@ -185,6 +198,12 @@ namespace Discussion.Web.Controllers
         [Route("/forgot-password")]
         public async Task<ApiResponse> DoForgotPassword(ForgotPasswordModel model)
         {
+            if (_idpOptions.IsEnable)
+            {            
+                _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new {model.UsernameOrEmail, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+            }
+            
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new {model.UsernameOrEmail, Result = "数据格式不正确"});
@@ -209,6 +228,12 @@ namespace Discussion.Web.Controllers
         [Route("/reset-password")]
         public IActionResult ResetPassword(ResetPasswordModel model)
         {
+            if (_idpOptions.IsEnable)
+            {            
+                _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new {model.Token, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return BadRequest();
+            }
+            
             ModelState.Clear();
 
             var userEmailToken = UserEmailToken.ExtractFromQueryString(model.Token);
@@ -229,6 +254,12 @@ namespace Discussion.Web.Controllers
         [Route("/reset-password")]
         public async Task<IActionResult> DoResetPassword(ResetPasswordModel model)
         {
+            if (_idpOptions.IsEnable)
+            {            
+                _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new {model.Token, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return BadRequest();
+            }
+            
             if (!ModelState.IsValid)
             {
                 return View(model);
