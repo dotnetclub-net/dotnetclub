@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Discussion.Core;
 using Discussion.Core.Data;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Http;
@@ -89,7 +90,7 @@ namespace Discussion.Tests.Common
             });
 
             var connectionStringEVKey = $"DOTNETCLUB_{ServiceExtensions.ConfigKeyConnectionString}";
-            Environment.SetEnvironmentVariable(connectionStringEVKey, "Data Source=test-temp.db");
+            Environment.SetEnvironmentVariable(connectionStringEVKey, $"Data Source=test-{StringUtility.Random(6)}-temp.db");
             Environment.SetEnvironmentVariable("DOTNETCLUB_Logging:Console:LogLevel:Default", "Warning");
 
             WebHostConfiguration.Configure(hostBuilder);

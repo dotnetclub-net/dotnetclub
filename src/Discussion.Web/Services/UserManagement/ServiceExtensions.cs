@@ -45,7 +45,7 @@ namespace Discussion.Web.Services.UserManagement
             }
 
             var parsedConfiguration = idpConfig?.Get<IdentityServerOptions>();
-            if (parsedConfiguration != null && parsedConfiguration.IsEnable)
+            if (parsedConfiguration != null && parsedConfiguration.IsEnabled)
             {
                 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 

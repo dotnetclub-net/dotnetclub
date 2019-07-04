@@ -26,7 +26,7 @@ namespace Discussion.Web.Services
             var httpContext = context.HttpContext;
             var configuration = httpContext.RequestServices.GetService<IConfiguration>();
             var idConfig = configuration.GetSection(nameof(IdentityServerOptions));
-            var idsEnable = bool.Parse(idConfig[nameof(IdentityServerOptions.IsEnable)]);
+            var idsEnable = bool.Parse(idConfig[nameof(IdentityServerOptions.IsEnabled)]);
             if (idsEnable)
             {
                 switch (_userAction)

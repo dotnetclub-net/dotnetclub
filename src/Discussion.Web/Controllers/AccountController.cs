@@ -1,4 +1,5 @@
-﻿using Discussion.Core.Models;
+﻿using System;
+using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -53,6 +54,11 @@ namespace Discussion.Web.Controllers
         [IdentityUserActionHttpFilter(IdentityUserAction.Signin)]
         public IActionResult Signin([FromQuery] string returnUrl)
         {
+            if (_idpOptions.IsEnabled)
+            {
+                throw new InvalidOperationException("启用外部身份服务时，禁止使用本地登录");
+            }
+
             if (HttpContext.IsAuthenticated())
             {
                 return RedirectTo(returnUrl);
@@ -69,7 +75,7 @@ namespace Discussion.Web.Controllers
                 return RedirectTo(returnUrl);
             }
             
-            if (_idpOptions.IsEnable)
+            if (_idpOptions.IsEnabled)
             {            
                 _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {viewModel.UserName, Result = "启用外部身份服务时，禁止使用本地登录"});
                 return BadRequest();
@@ -112,6 +118,11 @@ namespace Discussion.Web.Controllers
         [IdentityUserActionHttpFilter(IdentityUserAction.SignOut)]
         public async Task<IActionResult> DoSignOut()
         {
+            if (_idpOptions.IsEnabled)
+            {
+                throw new InvalidOperationException("启用外部身份服务时，禁止使用本地退出登录");
+            }
+            
             await _signInManager.SignOutAsync();
             return RedirectTo("/");
         }
@@ -120,6 +131,11 @@ namespace Discussion.Web.Controllers
         [IdentityUserActionHttpFilter(IdentityUserAction.Register)]
         public IActionResult Register()
         {
+            if (_idpOptions.IsEnabled)
+            {
+                throw new InvalidOperationException("启用外部身份服务时，禁止使用本地注册");
+            }
+            
             if (HttpContext.IsAuthenticated())
             {
                 return RedirectTo("/");
@@ -132,7 +148,7 @@ namespace Discussion.Web.Controllers
         [Route("/register")]
         public async Task<IActionResult> DoRegister(UserViewModel registerModel)
         {
-            if (_idpOptions.IsEnable)
+            if (_idpOptions.IsEnabled)
             {            
                 _logger.LogWarning("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = "启用外部身份服务时，禁止注册本地账号"});
                 return BadRequest();
@@ -185,7 +201,7 @@ namespace Discussion.Web.Controllers
                 return RedirectTo("/");
             }
             
-            if (_idpOptions.IsEnable)
+            if (_idpOptions.IsEnabled)
             {            
                 _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new { UsernameOrEmail = string.Empty, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
                 return BadRequest();
@@ -198,7 +214,7 @@ namespace Discussion.Web.Controllers
         [Route("/forgot-password")]
         public async Task<ApiResponse> DoForgotPassword(ForgotPasswordModel model)
         {
-            if (_idpOptions.IsEnable)
+            if (_idpOptions.IsEnabled)
             {            
                 _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new {model.UsernameOrEmail, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
@@ -228,7 +244,7 @@ namespace Discussion.Web.Controllers
         [Route("/reset-password")]
         public IActionResult ResetPassword(ResetPasswordModel model)
         {
-            if (_idpOptions.IsEnable)
+            if (_idpOptions.IsEnabled)
             {            
                 _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new {model.Token, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
                 return BadRequest();
@@ -254,7 +270,7 @@ namespace Discussion.Web.Controllers
         [Route("/reset-password")]
         public async Task<IActionResult> DoResetPassword(ResetPasswordModel model)
         {
-            if (_idpOptions.IsEnable)
+            if (_idpOptions.IsEnabled)
             {            
                 _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new {model.Token, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
                 return BadRequest();

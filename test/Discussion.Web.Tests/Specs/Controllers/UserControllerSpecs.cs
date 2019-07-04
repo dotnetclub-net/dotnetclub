@@ -7,9 +7,11 @@ using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.Utilities;
+using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
+using Discussion.Web.Services;
 using Discussion.Web.Tests.Stubs;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -119,10 +122,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             };
             var userCtrl = _theApp.CreateController<UserController>();
             
-            
             var result = await userCtrl.DoChangePassword(viewModel);
 
-            
             _theApp.ReloadEntity(user);
             ShouldBeRedirectResult(result, "ChangePassword");
             var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
@@ -149,6 +150,44 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var passwordChanged = await _theApp.GetService<UserManager<User>>().CheckPasswordAsync(user, viewModel.NewPassword);
             Assert.False(passwordChanged);
         }
+        
+        [Fact]
+        void should_not_view_change_password_page_when_external_idp_enabled()
+        {
+            var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
+            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions {IsEnabled = true});
+            _theApp.OverrideServices(s => s.AddSingleton(externalIdpEnabledOptions.Object));
+            
+            _theApp.MockUser();
+            var userCtrl = _theApp.CreateController<UserController>();
+
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                userCtrl.ChangePassword();
+            });
+            Assert.Contains("外部身份服务", exception.Message);
+        }
+        
+        [Fact]
+        async Task should_block_change_password_when_external_idp_enabled()
+        {
+            var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
+            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions {IsEnabled = true});
+            _theApp.OverrideServices(s => s.AddSingleton(externalIdpEnabledOptions.Object));
+            
+            _theApp.MockUser();
+            var viewModel = new ChangePasswordViewModel
+            {
+                OldPassword = "111111A",
+                NewPassword = "11111A"
+            };
+            var userCtrl = _theApp.CreateController<UserController>();
+            
+            var result = await userCtrl.DoChangePassword(viewModel);
+
+            Assert.IsType<BadRequestResult>(result);
+        }
+
 
         #endregion
         

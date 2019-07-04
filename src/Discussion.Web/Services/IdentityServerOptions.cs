@@ -3,7 +3,7 @@ namespace Discussion.Web.Services
     public class IdentityServerOptions
     {
         
-        public bool IsEnable { get; set; }
+        public bool IsEnabled { get; set; }
 
         public string Authority { get; set; }
 

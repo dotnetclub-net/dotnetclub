@@ -115,7 +115,7 @@ namespace Discussion.Web.Services.UserManagement
 
         public async Task SendEmailRetrievePasswordAsync(User user, string urlProtocol)
         {
-            if (_idpOptions.IsEnable)
+            if (_idpOptions.IsEnabled)
             {
                 throw new InvalidOperationException("用户的密码已由外部服务管理");
             }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -112,6 +113,10 @@ namespace Discussion.Web.Controllers
         [IdentityUserActionHttpFilter(IdentityUserAction.ChangePassword)]
         public IActionResult ChangePassword()
         {
+            if (_idpOptions.IsEnabled)
+            {            
+                throw new InvalidOperationException("启用外部身份服务时，禁止使用本地更改密码");
+            }
             return View();
         }
 
@@ -121,7 +126,7 @@ namespace Discussion.Web.Controllers
         {
             var getActionName = "ChangePassword";
             var user = HttpContext.DiscussionUser();
-            if (_idpOptions.IsEnable)
+            if (_idpOptions.IsEnabled)
             {            
                 _logger.LogWarning("修改密码失败：{@ResetPasswordAttempt}", new { UserId = user.Id, user.UserName, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
                 return BadRequest();
