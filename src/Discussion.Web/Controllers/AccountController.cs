@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
@@ -14,6 +15,9 @@ using Discussion.Web.Services;
 using Discussion.Web.Services.UserManagement;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
+using IdentityModel;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
@@ -109,6 +113,47 @@ namespace Discussion.Web.Controllers
             var user = await _userManager.FindByNameAsync(viewModel.UserName);
             user.LastSeenAt = _clock.Now.UtcDateTime;
             _userRepo.Update(user);
+            return RedirectTo(returnUrl);
+        }
+
+        [HttpPost]
+        [Route("/oidc-callback")]
+        public async Task<IActionResult> OidcCallback([FromQuery] string returnUrl)
+        {
+            if (HttpContext.IsAuthenticated())
+            {
+                return RedirectTo(returnUrl);
+            }
+            
+            if (!_idpOptions.IsEnabled)
+            {            
+                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {UserName = string.Empty, Result = "未启用外部身份服务"});
+                return BadRequest();
+            }
+
+            var oidcResult = await HttpContext.AuthenticateAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            if (oidcResult?.Succeeded != true || oidcResult.Principal == null)
+            {
+                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {UserName = string.Empty, Result = "使用外部身份服务登录失败"});
+                return RedirectTo(returnUrl);
+            }
+
+            var externalUser = oidcResult.Principal;
+            var claims = externalUser.Claims.ToList();
+
+            var userIdClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Subject);
+            if (userIdClaim == null)
+            {
+                userIdClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+            }
+            if (userIdClaim == null)
+            {
+                throw new Exception("Unknown userid");
+            }
+
+            var externalUserId = userIdClaim.Value;
+            var externalProvider = userIdClaim.Issuer;
+            
             return RedirectTo(returnUrl);
         }
 

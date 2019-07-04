@@ -47,46 +47,52 @@ namespace Discussion.Web.Services.UserManagement
             var parsedConfiguration = idpConfig?.Get<IdentityServerOptions>();
             if (parsedConfiguration != null && parsedConfiguration.IsEnabled)
             {
-                JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-
-                services.AddAuthentication(options =>
-                    {
-                        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-                        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                    })
-                    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
-                        options =>
-                        {
-                            options.Cookie.Name = "IdentityServerAdmin";
-                            
-                            // Issue: https://github.com/aspnet/Announcements/issues/318
-                            options.Cookie.SameSite = SameSiteMode.None;
-                        })
-                    .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
-                    {
-                        options.Authority = parsedConfiguration.Authority;
-                        options.RequireHttpsMetadata = parsedConfiguration.RequireHttpsMetadata;
-                        options.ClientId = parsedConfiguration.ClientId;
-                        options.ClientSecret = parsedConfiguration.ClientSecret;
-                        options.SaveTokens = true;
-                        options.ResponseType = "code id_token";
-                        options.GetClaimsFromUserInfoEndpoint = true;
-                        
-                        options.Scope.Clear();
-                        options.Scope.Add(OidcConstants.StandardScopes.OpenId);
-                        options.Scope.Add(OidcConstants.StandardScopes.Profile);
-                        options.Scope.Add(OidcConstants.StandardScopes.Email);
-
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            NameClaimType = JwtClaimTypes.Name,
-                            RoleClaimType = JwtClaimTypes.Role
-                        };
-                    });
+                ConfigureExternalIdp(services, parsedConfiguration);
             }
+        }
+
+        private static void ConfigureExternalIdp(IServiceCollection services, IdentityServerOptions parsedConfiguration)
+        {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                })
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
+                    options =>
+                    {
+                        options.Cookie.Name = "dnt";
+
+                        // Issue: https://github.com/aspnet/Announcements/issues/318
+                        options.Cookie.SameSite = SameSiteMode.None;
+                        options.LoginPath = "/signin";
+                    })
+                .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+                {
+                    options.CallbackPath = "/oidc-callback";
+                    options.Authority = parsedConfiguration.Authority;
+                    options.RequireHttpsMetadata = parsedConfiguration.RequireHttpsMetadata;
+                    options.ClientId = parsedConfiguration.ClientId;
+                    options.ClientSecret = parsedConfiguration.ClientSecret;
+                    options.ResponseType = "code id_token";
+                    options.GetClaimsFromUserInfoEndpoint = true;
+
+                    options.Scope.Clear();
+                    options.Scope.Add(OidcConstants.StandardScopes.OpenId);
+                    options.Scope.Add(OidcConstants.StandardScopes.Profile);
+                    options.Scope.Add(OidcConstants.StandardScopes.Email);
+                    options.Scope.Add(OidcConstants.StandardScopes.Phone);
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidAudience = parsedConfiguration.TokenAudience,
+                        ValidIssuer =  parsedConfiguration.TokenIssuer
+                    };
+                });
         }
     }
 }
