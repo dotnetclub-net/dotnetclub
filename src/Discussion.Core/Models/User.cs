@@ -26,6 +26,10 @@ namespace Discussion.Core.Models
         public VerifiedPhoneNumber VerifiedPhoneNumber { get; set; }
         public int? PhoneNumberId { get; set; }
         
+        public string OpenId { get; set; }
+        
+        public string OpenIdProvider { get; set; }
+        
         public IUserAvatar GetAvatar()
         {
             if (AvatarFileId > 0)

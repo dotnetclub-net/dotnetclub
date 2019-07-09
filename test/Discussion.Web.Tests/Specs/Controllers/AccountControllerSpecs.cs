@@ -14,11 +14,12 @@ using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
 using Discussion.Web.Services;
 using Discussion.Web.ViewModels;
+using IdentityModel;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -535,6 +536,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
         #endregion
 
+        #region Signout
+
         [Fact]
         async Task should_sign_out()
         {
@@ -564,6 +567,81 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.Contains("外部身份服务", exception.Message);
         }
 
+        #endregion
+
+        #region Oidc
+
+        [Fact]
+        async void should_import_new_user_and_signin_from_external_idp()
+        {
+            var userId = StringUtility.Random(5);
+            var name = StringUtility.Random();
+            var emailAddress = $"{StringUtility.Random(5)}@someplace.com";
+            var phoneNumber = StringUtility.RandomNumbers(8);
+            
+            var externalIdentity = new ClaimsIdentity(new Claim[]
+            {
+                new Claim(JwtClaimTypes.Subject, userId, "String", "external"),
+                new Claim(JwtClaimTypes.PreferredUserName, name),
+                new Claim(JwtClaimTypes.Name, name),
+                new Claim(JwtClaimTypes.Email, emailAddress),
+                new Claim(JwtClaimTypes.EmailVerified, "true"),
+                new Claim(JwtClaimTypes.PhoneNumber, phoneNumber),
+                new Claim(JwtClaimTypes.PhoneNumberVerified, "true")
+            });
+            var externalPrincipal = new ClaimsPrincipal(externalIdentity);
+
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(auth =>
+                    auth.AuthenticateAsync(It.IsAny<HttpContext>(), OpenIdConnectDefaults.AuthenticationScheme))
+                .Returns(Task.FromResult((AuthenticateResult)HandleRequestResult.Success(new AuthenticationTicket(externalPrincipal, new AuthenticationProperties(),OpenIdConnectDefaults.AuthenticationScheme))))
+                .Verifiable();
+            
+            mockAuthService.Setup(auth => auth.SignInAsync(It.IsAny<HttpContext>(), 
+                IdentityConstants.ApplicationScheme, 
+                It.IsAny<ClaimsPrincipal>(), 
+                It.IsAny<AuthenticationProperties>())).Verifiable();
+            
+            _app.OverrideServices(services =>
+            {
+                services.AddSingleton(CreateMockExternalIdp());
+                services.AddSingleton(mockAuthService.Object);
+            });
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var oidcCallbackResult = await ctrl.OidcCallback(string.Empty);
+
+            Assert.IsType<RedirectResult>(oidcCallbackResult);
+            var redirect = oidcCallbackResult as RedirectResult;
+            Assert.Equal("/", redirect.Url);
+            mockAuthService.Verify();
+            
+            var importedUser = _userRepo.All().FirstOrDefault(user => user.OpenId == userId && user.OpenIdProvider == "external");
+            importedUser.ShouldNotBeNull();
+            importedUser.Id.ShouldGreaterThan(0);
+            importedUser.DisplayName.ShouldEqual(name);
+            importedUser.EmailAddress.ShouldEqual(emailAddress);
+            importedUser.ConfirmedEmail.ShouldEqual(emailAddress);
+            importedUser.PhoneNumberId.ShouldNotBeNull();
+        }
+        
+        async void should_signin_existing_user_using_external_idp_enabled()
+        {
+           // todo
+        }
+        
+        async void should_not_import_from_external_idp_when_external_idp_disabled()
+        {
+            EnableExternalIdp(enabled: false);
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var oidcCallbackResult = await ctrl.OidcCallback(string.Empty);
+
+            Assert.IsType<BadRequestResult>(oidcCallbackResult);
+        }
+
+        #endregion
+        
         Mock<IEmailDeliveryMethod> MockMailSender()
         {
             var mailSender = new Mock<IEmailDeliveryMethod>();
@@ -595,11 +673,16 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         
-        private void EnableExternalIdp()
+        private void EnableExternalIdp(bool enabled = true)
+        {
+            _app.OverrideServices(s => s.AddSingleton(CreateMockExternalIdp(enabled)));
+        }
+
+        static IOptions<IdentityServerOptions> CreateMockExternalIdp(bool enabled = true)
         {
             var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
-            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions {IsEnabled = true});
-            _app.OverrideServices(s => s.AddSingleton(externalIdpEnabledOptions.Object));
+            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions {IsEnabled = enabled});
+            return externalIdpEnabledOptions.Object;
         }
     }
 }

@@ -33,6 +33,7 @@ namespace Discussion.Web.Controllers
         readonly SiteSettings _settings;
         private readonly IdentityServerOptions _idpOptions;
         readonly IUserService _userService;
+        private IRepository<VerifiedPhoneNumber> _phoneNumberVerificationRepo;
 
         public AccountController(
             UserManager<User> userManager,
@@ -42,7 +43,7 @@ namespace Discussion.Web.Controllers
             IRepository<User> userRepo,
             IClock clock,
             SiteSettings settings,
-            IOptions<IdentityServerOptions> idpOptions)
+            IOptions<IdentityServerOptions> idpOptions, IRepository<VerifiedPhoneNumber> phoneNumberVerificationRepo)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -50,6 +51,7 @@ namespace Discussion.Web.Controllers
             _userRepo = userRepo;
             _clock = clock;
             _settings = settings;
+            _phoneNumberVerificationRepo = phoneNumberVerificationRepo;
             _idpOptions = idpOptions.Value;
             _userService = userService;
         }
@@ -141,19 +143,82 @@ namespace Discussion.Web.Controllers
             var externalUser = oidcResult.Principal;
             var claims = externalUser.Claims.ToList();
 
-            var userIdClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Subject);
+            var userIdClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Subject) 
+                              ?? claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
             {
-                userIdClaim = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            }
-            if (userIdClaim == null)
-            {
-                throw new Exception("Unknown userid");
+                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {UserName = string.Empty, Result = "无法从外部身份服务的回调中取得 Subject 或 NameIdentifier 身份声明的值"});
+                return RedirectTo(returnUrl);
             }
 
-            var externalUserId = userIdClaim.Value;
-            var externalProvider = userIdClaim.Issuer;
-            
+            var user = _userRepo.All().FirstOrDefault(u => u.OpenIdProvider == userIdClaim.Issuer && u.OpenId == userIdClaim.Value);
+            if (user == null)
+            {
+                var originalUserName = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PreferredUserName)?.Value;
+                var userName = string.Concat(originalUserName ?? userIdClaim.Value, "@", userIdClaim.Issuer);
+                if (!_settings.CanRegisterNewUsers())
+                {
+                    const string errorMessage = "已关闭用户注册";
+                    _logger.LogWarning("用户注册失败：{@RegisterAttempt}", new {username = userName, Result = errorMessage});
+                    ModelState.AddModelError("UserName", errorMessage);
+                    return RedirectTo(returnUrl);
+                }
+                var displayNameClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.NickName)?.Value 
+                                       ?? claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Name)?.Value
+                                       ?? (string.Concat(claims.FirstOrDefault(x => x.Type == JwtClaimTypes.FamilyName)?.Value ?? " ", " ", claims.FirstOrDefault(x => x.Type == JwtClaimTypes.GivenName)?.Value ?? " ")).Trim();
+                var emailClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Email)?.Value;
+                var emailVerifiedClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.EmailVerified)?.Value;
+                var emailVerified = false;
+                if (!string.IsNullOrEmpty(emailClaim) && Boolean.TryParse(emailVerifiedClaim, out emailVerified))
+                {
+                    // nothing to do...
+                }
+
+                
+                var phoneNumberClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PhoneNumber)?.Value;
+                VerifiedPhoneNumber verifiedPhoneNumber = null;
+                var phoneNumberVerifiedClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PhoneNumberVerified)?.Value;
+                if (!string.IsNullOrEmpty(phoneNumberClaim) && Boolean.TryParse(phoneNumberVerifiedClaim, out var phoneNumberVerified) && phoneNumberVerified)
+                {
+                    verifiedPhoneNumber = new VerifiedPhoneNumber()
+                    {
+                        PhoneNumber = phoneNumberClaim
+                    };
+                    _phoneNumberVerificationRepo.Save(verifiedPhoneNumber);
+                }
+
+                user = new User
+                {
+                    UserName = userName,
+                    DisplayName = string.IsNullOrWhiteSpace(displayNameClaim) ? userName : displayNameClaim,
+                    CreatedAtUtc = _clock.Now.UtcDateTime,
+                    EmailAddress = emailClaim,
+                    EmailAddressConfirmed = emailVerified,
+                    OpenId = userIdClaim.Value,
+                    OpenIdProvider = userIdClaim.Issuer,
+                    LastSeenAt = _clock.Now.UtcDateTime,
+                    PhoneNumberId =  verifiedPhoneNumber?.Id
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    _logger.LogWarning("用户注册失败：{@LoginAttempt}", new {UserName = userName, Result = string.Join(";", result.Errors.Select(err => err.Description ?? err.Code)) });
+                    return RedirectTo(returnUrl);
+                }
+                else
+                {
+                    _logger.LogInformation("用户注册成功：{@RegisterAttempt}", new {UserName = userName, UserId = user.Id});
+                }
+            }
+            else
+            {
+                user.LastSeenAt = _clock.Now.UtcDateTime;
+                _userRepo.Update(user);
+                _logger.LogInformation("用户登录成功：{@RegisterAttempt}", new {user.UserName, Result = $"从外部身份服务 {userIdClaim.Issuer} 登录成功"});
+            }
+
+            await _signInManager.SignInAsync(user, false);
             return RedirectTo(returnUrl);
         }
 
@@ -217,7 +282,8 @@ namespace Discussion.Web.Controllers
             {
                 UserName = registerModel.UserName,
                 DisplayName = registerModel.UserName,
-                CreatedAtUtc = _clock.Now.UtcDateTime
+                CreatedAtUtc = _clock.Now.UtcDateTime,
+                LastSeenAt = _clock.Now.UtcDateTime
             };
 
             var result = await _userManager.CreateAsync(newUser, registerModel.Password);
