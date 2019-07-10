@@ -577,36 +577,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var userId = StringUtility.Random(5);
             var name = StringUtility.Random();
             var emailAddress = $"{StringUtility.Random(5)}@someplace.com";
-            var phoneNumber = StringUtility.RandomNumbers(8);
             
-            var externalIdentity = new ClaimsIdentity(new Claim[]
-            {
-                new Claim(JwtClaimTypes.Subject, userId, "String", "external"),
-                new Claim(JwtClaimTypes.PreferredUserName, name),
-                new Claim(JwtClaimTypes.Name, name),
-                new Claim(JwtClaimTypes.Email, emailAddress),
-                new Claim(JwtClaimTypes.EmailVerified, "true"),
-                new Claim(JwtClaimTypes.PhoneNumber, phoneNumber),
-                new Claim(JwtClaimTypes.PhoneNumberVerified, "true")
-            });
-            var externalPrincipal = new ClaimsPrincipal(externalIdentity);
-
-            var mockAuthService = new Mock<IAuthenticationService>();
-            mockAuthService.Setup(auth =>
-                    auth.AuthenticateAsync(It.IsAny<HttpContext>(), OpenIdConnectDefaults.AuthenticationScheme))
-                .Returns(Task.FromResult((AuthenticateResult)HandleRequestResult.Success(new AuthenticationTicket(externalPrincipal, new AuthenticationProperties(),OpenIdConnectDefaults.AuthenticationScheme))))
-                .Verifiable();
-            
-            mockAuthService.Setup(auth => auth.SignInAsync(It.IsAny<HttpContext>(), 
-                IdentityConstants.ApplicationScheme, 
-                It.IsAny<ClaimsPrincipal>(), 
-                It.IsAny<AuthenticationProperties>())).Verifiable();
-            
-            _app.OverrideServices(services =>
-            {
-                services.AddSingleton(CreateMockExternalIdp());
-                services.AddSingleton(mockAuthService.Object);
-            });
+            var mockAuthService = MockExternalAuth(userId, name, emailAddress);
             var ctrl = _app.CreateController<AccountController>();
             
             var oidcCallbackResult = await ctrl.OidcCallback(string.Empty);
@@ -625,11 +597,46 @@ namespace Discussion.Web.Tests.Specs.Controllers
             importedUser.PhoneNumberId.ShouldNotBeNull();
         }
         
+        [Fact]
         async void should_signin_existing_user_using_external_idp_enabled()
         {
-           // todo
+            var userId = StringUtility.Random(5);
+            var name = StringUtility.Random();
+            var emailAddress = $"{StringUtility.Random(5)}@someplace.com";
+
+            var mockAuthService = MockExternalAuth(userId, name, emailAddress);
+            var existingUser = _app.CreateUser(userId, displayName: name);
+            existingUser.OpenId = userId;
+            existingUser.OpenIdProvider = "external";
+            _userRepo.Update(existingUser);
+                
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var oidcCallbackResult = await ctrl.OidcCallback(string.Empty);
+
+            Assert.IsType<RedirectResult>(oidcCallbackResult);
+            var redirect = oidcCallbackResult as RedirectResult;
+            Assert.Equal("/", redirect.Url);
+            mockAuthService.Verify();
+            
+            var importedUser = _userRepo.All().FirstOrDefault(user => user.OpenId == userId && user.OpenIdProvider == "external");
+            importedUser.ShouldNotBeNull();
+            importedUser.Id.ShouldEqual(existingUser.Id);
+        }
+
+        [Fact(Skip = "Please implement this test: when register disabled, should not register new users")]
+        async void should_not_create_user_using_external_idp_enabled_when_register_not_allowed()
+        {
+            throw new NotImplementedException();
         }
         
+        [Fact(Skip = "Please implement this test: when register disabled, should still login existing users")]
+        async void should_still_login_existing_users_using_external_idp_enabled_when_register_not_allowed()
+        {
+            throw new NotImplementedException();
+        }
+        
+        [Fact]
         async void should_not_import_from_external_idp_when_external_idp_disabled()
         {
             EnableExternalIdp(enabled: false);
@@ -681,8 +688,47 @@ namespace Discussion.Web.Tests.Specs.Controllers
         static IOptions<IdentityServerOptions> CreateMockExternalIdp(bool enabled = true)
         {
             var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
-            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions {IsEnabled = enabled});
+            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions
+            {
+                IsEnabled = enabled,
+                ProviderId = "external"
+            });
             return externalIdpEnabledOptions.Object;
+        }
+        
+        Mock<IAuthenticationService> MockExternalAuth(string userId, string name, string emailAddress)
+        {
+            var externalIdentity = new ClaimsIdentity(new Claim[]
+            {
+                new Claim(JwtClaimTypes.Subject, userId),
+                new Claim(JwtClaimTypes.PreferredUserName, name),
+                new Claim(JwtClaimTypes.Name, name),
+                new Claim(JwtClaimTypes.Email, emailAddress),
+                new Claim(JwtClaimTypes.EmailVerified, "true"),
+                new Claim(JwtClaimTypes.PhoneNumber, StringUtility.RandomNumbers(8)),
+                new Claim(JwtClaimTypes.PhoneNumberVerified, "true")
+            });
+            var externalPrincipal = new ClaimsPrincipal(externalIdentity);
+
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(auth =>
+                    auth.AuthenticateAsync(It.IsAny<HttpContext>(), OpenIdConnectDefaults.AuthenticationScheme))
+                .Returns(Task.FromResult((AuthenticateResult) HandleRequestResult.Success(
+                    new AuthenticationTicket(externalPrincipal, new AuthenticationProperties(),
+                        OpenIdConnectDefaults.AuthenticationScheme))))
+                .Verifiable();
+
+            mockAuthService.Setup(auth => auth.SignInAsync(It.IsAny<HttpContext>(),
+                IdentityConstants.ApplicationScheme,
+                It.IsAny<ClaimsPrincipal>(),
+                It.IsAny<AuthenticationProperties>())).Verifiable();
+
+            _app.OverrideServices(services =>
+            {
+                services.AddSingleton(CreateMockExternalIdp());
+                services.AddSingleton(mockAuthService.Object);
+            });
+            return mockAuthService;
         }
     }
 }

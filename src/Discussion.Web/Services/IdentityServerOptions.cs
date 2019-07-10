@@ -6,6 +6,11 @@ namespace Discussion.Web.Services
         /// 是否启用外部身份服务
         /// </summary>
         public bool IsEnabled { get; set; }
+        
+        /// <summary>
+        /// 外部身份服务的 Id
+        /// </summary>
+        public string ProviderId { get; set; }
 
         /// <summary>
         /// 外部身份服务的网址

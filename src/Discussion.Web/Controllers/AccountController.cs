@@ -151,11 +151,11 @@ namespace Discussion.Web.Controllers
                 return RedirectTo(returnUrl);
             }
 
-            var user = _userRepo.All().FirstOrDefault(u => u.OpenIdProvider == userIdClaim.Issuer && u.OpenId == userIdClaim.Value);
+            var user = _userRepo.All().FirstOrDefault(u => u.OpenIdProvider == _idpOptions.ProviderId && u.OpenId == userIdClaim.Value);
             if (user == null)
             {
                 var originalUserName = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PreferredUserName)?.Value;
-                var userName = string.Concat(originalUserName ?? userIdClaim.Value, "@", userIdClaim.Issuer);
+                var userName = string.Concat(originalUserName ?? userIdClaim.Value, "@", _idpOptions.ProviderId);
                 if (!_settings.CanRegisterNewUsers())
                 {
                     const string errorMessage = "已关闭用户注册";
@@ -195,7 +195,7 @@ namespace Discussion.Web.Controllers
                     EmailAddress = emailClaim,
                     EmailAddressConfirmed = emailVerified,
                     OpenId = userIdClaim.Value,
-                    OpenIdProvider = userIdClaim.Issuer,
+                    OpenIdProvider = _idpOptions.ProviderId,
                     LastSeenAt = _clock.Now.UtcDateTime,
                     PhoneNumberId =  verifiedPhoneNumber?.Id
                 };
@@ -215,7 +215,7 @@ namespace Discussion.Web.Controllers
             {
                 user.LastSeenAt = _clock.Now.UtcDateTime;
                 _userRepo.Update(user);
-                _logger.LogInformation("用户登录成功：{@RegisterAttempt}", new {user.UserName, Result = $"从外部身份服务 {userIdClaim.Issuer} 登录成功"});
+                _logger.LogInformation("用户登录成功：{@RegisterAttempt}", new {user.UserName, Result = $"从外部身份服务 {_idpOptions.ProviderId} 登录成功"});
             }
 
             await _signInManager.SignInAsync(user, false);
