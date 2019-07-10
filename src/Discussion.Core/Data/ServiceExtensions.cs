@@ -45,6 +45,11 @@ namespace Discussion.Core.Data
                 .ApplicationStarted
                 .Register(() => databaseInitializer(connectionString));
         }
+        
+        public static bool IsForTemporaryDatabase(this string connectionString)
+        {
+            return connectionString.EndsWith("temp.db");
+        }
 
         static string NormalizeConnectionString(string configuredConnectionString, out bool createTemporary)
         {
@@ -55,7 +60,7 @@ namespace Discussion.Core.Data
         static Action<DbContextOptionsBuilder> PrepareDatabase(string connectionString)
         {
             // If use in-memory mode, then persist the db connection across ApplicationDbContext instances
-            if (connectionString.EndsWith("temp.db"))
+            if (connectionString.IsForTemporaryDatabase())
                 return options => options.UseSqlite(new SqliteConnection(connectionString));
 
             return options => options.UseNpgsql(connectionString);

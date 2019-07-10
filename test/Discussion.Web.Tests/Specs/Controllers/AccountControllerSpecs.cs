@@ -581,7 +581,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var mockAuthService = MockExternalAuth(userId, name, emailAddress);
             var ctrl = _app.CreateController<AccountController>();
             
-            var oidcCallbackResult = await ctrl.OidcCallback(string.Empty);
+            var oidcCallbackResult = await ctrl.ExternalSignin(string.Empty);
 
             Assert.IsType<RedirectResult>(oidcCallbackResult);
             var redirect = oidcCallbackResult as RedirectResult;
@@ -612,7 +612,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 
             var ctrl = _app.CreateController<AccountController>();
             
-            var oidcCallbackResult = await ctrl.OidcCallback(string.Empty);
+            var oidcCallbackResult = await ctrl.ExternalSignin(string.Empty);
 
             Assert.IsType<RedirectResult>(oidcCallbackResult);
             var redirect = oidcCallbackResult as RedirectResult;
@@ -642,7 +642,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             EnableExternalIdp(enabled: false);
             var ctrl = _app.CreateController<AccountController>();
             
-            var oidcCallbackResult = await ctrl.OidcCallback(string.Empty);
+            var oidcCallbackResult = await ctrl.ExternalSignin(string.Empty);
 
             Assert.IsType<BadRequestResult>(oidcCallbackResult);
         }

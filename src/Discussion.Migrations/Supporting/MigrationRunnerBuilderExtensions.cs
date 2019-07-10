@@ -6,7 +6,7 @@ namespace Discussion.Migrations.Supporting
     {
         internal static IMigrationRunnerBuilder AddDatabase(this IMigrationRunnerBuilder self, string connectionString)
         {
-            if (connectionString.Contains("temp.db"))
+            if (connectionString.EndsWith("temp.db"))
                 return self.AddSQLite().WithGlobalConnectionString(connectionString);
 
             return self.AddPostgres().WithGlobalConnectionString(connectionString);

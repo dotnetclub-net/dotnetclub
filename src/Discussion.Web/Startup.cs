@@ -145,13 +145,16 @@ namespace Discussion.Web
         {
             app.EnsureDatabase(connStr =>
             {
-                _startupLogger.LogCritical("正在创建新的数据库结构...");
+                if (!connStr.IsForTemporaryDatabase()) return;
+                
+                _startupLogger.LogCritical("正在创建和更新数据库结构...");
 
                 var loggingConfig = _appConfiguration.GetSection(WebHostConfiguration.ConfigKeyLogging);
                 DatabaseMigrator.Migrate(connStr, migrationLogging =>
-                    FileLoggingExtensions.AddSeriFileLogger(migrationLogging, loggingConfig /* enable full logging for migrations */));
+                    FileLoggingExtensions.AddSeriFileLogger(migrationLogging,
+                        loggingConfig /* enable full logging for migrations */));
 
-                _startupLogger.LogCritical("数据库结构创建完成");
+                _startupLogger.LogCritical("数据库结构创建并更新完成");
             }, _startupLogger);
         }
     }

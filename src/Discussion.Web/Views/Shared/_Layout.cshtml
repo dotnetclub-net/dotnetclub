@@ -1,8 +1,10 @@
 ﻿@using Discussion.Core.Mvc
 @using Discussion.Web.Services.UserManagement.Avatar
+@using Microsoft.Extensions.Options
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
 @inject IAvatarUrlService AvatarUrlService
 @inject Discussion.Core.Models.SiteSettings SiteSettings
+@inject IOptions<Discussion.Web.Services.IdentityServerOptions> ExternalIdpOptions
 
 @{
     var pageTitle = "dotnet club";
@@ -84,7 +86,15 @@
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
                         }
-                        @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
+                        
+                        if (ExternalIdpOptions.Value.IsEnabled)
+                        {
+                            @Html.ActionLink("登录", "ExternalSignin", "Account", null, new {@class = "signin-link"})
+                        }
+                        else
+                        {
+                            @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
+                        }
                     }
                 </div>
                 <a class="navbar-brand" href="/">dotnet club</a>
@@ -136,7 +146,16 @@
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
                         }
-                        @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
+                        
+                        if (ExternalIdpOptions.Value.IsEnabled)
+                        {
+                            @Html.ActionLink("登录", "ExternalSignin", "Account", null, new {@class = "signin-link"})
+                        }
+                        else
+                        {
+
+                            @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
+                        }
                     }
                 </div>
             </div>

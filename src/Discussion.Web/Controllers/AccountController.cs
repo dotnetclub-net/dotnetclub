@@ -19,6 +19,7 @@ using IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Controllers
@@ -57,7 +58,6 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("/signin")]
-        [IdentityUserActionHttpFilter(IdentityUserAction.Signin)]
         public IActionResult Signin([FromQuery] string returnUrl)
         {
             if (_idpOptions.IsEnabled)
@@ -118,9 +118,9 @@ namespace Discussion.Web.Controllers
             return RedirectTo(returnUrl);
         }
 
-        [HttpPost]
-        [Route("/oidc-callback")]
-        public async Task<IActionResult> OidcCallback([FromQuery] string returnUrl)
+        [Route("/external-signin")]
+        [IdentityUserActionHttpFilter(IdentityUserAction.Signin)]
+        public async Task<IActionResult> ExternalSignin([FromQuery] string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
@@ -218,6 +218,8 @@ namespace Discussion.Web.Controllers
                 _logger.LogInformation("用户登录成功：{@RegisterAttempt}", new {user.UserName, Result = $"从外部身份服务 {_idpOptions.ProviderId} 登录成功"});
             }
 
+            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             await _signInManager.SignInAsync(user, false);
             return RedirectTo(returnUrl);
         }
