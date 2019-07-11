@@ -79,8 +79,8 @@ namespace Discussion.Web.Services.UserManagement
 
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidAudience = parsedConfiguration.TokenAudience,
-                        ValidIssuer =  parsedConfiguration.TokenIssuer
+                        ValidAudience = parsedConfiguration.ClientId,
+                        ValidIssuer =  parsedConfiguration.Authority
                     };
                 });
         }

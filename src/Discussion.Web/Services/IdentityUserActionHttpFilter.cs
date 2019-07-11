@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Services
 {
@@ -26,11 +27,9 @@ namespace Discussion.Web.Services
         public void OnActionExecuting(ActionExecutingContext context)
         {
             var httpContext = context.HttpContext;
-            var configuration = httpContext.RequestServices.GetService<IConfiguration>();
-            
-            var idConfig = configuration.GetSection(nameof(IdentityServerOptions));
-            var idsEnable = bool.Parse(idConfig[nameof(IdentityServerOptions.IsEnabled)]);
-            if (!idsEnable) return;
+            var configuration = httpContext.RequestServices.GetService<IOptions<IdentityServerOptions>>().Value;
+            if (!configuration.IsEnabled) 
+                return;
             
             
             switch (_userAction)
@@ -64,10 +63,10 @@ namespace Discussion.Web.Services
                         });
                     break;
                 case IdentityUserAction.Register:
-                    context.Result = new RedirectResult(idConfig[nameof(IdentityServerOptions.RegisterUri)]);
+                    context.Result = new RedirectResult(configuration.RegisterUri);
                     break;
                 case IdentityUserAction.ChangePassword:
-                    context.Result = new RedirectResult(idConfig[nameof(IdentityServerOptions.ChangePasswordUri)]);
+                    context.Result = new RedirectResult(configuration.ChangePasswordUri);
                     break;
             }
         }

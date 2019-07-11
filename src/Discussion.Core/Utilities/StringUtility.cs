@@ -84,5 +84,16 @@ namespace Discussion.Core.Utilities
         {
             return str?.SafeSubstring(startIndex, str.Length);
         }
+
+        public static string ToPreferredUserName(this string username)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                return username;
+            }
+
+            var indexOfAt = username.LastIndexOf("@", StringComparison.Ordinal);
+            return indexOfAt < 0 ? username : username.Substring(0, indexOfAt);
+        }
     }
 }

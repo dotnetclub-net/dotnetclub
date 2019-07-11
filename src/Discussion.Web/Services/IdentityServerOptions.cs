@@ -31,16 +31,6 @@ namespace Discussion.Web.Services
         /// 本站在身份服务处注册的客户密钥
         /// </summary>
         public string ClientSecret { get; set; }
-        
-        /// <summary>
-        /// 在验证由身份服务颁发的令牌时所用的目标受众字段值
-        /// </summary>
-        public string TokenAudience { get; set; }
-        
-        /// <summary>
-        /// 在验证由身份服务颁发的令牌时所用的颁发方名称
-        /// </summary>        
-        public string TokenIssuer { get; set; }
 
         /// <summary>
         /// 身份服务注册新用户的 URL

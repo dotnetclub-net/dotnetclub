@@ -17,7 +17,7 @@
     <label>
         用户名
     </label>
-    <div>@user.UserName</div>
+    <div>@user.UserName.ToPreferredUserName()</div>
 </fieldset>
 <fieldset class="form-group edit-phone-number @(user.PhoneNumberId.HasValue ? "hide" : "show")">
     <label for="VerifiedPhoneNumber_PhoneNumber">
