@@ -81,7 +81,7 @@
                     }
                     else
                     {
-                        if (SiteSettings.CanRegisterNewUsers())
+                        if (SiteSettings.CanRegisterNewUsers() && !ExternalIdpOptions.Value.IsEnabled)
                         {
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
@@ -141,7 +141,7 @@
                     }
                     else
                     {
-                        if (SiteSettings.CanRegisterNewUsers())
+                        if (SiteSettings.CanRegisterNewUsers() && !ExternalIdpOptions.Value.IsEnabled)
                         {
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
