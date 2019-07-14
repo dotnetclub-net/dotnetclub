@@ -1,15 +1,16 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Discussion.Core.Data;
+using Discussion.Core.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Discussion.Core.Middleware
 {
     public class RejectRevokedSessionMiddleware
     {
-        public static List<string> RevokedTokens = new List<string>(); 
         private readonly RequestDelegate _next;
 
         public RejectRevokedSessionMiddleware(RequestDelegate next)
@@ -19,18 +20,26 @@ namespace Discussion.Core.Middleware
         
         public async Task Invoke(HttpContext ctx)
         {
-//            var readonlyDataSettings = ctx.RequestServices.GetService<IReadonlyDataSettings>() as ReadonlyDataSettings;
-
+            var revokedSessionRepo = ctx.RequestServices.GetService<IRepository<SessionRevocationRecord>>();
+          
             var user = ctx.User;
             var sessionId = user?.Claims.FirstOrDefault(c => c.Type == "SessionId")?.Value;
-            if (sessionId != null && RevokedTokens.Contains(sessionId))
+            if (sessionId != null && IsSessionRevoked(revokedSessionRepo, sessionId, out var revocationRecord))
             {
                 await ctx.SignOutAsync(IdentityConstants.ApplicationScheme);
                 await ctx.SignOutAsync("OpenIdConnect");  //  OpenIdConnectDefaults.AuthenticationScheme
                 ctx.User = null;
+                
+                revokedSessionRepo.Delete(revocationRecord);
             }
 
             await _next(ctx);
+        }
+
+        private static bool IsSessionRevoked(IRepository<SessionRevocationRecord> revokedSessionRepo, string sessionId, out SessionRevocationRecord revocationRevocationRecord)
+        {
+            revocationRevocationRecord = revokedSessionRepo.All().FirstOrDefault(s => s.SessionId == sessionId);
+            return revocationRevocationRecord != null;
         }
     }
 }

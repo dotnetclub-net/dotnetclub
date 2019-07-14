@@ -6,7 +6,6 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
-using Discussion.Core.Middleware;
 using Discussion.Core.Models;
 using Discussion.Core.Time;
 using IdentityModel;
@@ -30,11 +29,12 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IUserClaimsPrincipalFactory<User> _principalFactory;
         private readonly IRepository<User> _userRepo;
         private readonly IRepository<VerifiedPhoneNumber> _phoneNumberVerificationRepo;
-        
+        private readonly IRepository<SessionRevocationRecord> _sessionRevocationRepo;
+
         public ExternalSigninManager(ILogger<ExternalSigninManager> logger, 
             IRepository<User> userRepo, IOptions<IdentityServerOptions> idpOptions, 
             SiteSettings siteSettings, IRepository<VerifiedPhoneNumber> phoneNumberVerificationRepo, 
-            UserManager<User> userManager, IUserClaimsPrincipalFactory<User> principalFactory, IClock clock)
+            UserManager<User> userManager, IUserClaimsPrincipalFactory<User> principalFactory, IClock clock, IRepository<SessionRevocationRecord> sessionRevocationRepo)
         {
             _logger = logger;
             _userRepo = userRepo;
@@ -44,6 +44,7 @@ namespace Discussion.Web.Services.UserManagement
             _userManager = userManager;
             _principalFactory = principalFactory;
             _clock = clock;
+            _sessionRevocationRepo = sessionRevocationRepo;
         }
         
         
@@ -75,7 +76,11 @@ namespace Discussion.Web.Services.UserManagement
             var sessionId = claimsPrincipal.FindFirst(c => c.Type == "adapterSessionIds")?.Value;
             if (sessionId != null)
             {
-                RejectRevokedSessionMiddleware.RevokedTokens.Add(sessionId);
+                _sessionRevocationRepo.Save(new SessionRevocationRecord()
+                {
+                    SessionId = sessionId,
+                    Reason = "用户从外部身份服务处登出"
+                });
                 context.HandleResponse();
             }
         }
