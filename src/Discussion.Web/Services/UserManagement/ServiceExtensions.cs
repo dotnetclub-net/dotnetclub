@@ -1,16 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Communication.Sms;
-using Discussion.Core.Middleware;
 using Discussion.Core.Models.UserAvatar;
 using Discussion.Web.Services.UserManagement.Avatar;
 using Discussion.Web.Services.UserManagement.Avatar.UrlGenerators;
@@ -65,18 +57,18 @@ namespace Discussion.Web.Services.UserManagement
         {
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
+            services.AddScoped<ExternalSigninManager>();
             services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = IdentityConstants.ApplicationScheme;
                     options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-                    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+                    options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
                     options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
                 })
                 .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
                 {
                     options.CallbackPath = "/oidc-callback";
-                    options.RemoteSignOutPath = "/k_logout";
-                    
+
                     options.Authority = parsedConfiguration.Authority;
                     options.RequireHttpsMetadata = parsedConfiguration.RequireHttpsMetadata;
                     options.ClientId = parsedConfiguration.ClientId;
@@ -98,42 +90,23 @@ namespace Discussion.Web.Services.UserManagement
                     options.Events.OnAuthorizationCodeReceived = context =>
                     {
                         var jti = context.JwtSecurityToken.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.JwtId)?.Value;
-                        context.TokenEndpointRequest.SetParameter("client_session_state", jti);   // session key id
-//                        context.TokenEndpointRequest.SetParameter("client_session_host", "localhost:8080");  // web server instance name...   https://${application.session.host}.app.com/k_logout
+                        context.TokenEndpointRequest.SetParameter("client_session_state", jti);   // local user session key id
+                        //  context.TokenEndpointRequest.SetParameter("client_session_host", "localhost:8080");  // web server instance name...   https://${application.session.host}.app.com/k_logout
                         return Task.CompletedTask;
                     };
+                    options.Events.OnTicketReceived = async context =>
+                    {
+                        var externalSignOutManager = context.HttpContext.RequestServices.GetService<ExternalSigninManager>();
+                        context.Principal = await externalSignOutManager.TransformToDiscussionUser(context.HttpContext, context.Principal.Claims.ToList());
+                    };
+                    
+                    // for Keycloak Back Channel Logout
+                    options.RemoteSignOutPath = "/k_logout";
                     options.Events.OnRemoteSignOut = async context =>
                     {
-                        if (string.Equals(context.Request.Method, HttpMethod.Post.ToString(), StringComparison.OrdinalIgnoreCase) 
-                            && context.Request.ContentLength != null && context.Request.ContentLength.Value > 0)
-                        {
-                            var body = context.Request.Body;
-                            var content = await new StreamReader(body).ReadToEndAsync();
-                            if (context.Options.SecurityTokenValidator.CanReadToken(content))
-                            {
-                                var idpServerConfiguration = await context.Options.ConfigurationManager.GetConfigurationAsync(CancellationToken.None);
-                                SecurityToken validatedToken;
-                                ClaimsPrincipal claimsPrincipal = context.Options.SecurityTokenValidator.ValidateToken(
-                                    content,
-                                    new TokenValidationParameters()
-                                    {
-                                        IssuerSigningKeys =  idpServerConfiguration.SigningKeys,
-                                        ValidateAudience = false,
-                                        ValidateIssuer = false,
-                                        ValidateLifetime = false
-                                    }, out validatedToken);
-
-                                var sid = claimsPrincipal.FindFirst(c => c.Type == "adapterSessionIds")?.Value;
-                                if (sid != null)
-                                {
-                                    RejectRevokedSessionMiddleware.RevokedTokens.Add(sid);
-                                }
-                            }
-                            
-                        }
-                        context.HandleResponse();
+                        var externalSignOutManager = context.HttpContext.RequestServices.GetService<ExternalSigninManager>();
+                        await externalSignOutManager.TrySignOutLocalSession(context);
                     };
-
                 });
         }
     }

@@ -26,7 +26,7 @@ namespace Discussion.Core.Middleware
             if (sessionId != null && RevokedTokens.Contains(sessionId))
             {
                 await ctx.SignOutAsync(IdentityConstants.ApplicationScheme);
-                await ctx.SignOutAsync(IdentityConstants.ExternalScheme);
+                await ctx.SignOutAsync("OpenIdConnect");  //  OpenIdConnectDefaults.AuthenticationScheme
                 ctx.User = null;
             }
 

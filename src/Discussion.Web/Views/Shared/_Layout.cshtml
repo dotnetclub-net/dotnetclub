@@ -86,15 +86,8 @@
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
                         }
-                        
-                        if (ExternalIdpOptions.Value.IsEnabled)
-                        {
-                            @Html.ActionLink("登录", "ExternalSignin", "Account", null, new {@class = "signin-link"})
-                        }
-                        else
-                        {
-                            @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
-                        }
+
+                        @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
                     }
                 </div>
                 <a class="navbar-brand" href="/">dotnet club</a>
@@ -146,16 +139,8 @@
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
                         }
-                        
-                        if (ExternalIdpOptions.Value.IsEnabled)
-                        {
-                            @Html.ActionLink("登录", "ExternalSignin", "Account", null, new {@class = "signin-link"})
-                        }
-                        else
-                        {
 
-                            @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
-                        }
+                        @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
                     }
                 </div>
             </div>

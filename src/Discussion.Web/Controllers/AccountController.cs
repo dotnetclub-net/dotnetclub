@@ -58,13 +58,14 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("/signin")]
+        [IdentityUserActionHttpFilter(IdentityUserAction.Signin)]
         public IActionResult Signin([FromQuery] string returnUrl)
         {
-            if (_idpOptions.IsEnabled)
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.EndsWith("/signin"))
             {
-                throw new InvalidOperationException("启用外部身份服务时，禁止使用本地登录");
+                returnUrl = "/";
             }
-
+            
             if (HttpContext.IsAuthenticated())
             {
                 return RedirectTo(returnUrl);
@@ -115,116 +116,6 @@ namespace Discussion.Web.Controllers
             var user = await _userManager.FindByNameAsync(viewModel.UserName);
             user.LastSeenAt = _clock.Now.UtcDateTime;
             _userRepo.Update(user);
-            return RedirectTo(returnUrl);
-        }
-
-        [Route("/external-signin")]
-        [IdentityUserActionHttpFilter(IdentityUserAction.Signin)]
-        public async Task<IActionResult> ExternalSignin([FromQuery] string returnUrl)
-        {
-            if (HttpContext.IsAuthenticated())
-            {
-                return RedirectTo(returnUrl);
-            }
-            
-            if (!_idpOptions.IsEnabled)
-            {            
-                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {UserName = string.Empty, Result = "未启用外部身份服务"});
-                return BadRequest();
-            }
-
-            var oidcResult = await HttpContext.AuthenticateAsync(OpenIdConnectDefaults.AuthenticationScheme);
-            if (oidcResult?.Succeeded != true || oidcResult.Principal == null)
-            {
-                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {UserName = string.Empty, Result = "使用外部身份服务登录失败"});
-                return RedirectTo(returnUrl);
-            }
-
-            var externalUser = oidcResult.Principal;
-            var claims = externalUser.Claims.ToList();
-
-            var userIdClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Subject) 
-                              ?? claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {UserName = string.Empty, Result = "无法从外部身份服务的回调中取得 Subject 或 NameIdentifier 身份声明的值"});
-                return RedirectTo(returnUrl);
-            }
-
-            var user = _userRepo.All().FirstOrDefault(u => u.OpenIdProvider == _idpOptions.ProviderId && u.OpenId == userIdClaim.Value);
-            if (user == null)
-            {
-                var originalUserName = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PreferredUserName)?.Value;
-                var userName = string.Concat(originalUserName ?? userIdClaim.Value, "@", _idpOptions.ProviderId);
-                if (!_settings.CanRegisterNewUsers())
-                {
-                    const string errorMessage = "已关闭用户注册";
-                    _logger.LogWarning("用户注册失败：{@RegisterAttempt}", new {username = userName, Result = errorMessage});
-                    ModelState.AddModelError("UserName", errorMessage);
-                    return RedirectTo(returnUrl);
-                }
-                var displayNameClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.NickName)?.Value 
-                                       ?? claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Name)?.Value
-                                       ?? (string.Concat(claims.FirstOrDefault(x => x.Type == JwtClaimTypes.FamilyName)?.Value ?? " ", " ", claims.FirstOrDefault(x => x.Type == JwtClaimTypes.GivenName)?.Value ?? " ")).Trim();
-                var emailClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Email)?.Value;
-                var emailVerifiedClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.EmailVerified)?.Value;
-                var emailVerified = false;
-                if (!string.IsNullOrEmpty(emailClaim) && Boolean.TryParse(emailVerifiedClaim, out emailVerified))
-                {
-                    // nothing to do...
-                }
-
-                
-                var phoneNumberClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PhoneNumber)?.Value;
-                VerifiedPhoneNumber verifiedPhoneNumber = null;
-                var phoneNumberVerifiedClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PhoneNumberVerified)?.Value;
-                if (!string.IsNullOrEmpty(phoneNumberClaim) && Boolean.TryParse(phoneNumberVerifiedClaim, out var phoneNumberVerified) && phoneNumberVerified)
-                {
-                    verifiedPhoneNumber = new VerifiedPhoneNumber()
-                    {
-                        PhoneNumber = phoneNumberClaim
-                    };
-                    _phoneNumberVerificationRepo.Save(verifiedPhoneNumber);
-                }
-
-                user = new User
-                {
-                    UserName = userName,
-                    DisplayName = string.IsNullOrWhiteSpace(displayNameClaim) ? userName : displayNameClaim,
-                    CreatedAtUtc = _clock.Now.UtcDateTime,
-                    EmailAddress = emailClaim,
-                    EmailAddressConfirmed = emailVerified,
-                    OpenId = userIdClaim.Value,
-                    OpenIdProvider = _idpOptions.ProviderId,
-                    LastSeenAt = _clock.Now.UtcDateTime,
-                    PhoneNumberId =  verifiedPhoneNumber?.Id
-                };
-
-                var result = await _userManager.CreateAsync(user);
-                if (!result.Succeeded)
-                {
-                    _logger.LogWarning("用户注册失败：{@LoginAttempt}", new {UserName = userName, Result = string.Join(";", result.Errors.Select(err => err.Description ?? err.Code)) });
-                    return RedirectTo(returnUrl);
-                }
-                else
-                {
-                    _logger.LogInformation("用户注册成功：{@RegisterAttempt}", new {UserName = userName, UserId = user.Id});
-                }
-            }
-            else
-            {
-                user.LastSeenAt = _clock.Now.UtcDateTime;
-                _userRepo.Update(user);
-                _logger.LogInformation("用户登录成功：{@RegisterAttempt}", new {user.UserName, Result = $"从外部身份服务 {_idpOptions.ProviderId} 登录成功"});
-            }
-
-            var externalTokenId = claims.FirstOrDefault(c => c.Type == JwtClaimTypes.JwtId)?.Value;
-            if (externalTokenId != null)
-            {
-                HttpContext.Items["SessionId"] = externalTokenId;
-            }
-            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-            await _signInManager.SignInAsync(user, false);
             return RedirectTo(returnUrl);
         }
 
@@ -444,8 +335,7 @@ namespace Discussion.Web.Controllers
 
             return user;
         }
-
-
+        
         IActionResult RedirectTo(string returnUrl)
         {
             if (string.IsNullOrEmpty(returnUrl))

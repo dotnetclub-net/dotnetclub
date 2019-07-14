@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Discussion.Core.Models;
@@ -21,17 +22,13 @@ namespace Discussion.Web.Services.UserManagement.Identity
         
         public Task<ClaimsPrincipal> CreateAsync(User user)
         {
+            var sessionId = _httpContextAccessor.HttpContext?.Items["SessionId"]?.ToString() ?? Guid.NewGuid().ToString("D");
             var claims = new List<Claim> {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(), ClaimValueTypes.Integer32),
                 new Claim(ClaimTypes.Name, user.DisplayName, ClaimValueTypes.String),
-                new Claim("SigninTime", _clock.Now.UtcTicks.ToString(), ClaimValueTypes.Integer64)
+                new Claim("SigninTime", _clock.Now.UtcTicks.ToString(), ClaimValueTypes.Integer64),
+                new Claim("SessionId", sessionId, ClaimValueTypes.String)
             };
-
-            var externalTokenId = _httpContextAccessor.HttpContext?.Items["SessionId"]?.ToString();
-            if (externalTokenId != null)
-            {
-                claims.Add(new Claim("SessionId", externalTokenId, ClaimValueTypes.String));
-            }
 
             var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
             return Task.FromResult(new ClaimsPrincipal(identity));

@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Discussion.Core.Mvc;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -54,7 +52,6 @@ namespace Discussion.Web.Services
                     context.Result = new SignOutResult(new List<string>
                         {
                             IdentityConstants.ApplicationScheme,
-                            IdentityConstants.ExternalScheme,
                             OpenIdConnectDefaults.AuthenticationScheme
                         },
                         new AuthenticationProperties
