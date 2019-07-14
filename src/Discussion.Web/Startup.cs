@@ -111,6 +111,7 @@ namespace Discussion.Web
 
             app.UseMiddleware<SiteReadonlyMiddleware>();
             app.UseAuthentication();
+            app.UseMiddleware<RejectRevokedSessionMiddleware>();
             app.UseStaticFiles();
             app.UseMvc();
 

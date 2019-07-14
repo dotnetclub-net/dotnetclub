@@ -218,8 +218,12 @@ namespace Discussion.Web.Controllers
                 _logger.LogInformation("用户登录成功：{@RegisterAttempt}", new {user.UserName, Result = $"从外部身份服务 {_idpOptions.ProviderId} 登录成功"});
             }
 
+            var externalTokenId = claims.FirstOrDefault(c => c.Type == JwtClaimTypes.JwtId)?.Value;
+            if (externalTokenId != null)
+            {
+                HttpContext.Items["SessionId"] = externalTokenId;
+            }
             await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             await _signInManager.SignInAsync(user, false);
             return RedirectTo(returnUrl);
         }

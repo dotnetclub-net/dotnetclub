@@ -757,9 +757,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             mockAuthService.Setup(auth => auth.SignOutAsync(It.IsAny<HttpContext>(),
                 IdentityConstants.ExternalScheme,
                 It.IsAny<AuthenticationProperties>())).Verifiable();
-            mockAuthService.Setup(auth => auth.SignOutAsync(It.IsAny<HttpContext>(),
-                OpenIdConnectDefaults.AuthenticationScheme,
-                It.IsAny<AuthenticationProperties>())).Verifiable();
 
             _app.OverrideServices(services =>
             {
@@ -796,9 +793,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 It.IsAny<AuthenticationProperties>())).Verifiable();
             mockAuthService.Setup(auth => auth.SignOutAsync(It.IsAny<HttpContext>(),
                 IdentityConstants.ExternalScheme,
-                It.IsAny<AuthenticationProperties>())).Verifiable();
-            mockAuthService.Setup(auth => auth.SignOutAsync(It.IsAny<HttpContext>(),
-                OpenIdConnectDefaults.AuthenticationScheme,
                 It.IsAny<AuthenticationProperties>())).Verifiable();
 
             _app.OverrideServices(services =>
