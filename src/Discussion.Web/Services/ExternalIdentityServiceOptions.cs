@@ -42,6 +42,9 @@ namespace Discussion.Web.Services
         /// </summary>
         public string ChangePasswordUri { get; set; }
         
-        public string AdminCredential { get; set; }
+        /// <summary>
+        /// 如果外部身份服务是 KeyCloak，此处保存用于其管理员凭据
+        /// </summary>
+        public string KeyCloakAdminCredential { get; set; }
     }
 }

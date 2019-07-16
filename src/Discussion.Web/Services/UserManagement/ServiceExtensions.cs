@@ -58,6 +58,7 @@ namespace Discussion.Web.Services.UserManagement
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             services.AddScoped<ExternalSigninManager>();
+            services.AddScoped<KeyCloakUserUpdater>();
             services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = IdentityConstants.ApplicationScheme;

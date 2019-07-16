@@ -28,6 +28,8 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IPhoneNumberVerificationService _phoneNumberVerificationService;
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
         private readonly IClock _clock;
+        private readonly KeyCloakUserUpdater _keyCloakUserUpdater;
+        private readonly ExternalIdentityServiceOptions _externalIdpOptions;
 
         public DefaultUserService(IOptions<ExternalIdentityServiceOptions> idpOptions, IRepository<User> userRepo,
             UserManager<User> userManager,
@@ -36,7 +38,7 @@ namespace Discussion.Web.Services.UserManagement
             IConfirmationEmailBuilder confirmationEmailBuilder,
             IResetPasswordEmailBuilder resetPasswordEmailBuilder,
             IPhoneNumberVerificationService phoneNumberVerificationService,
-            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock)
+            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock, KeyCloakUserUpdater keyCloakUserUpdater, IOptions<ExternalIdentityServiceOptions> externalIdp)
         {
             _idpOptions = idpOptions.Value;
             _userRepo = userRepo;
@@ -48,6 +50,8 @@ namespace Discussion.Web.Services.UserManagement
             _phoneNumberVerificationService = phoneNumberVerificationService;
             _verifiedPhoneNumberRepo = verifiedPhoneNumberRepo;
             _clock = clock;
+            _keyCloakUserUpdater = keyCloakUserUpdater;
+            _externalIdpOptions = externalIdp.Value;
         }
 
         public async Task<IdentityResult> UpdateUserInfoAsync(User user, UserSettingsViewModel userSettingsViewModel)
@@ -70,6 +74,7 @@ namespace Discussion.Web.Services.UserManagement
             }
 
             _userRepo.Update(user);
+            await UpdateToKeyCloakIfNeeded(user);
             return IdentityResult.Success;
         }
 
@@ -86,9 +91,16 @@ namespace Discussion.Web.Services.UserManagement
 
             var emailTaken = IsEmailTakenByAnotherUser(user.Id, newEmail);
 
-            return emailTaken
+            var changeResult = emailTaken
                 ? EmailTakenResult()
                 : await _userManager.SetEmailAsync(user, newEmail);
+            
+            if (changeResult.Succeeded)
+            {
+                await UpdateToKeyCloakIfNeeded(user);
+            }
+
+            return changeResult;
         }
 
         public async Task SendEmailConfirmationMailAsync(User user, string urlProtocol)
@@ -148,8 +160,11 @@ namespace Discussion.Web.Services.UserManagement
             {
                 user.EmailAddressConfirmed = false;
                 _userRepo.Update(user);
+                await UpdateToKeyCloakIfNeeded(user);
                 return EmailTakenResult();
             }
+            
+            await UpdateToKeyCloakIfNeeded(user);
             return identityResult;
         }
 
@@ -164,7 +179,7 @@ namespace Discussion.Web.Services.UserManagement
             await _phoneNumberVerificationService.SendVerificationCodeAsync(user.Id, phoneNumber);
         }
 
-        public void VerifyPhoneNumberByCode(User user, string verificationCode)
+        public async Task VerifyPhoneNumberByCode(User user, string verificationCode)
         {
             var validatedPhoneNumber = _phoneNumberVerificationService.GetVerifiedPhoneNumberByCode(user.Id, verificationCode);
             if (validatedPhoneNumber == null)
@@ -183,7 +198,9 @@ namespace Discussion.Web.Services.UserManagement
                 user.VerifiedPhoneNumber.ModifiedAtUtc = _clock.Now.UtcDateTime;
                 _verifiedPhoneNumberRepo.Update(user.VerifiedPhoneNumber);
             }
+            
             _userRepo.Update(user);
+            await UpdateToKeyCloakIfNeeded(user);
         }
 
         private bool IsEmailTakenByAnotherUser(int thisUserId, string checkingEmail)
@@ -198,6 +215,16 @@ namespace Discussion.Web.Services.UserManagement
                           && u.Id != thisUserId
                           && u.EmailAddress != null
                           && u.EmailAddress.ToLower() == checkingEmail.ToLower());
+        }
+
+        private async Task UpdateToKeyCloakIfNeeded(User user)
+        {
+            if (!_externalIdpOptions.IsEnabled || string.IsNullOrEmpty(_externalIdpOptions.KeyCloakAdminCredential))
+            {
+                return;
+            }
+
+            await _keyCloakUserUpdater.UpdateUserInfo(user);
         }
 
         private static IdentityResult EmailTakenResult()
