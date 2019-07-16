@@ -25,7 +25,7 @@ namespace Discussion.Web.Services
         public void OnActionExecuting(ActionExecutingContext context)
         {
             var httpContext = context.HttpContext;
-            var configuration = httpContext.RequestServices.GetService<IOptions<IdentityServerOptions>>().Value;
+            var configuration = httpContext.RequestServices.GetService<IOptions<ExternalIdentityServiceOptions>>().Value;
             if (!configuration.IsEnabled) 
                 return;
             

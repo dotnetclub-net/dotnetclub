@@ -29,10 +29,10 @@ namespace Discussion.Web.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly IRepository<WeChatAccount> _wechatAccountRepo;
         private readonly ChatyApiService _chatyApiService;
-        private readonly IdentityServerOptions _idpOptions;
+        private readonly ExternalIdentityServiceOptions _idpOptions;
 
         public UserController(UserManager<User> userManager, IUserService userService, ILogger<UserController> logger, 
-            IRepository<WeChatAccount> wechatAccountRepo, ChatyApiService chatyApiService, IOptions<IdentityServerOptions> idpOptions)
+            IRepository<WeChatAccount> wechatAccountRepo, ChatyApiService chatyApiService, IOptions<ExternalIdentityServiceOptions> idpOptions)
         {
             _userManager = userManager;
             _userService = userService;

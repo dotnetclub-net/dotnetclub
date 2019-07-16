@@ -1,6 +1,6 @@
 namespace Discussion.Web.Services
 {
-    public class IdentityServerOptions
+    public class ExternalIdentityServiceOptions
     {
         /// <summary>
         /// 是否启用外部身份服务
@@ -41,5 +41,7 @@ namespace Discussion.Web.Services
         /// 身份服务修改密码的 URL
         /// </summary>
         public string ChangePasswordUri { get; set; }
+        
+        public string AdminCredential { get; set; }
     }
 }

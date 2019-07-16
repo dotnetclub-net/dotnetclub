@@ -4,7 +4,7 @@
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
 @inject IAvatarUrlService AvatarUrlService
 @inject Discussion.Core.Models.SiteSettings SiteSettings
-@inject IOptions<Discussion.Web.Services.IdentityServerOptions> ExternalIdpOptions
+@inject IOptions<Discussion.Web.Services.ExternalIdentityServiceOptions> ExternalIdpOptions
 
 @{
     var pageTitle = "dotnet club";
@@ -81,7 +81,7 @@
                     }
                     else
                     {
-                        if (SiteSettings.CanRegisterNewUsers() && !ExternalIdpOptions.Value.IsEnabled)
+                        if (SiteSettings.CanRegisterNewUsers())
                         {
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
@@ -134,7 +134,7 @@
                     }
                     else
                     {
-                        if (SiteSettings.CanRegisterNewUsers() && !ExternalIdpOptions.Value.IsEnabled)
+                        if (SiteSettings.CanRegisterNewUsers())
                         {
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>

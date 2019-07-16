@@ -40,20 +40,20 @@ namespace Discussion.Web.Services.UserManagement
             
             services.AddScoped<IUserService, DefaultUserService>();
             
-            var idpConfig = appConfiguration.GetSection(nameof(IdentityServerOptions));
+            var idpConfig = appConfiguration.GetSection(nameof(ExternalIdentityServiceOptions));
             if (idpConfig != null)
             {
-                services.Configure<IdentityServerOptions>(idpConfig);
+                services.Configure<ExternalIdentityServiceOptions>(idpConfig);
             }
 
-            var parsedConfiguration = idpConfig?.Get<IdentityServerOptions>();
+            var parsedConfiguration = idpConfig?.Get<ExternalIdentityServiceOptions>();
             if (parsedConfiguration != null && parsedConfiguration.IsEnabled)
             {
                 ConfigureExternalIdp(services, parsedConfiguration);
             }
         }
 
-        private static void ConfigureExternalIdp(IServiceCollection services, IdentityServerOptions parsedConfiguration)
+        private static void ConfigureExternalIdp(IServiceCollection services, ExternalIdentityServiceOptions parsedConfiguration)
         {
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 

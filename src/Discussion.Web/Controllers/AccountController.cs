@@ -32,7 +32,7 @@ namespace Discussion.Web.Controllers
         readonly IRepository<User> _userRepo;
         readonly IClock _clock;
         readonly SiteSettings _settings;
-        private readonly IdentityServerOptions _idpOptions;
+        private readonly ExternalIdentityServiceOptions _idpOptions;
         readonly IUserService _userService;
         private IRepository<VerifiedPhoneNumber> _phoneNumberVerificationRepo;
 
@@ -44,7 +44,7 @@ namespace Discussion.Web.Controllers
             IRepository<User> userRepo,
             IClock clock,
             SiteSettings settings,
-            IOptions<IdentityServerOptions> idpOptions, IRepository<VerifiedPhoneNumber> phoneNumberVerificationRepo)
+            IOptions<ExternalIdentityServiceOptions> idpOptions, IRepository<VerifiedPhoneNumber> phoneNumberVerificationRepo)
         {
             _userManager = userManager;
             _signInManager = signInManager;

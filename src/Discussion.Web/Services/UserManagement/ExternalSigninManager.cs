@@ -22,7 +22,7 @@ namespace Discussion.Web.Services.UserManagement
     public class ExternalSigninManager
     {
         private readonly ILogger<ExternalSigninManager> _logger;
-        private readonly IdentityServerOptions _idpOptions;
+        private readonly ExternalIdentityServiceOptions _idpOptions;
         private readonly SiteSettings _siteSettings;
         private readonly IClock _clock;
         private readonly UserManager<User> _userManager;
@@ -32,7 +32,7 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IRepository<SessionRevocationRecord> _sessionRevocationRepo;
 
         public ExternalSigninManager(ILogger<ExternalSigninManager> logger, 
-            IRepository<User> userRepo, IOptions<IdentityServerOptions> idpOptions, 
+            IRepository<User> userRepo, IOptions<ExternalIdentityServiceOptions> idpOptions, 
             SiteSettings siteSettings, IRepository<VerifiedPhoneNumber> phoneNumberVerificationRepo, 
             UserManager<User> userManager, IUserClaimsPrincipalFactory<User> principalFactory, IClock clock, IRepository<SessionRevocationRecord> sessionRevocationRepo)
         {

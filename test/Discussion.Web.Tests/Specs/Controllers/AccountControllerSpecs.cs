@@ -588,8 +588,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
         private void EnableExternalIdp(bool enabled = true)
         {
             _app.OverrideServices(s => {
-                var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
-                externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions
+                var externalIdpEnabledOptions = new Mock<IOptions<ExternalIdentityServiceOptions>>();
+                externalIdpEnabledOptions.Setup(op => op.Value).Returns(new ExternalIdentityServiceOptions
                 {
                     IsEnabled = enabled,
                     ProviderId = "external"

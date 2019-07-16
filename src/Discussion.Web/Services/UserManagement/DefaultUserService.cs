@@ -18,7 +18,7 @@ namespace Discussion.Web.Services.UserManagement
 {
     public class DefaultUserService : IUserService
     {
-        private readonly IdentityServerOptions _idpOptions;
+        private readonly ExternalIdentityServiceOptions _idpOptions;
         private readonly IRepository<User> _userRepo;
         private readonly UserManager<User> _userManager;
         private readonly IUrlHelper _urlHelper;
@@ -29,7 +29,7 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
         private readonly IClock _clock;
 
-        public DefaultUserService(IOptions<IdentityServerOptions> idpOptions, IRepository<User> userRepo,
+        public DefaultUserService(IOptions<ExternalIdentityServiceOptions> idpOptions, IRepository<User> userRepo,
             UserManager<User> userManager,
             IEmailDeliveryMethod emailDeliveryMethod,
             IUrlHelper urlHelper,

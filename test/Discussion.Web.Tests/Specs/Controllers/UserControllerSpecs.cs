@@ -154,8 +154,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         void should_not_view_change_password_page_when_external_idp_enabled()
         {
-            var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
-            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions {IsEnabled = true});
+            var externalIdpEnabledOptions = new Mock<IOptions<ExternalIdentityServiceOptions>>();
+            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new ExternalIdentityServiceOptions {IsEnabled = true});
             _theApp.OverrideServices(s => s.AddSingleton(externalIdpEnabledOptions.Object));
             
             _theApp.MockUser();
@@ -171,8 +171,8 @@ namespace Discussion.Web.Tests.Specs.Controllers
         [Fact]
         async Task should_block_change_password_when_external_idp_enabled()
         {
-            var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
-            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions {IsEnabled = true});
+            var externalIdpEnabledOptions = new Mock<IOptions<ExternalIdentityServiceOptions>>();
+            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new ExternalIdentityServiceOptions {IsEnabled = true});
             _theApp.OverrideServices(s => s.AddSingleton(externalIdpEnabledOptions.Object));
             
             _theApp.MockUser();

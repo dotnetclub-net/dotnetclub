@@ -41,8 +41,8 @@ namespace Discussion.Web.Tests.Specs.Services
         [Fact]
         public async Task should_not_send_forgot_password_email_when_external_auth_enabled()
         {
-            var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
-            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions {IsEnabled = true});
+            var externalIdpEnabledOptions = new Mock<IOptions<ExternalIdentityServiceOptions>>();
+            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new ExternalIdentityServiceOptions {IsEnabled = true});
             
             var (mockDeliveryMethod, mockUrlHelper, mockForgotPasswordEmailBuilder) = CreateRelatedMockItems();
             var userService = new DefaultUserService(externalIdpEnabledOptions.Object, 

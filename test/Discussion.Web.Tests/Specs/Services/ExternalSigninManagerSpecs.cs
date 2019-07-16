@@ -134,10 +134,10 @@ namespace Discussion.Web.Tests.Specs.Services
             });
         }
 
-        static IOptions<IdentityServerOptions> CreateMockExternalIdp(bool enabled = true)
+        static IOptions<ExternalIdentityServiceOptions> CreateMockExternalIdp(bool enabled = true)
         {
-            var externalIdpEnabledOptions = new Mock<IOptions<IdentityServerOptions>>();
-            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new IdentityServerOptions
+            var externalIdpEnabledOptions = new Mock<IOptions<ExternalIdentityServiceOptions>>();
+            externalIdpEnabledOptions.Setup(op => op.Value).Returns(new ExternalIdentityServiceOptions
             {
                 IsEnabled = enabled,
                 ProviderId = "external"
