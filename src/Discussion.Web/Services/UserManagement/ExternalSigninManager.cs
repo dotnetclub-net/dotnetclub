@@ -119,8 +119,8 @@ namespace Discussion.Web.Services.UserManagement
 
         public async Task<User> ImportNewUser(IList<Claim> claims, Claim userIdClaim)
         {
-            var originalUserName = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PreferredUserName)?.Value;
-            var userName = string.Concat(originalUserName ?? userIdClaim.Value, "@", _idpOptions.ProviderId);
+            var originalUserName = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.PreferredUserName)?.Value ?? userIdClaim.Value;
+            var userName = string.Concat(originalUserName , "@", _idpOptions.ProviderId);
             if (!_siteSettings.CanRegisterNewUsers())
             {
                 const string errorMessage = "已关闭用户注册";
@@ -128,11 +128,8 @@ namespace Discussion.Web.Services.UserManagement
                 throw new InvalidOperationException(errorMessage);
             }
 
-            var displayNameClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.NickName)?.Value
-                                   ?? claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Name)?.Value
-                                   ?? (string.Concat(
-                                       claims.FirstOrDefault(x => x.Type == JwtClaimTypes.FamilyName)?.Value ?? " ", " ",
-                                       claims.FirstOrDefault(x => x.Type == JwtClaimTypes.GivenName)?.Value ?? " ")).Trim();
+            var displayNameClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.GivenName)?.Value
+                                    ?? claims.FirstOrDefault(x => x.Type == JwtClaimTypes.NickName)?.Value;
             var emailClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Email)?.Value;
             var emailVerifiedClaim = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.EmailVerified)?.Value;
             var emailVerified = false;
@@ -157,7 +154,7 @@ namespace Discussion.Web.Services.UserManagement
             var user = new User
             {
                 UserName = userName,
-                DisplayName = string.IsNullOrWhiteSpace(displayNameClaim) ? userName : displayNameClaim,
+                DisplayName = string.IsNullOrWhiteSpace(displayNameClaim) ? originalUserName : displayNameClaim,
                 CreatedAtUtc = _clock.Now.UtcDateTime,
                 EmailAddress = emailClaim,
                 EmailAddressConfirmed = emailVerified,

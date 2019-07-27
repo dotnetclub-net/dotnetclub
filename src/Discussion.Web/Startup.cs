@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Discussion.Core.ETag;
 using Discussion.Core.Logging;
 using Discussion.Core.Middleware;
+using Discussion.Core.Utilities;
 
 namespace Discussion.Web
 {
@@ -56,6 +57,7 @@ namespace Discussion.Web
         // ConfigureServices is invoked before Configure
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLazySupport();
             services.AddLogging();
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
 

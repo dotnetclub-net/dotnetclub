@@ -188,13 +188,13 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("phone-number-verification/verify")]
-        public ApiResponse DoVerifyPhoneNumber([FromForm] string code)
+        public async Task<ApiResponse> DoVerifyPhoneNumber([FromForm] string code)
         {
             var user = HttpContext.DiscussionUser();
 
             try
             {
-                _userService.VerifyPhoneNumberByCode(user, code);
+                await _userService.VerifyPhoneNumberByCode(user, code);
                 _logger.LogInformation("验证手机号码成功：{@PhoneNumberVerification}", new { user.UserName, UserId = user.Id, user.VerifiedPhoneNumber.PhoneNumber, Code = code });
             }
             catch (PhoneNumberVerificationCodeInvalidException)

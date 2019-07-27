@@ -28,7 +28,7 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IPhoneNumberVerificationService _phoneNumberVerificationService;
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
         private readonly IClock _clock;
-        private readonly KeyCloakUserUpdater _keyCloakUserUpdater;
+        private readonly Lazy<KeyCloakUserUpdater> _keyCloakUserUpdater;
         private readonly ExternalIdentityServiceOptions _externalIdpOptions;
 
         public DefaultUserService(IOptions<ExternalIdentityServiceOptions> idpOptions, IRepository<User> userRepo,
@@ -38,7 +38,7 @@ namespace Discussion.Web.Services.UserManagement
             IConfirmationEmailBuilder confirmationEmailBuilder,
             IResetPasswordEmailBuilder resetPasswordEmailBuilder,
             IPhoneNumberVerificationService phoneNumberVerificationService,
-            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock, KeyCloakUserUpdater keyCloakUserUpdater, IOptions<ExternalIdentityServiceOptions> externalIdp)
+            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock, Lazy<KeyCloakUserUpdater> keyCloakUserUpdater, IOptions<ExternalIdentityServiceOptions> externalIdp)
         {
             _idpOptions = idpOptions.Value;
             _userRepo = userRepo;
@@ -51,7 +51,7 @@ namespace Discussion.Web.Services.UserManagement
             _verifiedPhoneNumberRepo = verifiedPhoneNumberRepo;
             _clock = clock;
             _keyCloakUserUpdater = keyCloakUserUpdater;
-            _externalIdpOptions = externalIdp.Value;
+            _externalIdpOptions = externalIdp?.Value;
         }
 
         public async Task<IdentityResult> UpdateUserInfoAsync(User user, UserSettingsViewModel userSettingsViewModel)
@@ -224,7 +224,7 @@ namespace Discussion.Web.Services.UserManagement
                 return;
             }
 
-            await _keyCloakUserUpdater.UpdateUserInfo(user);
+            await _keyCloakUserUpdater.Value.UpdateUserInfo(user);
         }
 
         private static IdentityResult EmailTakenResult()

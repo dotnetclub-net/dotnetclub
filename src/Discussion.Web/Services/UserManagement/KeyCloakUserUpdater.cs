@@ -92,8 +92,7 @@ namespace Discussion.Web.Services.UserManagement
         {
             var attrs = new Dictionary<string, Object>
             {
-                {"nickname", discussionUser.DisplayName},
-                {"name", discussionUser.DisplayName}
+                {"nickname", discussionUser.DisplayName}
             };
             
             if (discussionUser.VerifiedPhoneNumber != null)
@@ -109,6 +108,7 @@ namespace Discussion.Web.Services.UserManagement
 
             var dic = new Dictionary<string, Object>()
             {
+                {"firstName", discussionUser.DisplayName},
                 {"email", discussionUser.EmailAddress},
                 {"emailVerified", discussionUser.EmailAddressConfirmed},
                 {"attributes", attrs}

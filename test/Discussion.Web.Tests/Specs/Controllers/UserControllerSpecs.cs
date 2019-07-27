@@ -447,7 +447,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
         }
         
         [Fact]
-        public void should_verify_phone_number()
+        public async Task should_verify_phone_number()
         {
             const string code = "389451";
             const string phoneNumber = "13603503455";
@@ -463,7 +463,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _phoneVerifyRepo.Save(record);
             
             var userCtrl = _theApp.CreateController<UserController>();
-            var result = userCtrl.DoVerifyPhoneNumber(code);
+            var result = await userCtrl.DoVerifyPhoneNumber(code);
             
             Assert.True(result.HasSucceeded);
             _theApp.ReloadEntity(user);

@@ -48,7 +48,7 @@ namespace Discussion.Web.Tests.Specs.Services
             var userService = new DefaultUserService(externalIdpEnabledOptions.Object, 
                 null, _app.GetService<UserManager<User>>(), 
                 mockDeliveryMethod.Object, mockUrlHelper.Object, null, mockForgotPasswordEmailBuilder.Object,
-                null, null, null, null, null);
+                null, null, null, null, externalIdpEnabledOptions.Object);
 
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {

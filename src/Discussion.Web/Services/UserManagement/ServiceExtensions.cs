@@ -51,14 +51,14 @@ namespace Discussion.Web.Services.UserManagement
             {
                 ConfigureExternalIdp(services, parsedConfiguration);
             }
+            services.AddScoped<ExternalSigninManager>();
+            services.AddScoped<KeyCloakUserUpdater>();
         }
 
         private static void ConfigureExternalIdp(IServiceCollection services, ExternalIdentityServiceOptions parsedConfiguration)
         {
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-
-            services.AddScoped<ExternalSigninManager>();
-            services.AddScoped<KeyCloakUserUpdater>();
+            
             services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = IdentityConstants.ApplicationScheme;
