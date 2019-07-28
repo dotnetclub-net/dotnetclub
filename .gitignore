@@ -83,3 +83,6 @@ testem.log
 # e2e
 src/Discussion.Admin/ClientApp/e2e/*.js
 src/Discussion.Admin/ClientApp/e2e/*.map
+
+
+.aspnet
