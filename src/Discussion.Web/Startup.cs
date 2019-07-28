@@ -28,6 +28,7 @@ using Discussion.Core.ETag;
 using Discussion.Core.Logging;
 using Discussion.Core.Middleware;
 using Discussion.Core.Utilities;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Discussion.Web
 {
@@ -57,6 +58,12 @@ namespace Discussion.Web
         // ConfigureServices is invoked before Configure
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
             services.AddLazySupport();
             services.AddLogging();
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
@@ -107,6 +114,7 @@ namespace Discussion.Web
         
         public void Configure(IApplicationBuilder app)
         {
+            app.UseForwardedHeaders();
             app.UseTracingId();
             SetupGlobalExceptionHandling(app);
             SetupHttpsSupport(app);

@@ -80,9 +80,12 @@ namespace Discussion.Web.Tests.Specs.Services
         private static IServiceProvider CreateServices(IUrlHelper urlHelper)
         {
             var services = new ServiceCollection();
+            var mockAccessor = new Mock<IHttpContextAccessor>();
+            mockAccessor.SetupGet(m => m.HttpContext).Returns(new DefaultHttpContext());
             
             services.AddScoped(sp => urlHelper);
             services.AddSingleton<IAvatarUrlService, DispatchAvatarUrlService>();
+            services.AddSingleton(mockAccessor.Object);
             services.AddScoped<IUserAvatarUrlGenerator<DefaultAvatar>, DefaultAvatarUrlGenerator>();
             services.AddScoped<IUserAvatarUrlGenerator<StorageFileAvatar>, StorageFileAvatarUrlGenerator>();
             services.AddScoped<IUserAvatarUrlGenerator<GravatarAvatar>, GravatarAvatarUrlGenerator>();
