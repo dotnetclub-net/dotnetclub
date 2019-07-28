@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:2.1.10-bionic
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2
 
 ENV ASPNETCORE_URLS http://*:5000
 VOLUME /club-data
