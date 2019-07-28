@@ -16,7 +16,10 @@ namespace Discussion.Web.Services.UserManagement.Avatar.UrlGenerators
         {
             // ReSharper disable Mvc.ActionNotResolved
             // ReSharper disable Mvc.ControllerNotResolved
-            return _urlHelper.Action("DownloadFile", "Common", new {slug = avatar.StorageFileSlug});
+            return _urlHelper.Action("DownloadFile", 
+                "Common", 
+                new {slug = avatar.StorageFileSlug}, 
+                _urlHelper.ActionContext.HttpContext.Request.Scheme);
         }
     }
 }

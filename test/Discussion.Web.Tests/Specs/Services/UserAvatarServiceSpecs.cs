@@ -6,6 +6,7 @@ using Discussion.Core.Models;
 using Discussion.Core.Models.UserAvatar;
 using Discussion.Web.Services.UserManagement.Avatar;
 using Discussion.Web.Services.UserManagement.Avatar.UrlGenerators;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,7 +71,9 @@ namespace Discussion.Web.Tests.Specs.Services
         {
             var urlHelper = new Mock<IUrlHelper>();
             urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>()))
-                .Returns("http://download/" + slug ?? "file");
+                .Returns("http://download/" + (slug ?? "file"));
+            urlHelper.Setup(s => s.ActionContext)
+                .Returns(new ActionContext() {HttpContext = new DefaultHttpContext()});
             return urlHelper.Object;
         }
 

@@ -51,8 +51,15 @@ namespace Discussion.Web.Services.UserManagement
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             var httpResponseMessage = await _httpInvoker.SendAsync(requestMessage, CancellationToken.None);
-            httpResponseMessage.EnsureSuccessStatusCode();
-            _logger.LogWarning("用户信息同步至 IdP 成功：{@UserUpdateRequest}", new { UserId = discussionUser.Id, discussionUser.UserName, Result = $"收到 {httpResponseMessage.StatusCode} 响应代码" });
+            try
+            {
+                httpResponseMessage.EnsureSuccessStatusCode();
+                _logger.LogInformation("用户信息同步至 IdP 成功：{@UserUpdateRequest}", new { UserId = discussionUser.Id, discussionUser.UserName, Result = $"收到 {httpResponseMessage.StatusCode} 响应代码" });
+            }
+            catch(HttpRequestException)
+            {
+                _logger.LogWarning("用户信息同步至 IdP 失败：{@UserUpdateRequest}", new { UserId = discussionUser.Id, discussionUser.UserName, Result = $"收到 {httpResponseMessage.StatusCode} 响应代码" });
+            }
         }
 
 
@@ -103,7 +110,7 @@ namespace Discussion.Web.Services.UserManagement
             
             if (discussionUser.AvatarFile != null)
             {
-                attrs["picture"] = _avatarUrlService.GetAvatarUrl(discussionUser);
+                attrs["picture"] = discussionUser.AvatarFileId != null ? _avatarUrlService.GetAvatarUrl(discussionUser) : null;
             }
 
             var dic = new Dictionary<string, Object>()
