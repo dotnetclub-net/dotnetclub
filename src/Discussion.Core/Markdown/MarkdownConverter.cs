@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Markdig;
+using Markdig.Extensions.AutoLinks;
 using Markdig.Extensions.EmphasisExtras;
 
 namespace Discussion.Core.Markdown
@@ -23,7 +24,7 @@ namespace Discussion.Core.Markdown
                     .UsePipeTables()
                     .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                     .UseSoftlineBreakAsHardlineBreak()
-                    .UseAutoLinks();
+                    .UseAutoLinks(new AutoLinkOptions {ValidPreviousCharacters = "*_~,.(：。，、—；！？（" } );
                 markdownPipelineBuilder
                     .Extensions
                     .AddIfNotAlready(new CustomizableHeadingLevelExtension(headingLevel));

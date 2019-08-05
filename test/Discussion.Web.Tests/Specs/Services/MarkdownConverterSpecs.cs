@@ -49,14 +49,14 @@ namespace Discussion.Web.Tests.Specs.Services
             html.ShouldEqual(expectedHtml);
         }
         
-        [Fact(Skip = "Markdig only accept  whitespace, *, *, _, ~ ( as leading punctuations on matching links. See https://github.com/lunet-io/markdig/issues/261")]
+        [Fact]
         public void should_auto_transform_urls_to_html_links_with_heading_comma()
         {
             var md = @"foo,https://microsoft.com";
 
             var html = md.MdToHtml();
             
-            var expectedHtml = @"foo,<a href=""https://microsoft.com"">https://microsoft.com</a>";
+            var expectedHtml = "<p>foo,<a href=\"https://microsoft.com\">https://microsoft.com</a></p>\n";
             html.ShouldEqual(expectedHtml);
         }
         
