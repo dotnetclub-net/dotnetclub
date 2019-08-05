@@ -22,6 +22,7 @@ namespace Discussion.Core.Markdown
                     .DisableHtml()
                     .UsePipeTables()
                     .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
+                    .UseSoftlineBreakAsHardlineBreak()
                     .UseAutoLinks();
                 markdownPipelineBuilder
                     .Extensions

@@ -33,7 +33,7 @@ namespace Discussion.Web.Tests.Specs.Services
 
 <pre><code>&lt;div&gt;abcd&lt;/div&gt;
 </code></pre>
-<p>&lt;script&gt;alert('abcdefg')&lt;/script&gt;
+<p>&lt;script&gt;alert('abcdefg')&lt;/script&gt;<br />
 &lt;a href=&quot;about:blank&quot;&gt;link&lt;/a&gt;</p>
 ";
             html.ShouldEqual(expectedHtml.Replace("\r", string.Empty));
@@ -103,6 +103,23 @@ text after code block";
             var html = md.MdToHtml();
             
             Assert.Equal("<p><strong>Hello World</strong></p>\n<pre><code class=\"language-html\">&amp;lt;html&amp;gt;\n&amp;lt;title&amp;gt;title text&amp;lt;/title&amp;gt;\n&amp;lt;/html&amp;gt;\n</code></pre>\n<p>text after code block</p>\n", html);
+        }
+
+        [Fact]
+        public void should_transform_to_one_link_breaks_by_one_or_multiple_line_breaks()
+        {
+            var md = @"Hello World  
+the second line
+
+the third line
+
+
+
+the forth line";
+
+            var html = md.MdToHtml();
+            
+            Assert.Equal("<p>Hello World<br />\nthe second line</p>\n<p>the third line</p>\n<p>the forth line</p>\n", html);
         }
     }
 }
