@@ -1,6 +1,7 @@
 using System;
 using Discussion.Core.Models;
 using Discussion.Web.Resources;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,6 +23,7 @@ namespace Discussion.Web.Services.UserManagement.Identity
                 .AddTokenProvider<EmailConfirmationTokenProvider<User>>(EmailConfirmationTokenProviderName);
             services.AddScoped<UserManager<User>, EmailAddressAwareUserManager<User>>();
             services.ConfigureApplicationCookie(options => options.LoginPath = "/signin");
+            services.ConfigureExternalCookie(options => options.Cookie.SameSite = SameSiteMode.None);
             services.Configure<IdentityOptions>(options =>
             {
                 // 我们在 SigninUserViewModel 中的 PasswordRules 类中进行验证

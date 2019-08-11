@@ -54,6 +54,8 @@ project.lock.json
 package-lock.json
 appsettings.Development.json
 coverage.opencover.xml
+.pgdata/
+*temp.db
 
 
 tools/*
@@ -83,3 +85,4 @@ src/Discussion.Admin/ClientApp/e2e/*.js
 src/Discussion.Admin/ClientApp/e2e/*.map
 
 
+.aspnet

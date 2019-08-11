@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.FileSystem;
@@ -22,7 +21,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -291,8 +289,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
         private TopicController CreateControllerWithChatyApiService(ChatyApiService chatyApiService)
         {
+            var mockUrlHelper = CreateMockUrlHelper("http://dotnetclub/download/file");
             var chatHistoryImporter = new DefaultChatHistoryImporter(new SystemClock(),
-                CreateMockUrlHelper("http://dotnetclub/download/file"),
+                mockUrlHelper,
                 _app.GetService<IRepository<FileRecord>>(),
                 _app.GetService<IRepository<WeChatAccount>>(),
                 _app.GetService<IFileSystem>(),
@@ -312,6 +311,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
                     _app.GetService<IRepository<WeChatAccount>>(),
                     chatyApiService)
                 .WithHttpContext(httpContext);
+            topicController.Url = mockUrlHelper; 
 
             _app.GetService<IHttpContextAccessor>().HttpContext = httpContext;
             return topicController;

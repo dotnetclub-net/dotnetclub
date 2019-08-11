@@ -1,18 +1,26 @@
-﻿using Discussion.Core.Models;
+﻿using System;
+using Discussion.Core.Models;
 using Discussion.Core.Mvc;
 using Discussion.Core.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
-using System.Threading;
+using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Time;
+using Discussion.Web.Services;
 using Discussion.Web.Services.UserManagement;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
+using IdentityModel;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting.Internal;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Controllers
 {
@@ -24,7 +32,9 @@ namespace Discussion.Web.Controllers
         readonly IRepository<User> _userRepo;
         readonly IClock _clock;
         readonly SiteSettings _settings;
+        private readonly ExternalIdentityServiceOptions _idpOptions;
         readonly IUserService _userService;
+        private IRepository<VerifiedPhoneNumber> _phoneNumberVerificationRepo;
 
         public AccountController(
             UserManager<User> userManager,
@@ -33,7 +43,8 @@ namespace Discussion.Web.Controllers
             ILogger<AccountController> logger,
             IRepository<User> userRepo,
             IClock clock,
-            SiteSettings settings)
+            SiteSettings settings,
+            IOptions<ExternalIdentityServiceOptions> idpOptions, IRepository<VerifiedPhoneNumber> phoneNumberVerificationRepo)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -41,12 +52,20 @@ namespace Discussion.Web.Controllers
             _userRepo = userRepo;
             _clock = clock;
             _settings = settings;
+            _phoneNumberVerificationRepo = phoneNumberVerificationRepo;
+            _idpOptions = idpOptions.Value;
             _userService = userService;
         }
 
         [Route("/signin")]
-        public IActionResult Signin([FromQuery]string returnUrl)
+        [IdentityUserActionHttpFilter(IdentityUserAction.Signin)]
+        public IActionResult Signin([FromQuery] string returnUrl)
         {
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.EndsWith("/signin"))
+            {
+                returnUrl = "/";
+            }
+            
             if (HttpContext.IsAuthenticated())
             {
                 return RedirectTo(returnUrl);
@@ -56,13 +75,17 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("/signin")]
-        public async Task<IActionResult> DoSignin(
-            [FromForm] UserViewModel viewModel,
-            [FromQuery] string returnUrl)
+        public async Task<IActionResult> DoSignin([FromForm] UserViewModel viewModel, [FromQuery] string returnUrl)
         {
             if (HttpContext.IsAuthenticated())
             {
                 return RedirectTo(returnUrl);
+            }
+            
+            if (_idpOptions.IsEnabled)
+            {            
+                _logger.LogWarning("用户登录失败：{@LoginAttempt}", new {viewModel.UserName, Result = "启用外部身份服务时，禁止使用本地登录"});
+                return BadRequest();
             }
 
             var result = Microsoft.AspNetCore.Identity.SignInResult.Failed;
@@ -85,7 +108,7 @@ namespace Discussion.Web.Controllers
 
             if (!result.Succeeded)
             {
-                ModelState.Clear();   // 将真正的验证结果隐藏掉（如果有的话）
+                ModelState.Clear(); // 将真正的验证结果隐藏掉（如果有的话）
                 ModelState.AddModelError("UserName", "用户名或密码错误");
                 return View("Signin");
             }
@@ -99,15 +122,27 @@ namespace Discussion.Web.Controllers
         [HttpPost]
         [Route("/signout")]
         [Authorize]
+        [IdentityUserActionHttpFilter(IdentityUserAction.SignOut)]
         public async Task<IActionResult> DoSignOut()
         {
+            if (_idpOptions.IsEnabled)
+            {
+                throw new InvalidOperationException("启用外部身份服务时，禁止使用本地退出登录");
+            }
+            
             await _signInManager.SignOutAsync();
             return RedirectTo("/");
         }
 
         [Route("/register")]
+        [IdentityUserActionHttpFilter(IdentityUserAction.Register)]
         public IActionResult Register()
         {
+            if (_idpOptions.IsEnabled)
+            {
+                throw new InvalidOperationException("启用外部身份服务时，禁止使用本地注册");
+            }
+            
             if (HttpContext.IsAuthenticated())
             {
                 return RedirectTo("/");
@@ -120,6 +155,12 @@ namespace Discussion.Web.Controllers
         [Route("/register")]
         public async Task<IActionResult> DoRegister(UserViewModel registerModel)
         {
+            if (_idpOptions.IsEnabled)
+            {            
+                _logger.LogWarning("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = "启用外部身份服务时，禁止注册本地账号"});
+                return BadRequest();
+            }
+            
             if (!ModelState.IsValid)
             {
                 _logger.LogInformation("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = "数据格式不正确"});
@@ -138,7 +179,8 @@ namespace Discussion.Web.Controllers
             {
                 UserName = registerModel.UserName,
                 DisplayName = registerModel.UserName,
-                CreatedAtUtc = _clock.Now.UtcDateTime
+                CreatedAtUtc = _clock.Now.UtcDateTime,
+                LastSeenAt = _clock.Now.UtcDateTime
             };
 
             var result = await _userManager.CreateAsync(newUser, registerModel.Password);
@@ -166,6 +208,12 @@ namespace Discussion.Web.Controllers
             {
                 return RedirectTo("/");
             }
+            
+            if (_idpOptions.IsEnabled)
+            {            
+                _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new { UsernameOrEmail = string.Empty, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return BadRequest();
+            }
 
             return View();
         }
@@ -174,6 +222,12 @@ namespace Discussion.Web.Controllers
         [Route("/forgot-password")]
         public async Task<ApiResponse> DoForgotPassword(ForgotPasswordModel model)
         {
+            if (_idpOptions.IsEnabled)
+            {            
+                _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new {model.UsernameOrEmail, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return ApiResponse.NoContent(HttpStatusCode.BadRequest);
+            }
+            
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("发送重置密码邮件失败：{@ForgotPasswordAttempt}", new {model.UsernameOrEmail, Result = "数据格式不正确"});
@@ -198,9 +252,14 @@ namespace Discussion.Web.Controllers
         [Route("/reset-password")]
         public IActionResult ResetPassword(ResetPasswordModel model)
         {
+            if (_idpOptions.IsEnabled)
+            {            
+                _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new {model.Token, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return BadRequest();
+            }
+            
             ModelState.Clear();
 
-            bool ret;
             var userEmailToken = UserEmailToken.ExtractFromQueryString(model.Token);
             if (userEmailToken == null)
             {
@@ -219,6 +278,12 @@ namespace Discussion.Web.Controllers
         [Route("/reset-password")]
         public async Task<IActionResult> DoResetPassword(ResetPasswordModel model)
         {
+            if (_idpOptions.IsEnabled)
+            {            
+                _logger.LogWarning("重置密码失败：{@ResetPasswordAttempt}", new {model.Token, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return BadRequest();
+            }
+            
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -266,17 +331,18 @@ namespace Discussion.Web.Controllers
             var user = users.FirstOrDefault(e => e.EmailAddressConfirmed);
 
             if (user == null)
-               throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
+                throw new RetrievePasswordVerificationException("无法验证你对账号的所有权，因为之前没有已验证过的邮箱地址");
 
             return user;
         }
-
+        
         IActionResult RedirectTo(string returnUrl)
         {
             if (string.IsNullOrEmpty(returnUrl))
             {
                 returnUrl = "/";
             }
+
             return Redirect(returnUrl);
         }
     }

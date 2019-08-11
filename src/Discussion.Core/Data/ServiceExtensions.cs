@@ -1,6 +1,4 @@
-
 using System;
-using System.IO;
 using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +12,7 @@ namespace Discussion.Core.Data
 {
     public static class ServiceExtensions
     {
-        public const string ConfigKeyConnectionString = "sqliteConnectionString";
+        public const string ConfigKeyConnectionString = "pgsqlConnectionString";
         public const string ConfigKeyIgnoreReadOnlySettings = "ignoreReadOnlySettings";
 
         public static void AddDataServices(this IServiceCollection services, IConfiguration appConfiguration, ILogger logger)
@@ -26,10 +24,10 @@ namespace Discussion.Core.Data
                 appConfiguration[ConfigKeyConnectionString] = connectionString;
             }
 
-            var useSqlite = PrepareSqlite(connectionString);
+            var useDatabase = PrepareDatabase(connectionString);
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                useSqlite(options);
+                useDatabase(options);
             });
             services.AddScoped(typeof(IReadonlyDataSettings), typeof(ReadonlyDataSettings));
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
@@ -39,44 +37,33 @@ namespace Discussion.Core.Data
         {
             var services = app.ApplicationServices;
             var appConfiguration = services.GetService<IConfiguration>();
-
             var connectionString = appConfiguration[ConfigKeyConnectionString];
-            var dataSource = new SqliteConnection(connectionString).DataSource;
-            logger.LogInformation($"数据库位置：{dataSource}");
 
-            if (!File.Exists(dataSource))
-            {
-                services.GetService<IApplicationLifetime>()
-                    .ApplicationStarted
-                    .Register(() => databaseInitializer(connectionString));
-            }
+            logger.LogInformation($"数据库位置：{connectionString}");
+
+            services.GetService<IApplicationLifetime>()
+                .ApplicationStarted
+                .Register(() => databaseInitializer(connectionString));
         }
-
-        private static string NormalizeConnectionString(string configuredConnectionString, out bool createTemporary)
+        
+        public static bool IsForTemporaryDatabase(this string connectionString)
         {
-            string RandomDbName()
-            {
-                return Path.Combine(Path.GetTempPath(), $"{StringUtility.Random()}-dnclub.db");
-            }
-
-            createTemporary = string.IsNullOrWhiteSpace(configuredConnectionString);
-            return createTemporary
-                ? $"Data Source={RandomDbName()}"
-                : configuredConnectionString;
+            return connectionString.EndsWith("temp.db");
         }
 
-        private static Action<DbContextOptionsBuilder> PrepareSqlite(string connectionString)
+        static string NormalizeConnectionString(string configuredConnectionString, out bool createTemporary)
+        {
+            createTemporary = string.IsNullOrWhiteSpace(configuredConnectionString);
+            return createTemporary ? $"Data Source=dotnetclub-{StringUtility.Random(6)}-temp.db" : configuredConnectionString;
+        }
+
+        static Action<DbContextOptionsBuilder> PrepareDatabase(string connectionString)
         {
             // If use in-memory mode, then persist the db connection across ApplicationDbContext instances
-            if (connectionString.Contains(":memory:"))
-            {
-                var connection = new SqliteConnection(connectionString);
-                return options => options.UseSqlite(connection);
-            }
-            else
-            {
-                return options => options.UseSqlite(connectionString);
-            }
+            if (connectionString.IsForTemporaryDatabase())
+                return options => options.UseSqlite(new SqliteConnection(connectionString));
+
+            return options => options.UseNpgsql(connectionString);
         }
     }
 }

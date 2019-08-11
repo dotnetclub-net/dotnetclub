@@ -1,8 +1,10 @@
 ﻿@using Discussion.Core.Mvc
 @using Discussion.Web.Services.UserManagement.Avatar
+@using Microsoft.Extensions.Options
 @inject Microsoft.AspNetCore.Hosting.IHostingEnvironment HostingEnvironment
 @inject IAvatarUrlService AvatarUrlService
 @inject Discussion.Core.Models.SiteSettings SiteSettings
+@inject IOptions<Discussion.Web.Services.ExternalIdentityServiceOptions> ExternalIdpOptions
 
 @{
     var pageTitle = "dotnet club";
@@ -84,6 +86,7 @@
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
                         }
+
                         @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
                     }
                 </div>
@@ -136,6 +139,7 @@
                             @Html.ActionLink("注册", "Register", "Account", null, new {@class = "signin-link"})
                             <span>&nbsp;</span>
                         }
+
                         @Html.ActionLink("登录", "Signin", "Account", null, new {@class = "signin-link"})
                     }
                 </div>

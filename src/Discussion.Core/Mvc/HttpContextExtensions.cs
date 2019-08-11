@@ -12,15 +12,15 @@ namespace Discussion.Core.Mvc
     {
         public static bool IsAuthenticated(this HttpContext httpContext)
         {
-            return IsAuthenticated(httpContext?.User); 
+            return IsAuthenticated(httpContext?.User);
         }
-        
+
         public static bool IsAuthenticated(this ClaimsPrincipal claimsPrincipal)
         {
             var isAuthedExpr = claimsPrincipal?.Identity?.IsAuthenticated;
-            return isAuthedExpr.HasValue && isAuthedExpr.Value; 
+            return isAuthedExpr.HasValue && isAuthedExpr.Value;
         }
-        
+
         public static User DiscussionUser(this HttpContext httpContext)
         {
             if (!IsAuthenticated(httpContext))
@@ -29,23 +29,40 @@ namespace Discussion.Core.Mvc
             }
 
             var serviceProvider = httpContext.RequestServices;
-            return ToDiscussionUser(httpContext.User,  serviceProvider.GetRequiredService<IRepository<User>>());
+            return ToDiscussionUser(httpContext.User, serviceProvider.GetRequiredService<IRepository<User>>());
         }
-        
+
         public static User ToDiscussionUser(this ClaimsPrincipal claimsPrincipal, IRepository<User> userRepo)
         {
-            var userId = ExtractUserId(claimsPrincipal);
-            if (userId == null)
+            var isLocal = claimsPrincipal.Identities.Any(id => id.HasClaim(c => c.Type == ClaimTypes.Name));
+
+            if (isLocal)
+            {
+                var userId = ExtractUserId(claimsPrincipal);
+                if (userId == null)
+                {
+                    return null;
+                }
+            
+                return userRepo.All()
+                    .Include(u => u.VerifiedPhoneNumber)
+                    .Include(u => u.AvatarFile)
+                    .FirstOrDefault(u => u.Id == userId);
+            }
+            
+            var userName = ExtractUsername(claimsPrincipal);
+            if (string.IsNullOrWhiteSpace(userName))
             {
                 return null;
             }
-            
+
             return userRepo.All()
                 .Include(u => u.VerifiedPhoneNumber)
                 .Include(u => u.AvatarFile)
-                .FirstOrDefault(u => u.Id == userId);
+                .FirstOrDefault(u => u.UserName == userName);
+            
         }
-
+        
         public static int? ExtractUserId(this ClaimsPrincipal claimsPrincipal)
         {
             bool IsIdClaim(Claim claim)
@@ -61,6 +78,18 @@ namespace Discussion.Core.Mvc
             }
 
             return userId;
+        }
+
+        public static string ExtractUsername(this ClaimsPrincipal claimsPrincipal)
+        {
+            bool IsNameClaim(Claim claim)
+            {
+                return claim.Type == "name";
+            }
+
+            var identity = claimsPrincipal.Identities.FirstOrDefault(id => id.HasClaim(IsNameClaim));
+            var nameClaim = identity?.Claims.FirstOrDefault(IsNameClaim)?.Value;
+            return nameClaim;
         }
     }
 }

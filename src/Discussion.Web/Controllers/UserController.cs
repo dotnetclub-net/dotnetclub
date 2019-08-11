@@ -1,12 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
@@ -19,8 +14,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Discussion.Core.Logging;
+using Discussion.Web.Services;
 using Discussion.Web.Services.ChatHistoryImporting;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Controllers
 {
@@ -33,14 +29,16 @@ namespace Discussion.Web.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly IRepository<WeChatAccount> _wechatAccountRepo;
         private readonly ChatyApiService _chatyApiService;
+        private readonly ExternalIdentityServiceOptions _idpOptions;
 
         public UserController(UserManager<User> userManager, IUserService userService, ILogger<UserController> logger, 
-            IRepository<WeChatAccount> wechatAccountRepo, ChatyApiService chatyApiService)
+            IRepository<WeChatAccount> wechatAccountRepo, ChatyApiService chatyApiService, IOptions<ExternalIdentityServiceOptions> idpOptions)
         {
             _userManager = userManager;
             _userService = userService;
             _wechatAccountRepo = wechatAccountRepo;
             _chatyApiService = chatyApiService;
+            _idpOptions = idpOptions?.Value;
             _logger = logger;
         }
 
@@ -112,8 +110,13 @@ namespace Discussion.Web.Controllers
         }
 
         [Route("change-password")]
+        [IdentityUserActionHttpFilter(IdentityUserAction.ChangePassword)]
         public IActionResult ChangePassword()
         {
+            if (_idpOptions.IsEnabled)
+            {            
+                throw new InvalidOperationException("启用外部身份服务时，禁止使用本地更改密码");
+            }
             return View();
         }
 
@@ -123,6 +126,12 @@ namespace Discussion.Web.Controllers
         {
             var getActionName = "ChangePassword";
             var user = HttpContext.DiscussionUser();
+            if (_idpOptions.IsEnabled)
+            {            
+                _logger.LogWarning("修改密码失败：{@ResetPasswordAttempt}", new { UserId = user.Id, user.UserName, Result = "启用外部身份服务时，禁止使用本地重置密码功能"});
+                return BadRequest();
+            }
+            
             if (!ModelState.IsValid)
             {
                 _logger.LogModelState("修改密码", ModelState, user.Id, user.UserName);
@@ -179,13 +188,13 @@ namespace Discussion.Web.Controllers
 
         [HttpPost]
         [Route("phone-number-verification/verify")]
-        public ApiResponse DoVerifyPhoneNumber([FromForm] string code)
+        public async Task<ApiResponse> DoVerifyPhoneNumber([FromForm] string code)
         {
             var user = HttpContext.DiscussionUser();
 
             try
             {
-                _userService.VerifyPhoneNumberByCode(user, code);
+                await _userService.VerifyPhoneNumberByCode(user, code);
                 _logger.LogInformation("验证手机号码成功：{@PhoneNumberVerification}", new { user.UserName, UserId = user.Id, user.VerifiedPhoneNumber.PhoneNumber, Code = code });
             }
             catch (PhoneNumberVerificationCodeInvalidException)
@@ -254,5 +263,6 @@ namespace Discussion.Web.Controllers
             
             return ApiResponse.NoContent();
         }
+        
     }
 }

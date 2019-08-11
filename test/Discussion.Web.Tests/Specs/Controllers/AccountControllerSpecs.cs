@@ -1,22 +1,25 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
 using Discussion.Core.Data;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Utilities;
 using Discussion.Core.ViewModels;
 using Discussion.Tests.Common;
 using Discussion.Tests.Common.AssertionExtensions;
 using Discussion.Web.Controllers;
+using Discussion.Web.Services;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -153,6 +156,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var viewResult = signinResult as ViewResult;
             Assert.NotNull(viewResult);
             viewResult.ViewName.ShouldEqual("Signin");
+        }
+        
+        
+        [Fact]
+        async Task should_block_signin_request_when_external_idp_enabled()
+        {
+            EnableExternalIdp();
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var signinResult = await ctrl.DoSignin(new UserViewModel
+            {
+                UserName = StringUtility.Random(5),
+                Password = StringUtility.Random(5) + "!"
+            }, string.Empty);
+
+            Assert.IsType<BadRequestResult>(signinResult);
         }
 
         #endregion
@@ -293,7 +312,35 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var viewResult = registerResult as ViewResult;
             viewResult.ViewName.ShouldEqual("Register");
         }
+        
+        [Fact]
+        void should_not_use_action_to_register_when_external_idp_enabled()
+        {
+            EnableExternalIdp();
+            var ctrl = _app.CreateController<AccountController>();
 
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                ctrl.Register();
+            });
+            Assert.Contains("外部身份服务", exception.Message);
+        }
+        
+        [Fact]
+        async Task should_block_register_request_when_external_idp_enabled()
+        {
+            EnableExternalIdp();
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var registerResult = await ctrl.DoRegister(new UserViewModel()
+            {
+                UserName = StringUtility.Random(5),
+                Password = StringUtility.Random(5) + "!"
+            });
+
+            Assert.IsType<BadRequestResult>(registerResult);
+        }
+        
         #endregion
 
         #region Forgot Password
@@ -351,6 +398,31 @@ namespace Discussion.Web.Tests.Specs.Controllers
                 user.EmailAddress,
                 "dotnet club 用户密码重置",
                 It.IsAny<string>()), Times.Once);
+        }
+        
+        [Fact]
+        void should_block_view_forgot_password_page_when_external_idp_enabled()
+        {
+            EnableExternalIdp();
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var viewForgotPasswordPageResult = ctrl.ForgotPassword();
+
+            Assert.IsType<BadRequestResult>(viewForgotPasswordPageResult);
+        }
+        
+        [Fact]
+        async Task should_block_forgot_password_request_when_external_idp_enabled()
+        {
+            EnableExternalIdp();
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var forgotPasswordResult = await ctrl.DoForgotPassword(new ForgotPasswordModel
+            {
+                UsernameOrEmail = "someone"
+            });
+
+            Assert.Equal(forgotPasswordResult.Code, (int)HttpStatusCode.BadRequest);
         }
 
         #endregion
@@ -417,8 +489,39 @@ namespace Discussion.Web.Tests.Specs.Controllers
 
             (result.Model as ResetPasswordModel).Succeeded.ShouldBeTrue();
         }
+        
+        [Fact]
+        void should_block_view_reset_password_page_when_external_idp_enabled()
+        {
+            EnableExternalIdp();
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var viewResetPasswordPageResult = ctrl.ResetPassword(new ResetPasswordModel
+            {
+                Token = "some-token"
+            });
+
+            Assert.IsType<BadRequestResult>(viewResetPasswordPageResult);
+        } 
+        
+        [Fact]
+        async void should_block_reset_password_request_when_external_idp_enabled()
+        {
+            EnableExternalIdp();
+            var ctrl = _app.CreateController<AccountController>();
+            
+            var resetPasswordResult = await ctrl.DoResetPassword(new ResetPasswordModel
+            {
+                Token = "some-token",
+                Password = "some-pwd"
+            });
+
+            Assert.IsType<BadRequestResult>(resetPasswordResult);
+        }
 
         #endregion
+
+        #region Signout
 
         [Fact]
         async Task should_sign_out()
@@ -435,7 +538,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
             signOutResult.IsType<RedirectResult>();
             authService.Verify();
         }
+        
+        [Fact]
+        async Task should_not_use_action_to_sign_out_when_external_idp_enabled()
+        {
+            EnableExternalIdp();
+            var ctrl = _app.CreateController<AccountController>();
 
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await ctrl.DoSignOut();
+            });
+            Assert.Contains("外部身份服务", exception.Message);
+        }
+
+        #endregion
+        
         Mock<IEmailDeliveryMethod> MockMailSender()
         {
             var mailSender = new Mock<IEmailDeliveryMethod>();
@@ -464,6 +582,19 @@ namespace Discussion.Web.Tests.Specs.Controllers
             _userRepo.Save(user);
 
             return user;
+        }
+        
+        
+        private void EnableExternalIdp(bool enabled = true)
+        {
+            _app.OverrideServices(s => {
+                var externalIdpEnabledOptions = new Mock<IOptions<ExternalIdentityServiceOptions>>();
+                externalIdpEnabledOptions.Setup(op => op.Value).Returns(new ExternalIdentityServiceOptions
+                {
+                    IsEnabled = enabled,
+                    ProviderId = "external"
+                });
+                s.AddSingleton(externalIdpEnabledOptions.Object); });
         }
     }
 }

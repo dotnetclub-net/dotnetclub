@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discussion.Core.Communication.Email;
@@ -11,11 +12,13 @@ using Discussion.Web.Services.UserManagement.PhoneNumberVerification;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Discussion.Web.Services.UserManagement
 {
     public class DefaultUserService : IUserService
     {
+        private readonly ExternalIdentityServiceOptions _idpOptions;
         private readonly IRepository<User> _userRepo;
         private readonly UserManager<User> _userManager;
         private readonly IUrlHelper _urlHelper;
@@ -25,16 +28,19 @@ namespace Discussion.Web.Services.UserManagement
         private readonly IPhoneNumberVerificationService _phoneNumberVerificationService;
         private readonly IRepository<VerifiedPhoneNumber> _verifiedPhoneNumberRepo;
         private readonly IClock _clock;
+        private readonly Lazy<KeyCloakUserUpdater> _keyCloakUserUpdater;
+        private readonly ExternalIdentityServiceOptions _externalIdpOptions;
 
-        public DefaultUserService(IRepository<User> userRepo,
+        public DefaultUserService(IOptions<ExternalIdentityServiceOptions> idpOptions, IRepository<User> userRepo,
             UserManager<User> userManager,
             IEmailDeliveryMethod emailDeliveryMethod,
             IUrlHelper urlHelper,
             IConfirmationEmailBuilder confirmationEmailBuilder,
             IResetPasswordEmailBuilder resetPasswordEmailBuilder,
             IPhoneNumberVerificationService phoneNumberVerificationService,
-            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock)
+            IRepository<VerifiedPhoneNumber> verifiedPhoneNumberRepo, IClock clock, Lazy<KeyCloakUserUpdater> keyCloakUserUpdater, IOptions<ExternalIdentityServiceOptions> externalIdp)
         {
+            _idpOptions = idpOptions.Value;
             _userRepo = userRepo;
             _userManager = userManager;
             _emailDeliveryMethod = emailDeliveryMethod;
@@ -44,6 +50,8 @@ namespace Discussion.Web.Services.UserManagement
             _phoneNumberVerificationService = phoneNumberVerificationService;
             _verifiedPhoneNumberRepo = verifiedPhoneNumberRepo;
             _clock = clock;
+            _keyCloakUserUpdater = keyCloakUserUpdater;
+            _externalIdpOptions = externalIdp?.Value;
         }
 
         public async Task<IdentityResult> UpdateUserInfoAsync(User user, UserSettingsViewModel userSettingsViewModel)
@@ -66,6 +74,7 @@ namespace Discussion.Web.Services.UserManagement
             }
 
             _userRepo.Update(user);
+            await UpdateToKeyCloakIfNeeded(user);
             return IdentityResult.Success;
         }
 
@@ -82,9 +91,16 @@ namespace Discussion.Web.Services.UserManagement
 
             var emailTaken = IsEmailTakenByAnotherUser(user.Id, newEmail);
 
-            return emailTaken
+            var changeResult = emailTaken
                 ? EmailTakenResult()
                 : await _userManager.SetEmailAsync(user, newEmail);
+            
+            if (changeResult.Succeeded)
+            {
+                await UpdateToKeyCloakIfNeeded(user);
+            }
+
+            return changeResult;
         }
 
         public async Task SendEmailConfirmationMailAsync(User user, string urlProtocol)
@@ -111,6 +127,11 @@ namespace Discussion.Web.Services.UserManagement
 
         public async Task SendEmailRetrievePasswordAsync(User user, string urlProtocol)
         {
+            if (_idpOptions.IsEnabled)
+            {
+                throw new InvalidOperationException("用户的密码已由外部服务管理");
+            }
+            
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var model = new UserEmailToken { UserId = user.Id, Token = token };
 
@@ -139,8 +160,11 @@ namespace Discussion.Web.Services.UserManagement
             {
                 user.EmailAddressConfirmed = false;
                 _userRepo.Update(user);
+                await UpdateToKeyCloakIfNeeded(user);
                 return EmailTakenResult();
             }
+            
+            await UpdateToKeyCloakIfNeeded(user);
             return identityResult;
         }
 
@@ -155,7 +179,7 @@ namespace Discussion.Web.Services.UserManagement
             await _phoneNumberVerificationService.SendVerificationCodeAsync(user.Id, phoneNumber);
         }
 
-        public void VerifyPhoneNumberByCode(User user, string verificationCode)
+        public async Task VerifyPhoneNumberByCode(User user, string verificationCode)
         {
             var validatedPhoneNumber = _phoneNumberVerificationService.GetVerifiedPhoneNumberByCode(user.Id, verificationCode);
             if (validatedPhoneNumber == null)
@@ -174,7 +198,9 @@ namespace Discussion.Web.Services.UserManagement
                 user.VerifiedPhoneNumber.ModifiedAtUtc = _clock.Now.UtcDateTime;
                 _verifiedPhoneNumberRepo.Update(user.VerifiedPhoneNumber);
             }
+            
             _userRepo.Update(user);
+            await UpdateToKeyCloakIfNeeded(user);
         }
 
         private bool IsEmailTakenByAnotherUser(int thisUserId, string checkingEmail)
@@ -189,6 +215,16 @@ namespace Discussion.Web.Services.UserManagement
                           && u.Id != thisUserId
                           && u.EmailAddress != null
                           && u.EmailAddress.ToLower() == checkingEmail.ToLower());
+        }
+
+        private async Task UpdateToKeyCloakIfNeeded(User user)
+        {
+            if (!_externalIdpOptions.IsEnabled || string.IsNullOrEmpty(_externalIdpOptions.KeyCloakAdminCredential))
+            {
+                return;
+            }
+
+            await _keyCloakUserUpdater.Value.UpdateUserInfo(user);
         }
 
         private static IdentityResult EmailTakenResult()

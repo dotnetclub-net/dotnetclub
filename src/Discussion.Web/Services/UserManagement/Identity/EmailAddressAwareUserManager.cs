@@ -22,7 +22,7 @@ namespace Discussion.Web.Services.UserManagement.Identity
             IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<TUser>> logger)
         : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
         {
-            
+
         }
 
         public override async Task<string> GenerateEmailConfirmationTokenAsync(TUser user)

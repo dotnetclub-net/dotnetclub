@@ -97,7 +97,7 @@ namespace Discussion.Web.Tests.StartupSpecs
             var logs = app.GetLogs();
             
             logs.ShouldNotBeNull();
-            logs.ShouldContain(item => item.Message.Contains("数据库结构创建完成"));
+            logs.ShouldContain(item => item.Message.Contains("数据库结构创建并更新完成"));
             
             (app as IDisposable).Dispose();
         }

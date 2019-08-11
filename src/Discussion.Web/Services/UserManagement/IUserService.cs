@@ -17,7 +17,7 @@ namespace Discussion.Web.Services.UserManagement
 
         Task SendPhoneNumberVerificationCodeAsync(User user, string phoneNumber);
         
-        void VerifyPhoneNumberByCode(User user, string verificationCode);
+        Task VerifyPhoneNumberByCode(User user, string verificationCode);
 
     }
 }

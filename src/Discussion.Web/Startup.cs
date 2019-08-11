@@ -27,6 +27,8 @@ using Microsoft.AspNetCore.StaticFiles;
 using Discussion.Core.ETag;
 using Discussion.Core.Logging;
 using Discussion.Core.Middleware;
+using Discussion.Core.Utilities;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Discussion.Web
 {
@@ -56,6 +58,13 @@ namespace Discussion.Web
         // ConfigureServices is invoked before Configure
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+            services.AddLazySupport();
             services.AddLogging();
             services.AddSingleton(HtmlEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.CjkUnifiedIdeographs));
 
@@ -66,12 +75,12 @@ namespace Discussion.Web
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
                 options.Filters.Add(new ApiResponseMvcFilter());
             });
-
+            
            services.AddDataServices(_appConfiguration, _startupLogger);
 
-           services.AddSingleton<IClock, SystemClock>();    
+           services.AddSingleton<IClock, SystemClock>();
            services.AddSingleton<HttpMessageInvoker>(new HttpClient());
-           
+
            services.AddSingleton<IContentTypeProvider>(new FileExtensionContentTypeProvider());
            services.AddSingleton<IFileSystem>(new LocalDiskFileSystem(Path.Combine(_hostingEnvironment.ContentRootPath, "uploaded")));
            services.AddScoped<ITagBuilder, ETagBuilder>();
@@ -88,7 +97,7 @@ namespace Discussion.Web
             services.AddChatyImportingServices(_appConfiguration);
 
             services.AddScoped<ITopicService, DefaultTopicService>();
-            
+
             // todo: cache site settings!
             services.AddScoped(sp =>
             {
@@ -102,25 +111,27 @@ namespace Discussion.Web
                        };
             });
         }
-
+        
         public void Configure(IApplicationBuilder app)
         {
+            app.UseForwardedHeaders();
             app.UseTracingId();
             SetupGlobalExceptionHandling(app);
             SetupHttpsSupport(app);
-            
+
             app.UseMiddleware<SiteReadonlyMiddleware>();
             app.UseAuthentication();
+            app.UseMiddleware<RejectRevokedSessionMiddleware>();
             app.UseStaticFiles();
             app.UseMvc();
-            
+
             InitDatabaseIfNeeded(app);
         }
 
         private void SetupHttpsSupport(IApplicationBuilder app)
         {
-            if (!_hostingEnvironment.IsDevelopment() 
-                && bool.TryParse(_appConfiguration["HSTS"] ?? "False", out var useHsts) 
+            if (!_hostingEnvironment.IsDevelopment()
+                && bool.TryParse(_appConfiguration["HSTS"] ?? "False", out var useHsts)
                 && useHsts)
             {
                 app.UseHsts();
@@ -145,13 +156,16 @@ namespace Discussion.Web
         {
             app.EnsureDatabase(connStr =>
             {
-                _startupLogger.LogCritical("正在创建新的数据库结构...");
+                if (!connStr.IsForTemporaryDatabase()) return;
+                
+                _startupLogger.LogCritical("正在创建和更新数据库结构...");
 
                 var loggingConfig = _appConfiguration.GetSection(WebHostConfiguration.ConfigKeyLogging);
-                SqliteMigrator.Migrate(connStr, migrationLogging =>
-                    FileLoggingExtensions.AddSeriFileLogger(migrationLogging, loggingConfig /* enable full logging for migrations */));
+                DatabaseMigrator.Migrate(connStr, migrationLogging =>
+                    FileLoggingExtensions.AddSeriFileLogger(migrationLogging,
+                        loggingConfig /* enable full logging for migrations */));
 
-                _startupLogger.LogCritical("数据库结构创建完成");
+                _startupLogger.LogCritical("数据库结构创建并更新完成");
             }, _startupLogger);
         }
     }

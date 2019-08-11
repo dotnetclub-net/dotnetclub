@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Discussion.Core;
 using Discussion.Core.Data;
+using Discussion.Core.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Http;
@@ -19,8 +20,8 @@ namespace Discussion.Tests.Common
         AntiForgeryRequestTokens _antiForgeryRequestTokens;
         ServiceProviderOverrider _spOverrider;
 
-        protected void Init<TStartup>(Action<IWebHostBuilder> configureHost = null) where TStartup: class 
-        {           
+        protected void Init<TStartup>(Action<IWebHostBuilder> configureHost = null) where TStartup: class
+        {
             BuildTestApplication<TStartup>(this, "UnitTest", configureHost);
             _originalUser = User;
         }
@@ -51,7 +52,7 @@ namespace Discussion.Tests.Common
             {
                 _antiForgeryRequestTokens = AntiForgeryRequestTokens.GetFromApplication(this);
             }
-            
+
             return _antiForgeryRequestTokens;
         }
 
@@ -61,14 +62,14 @@ namespace Discussion.Tests.Common
             services?.Invoke(sc);
             this._spOverrider.OverrideService(sc);
         }
-        
-        public static TestApplication BuildTestApplication<TStartup>(TestApplication testApp, 
+
+        public static TestApplication BuildTestApplication<TStartup>(TestApplication testApp,
             string environmentName = "Production",
-            Action<IWebHostBuilder> configureHost = null) where TStartup: class 
+            Action<IWebHostBuilder> configureHost = null) where TStartup: class
         {
             testApp.LoggerProvider = new StubLoggerProvider();
             testApp.User = new ClaimsPrincipal(new ClaimsIdentity());
-            
+
             var hostBuilder = new WebHostBuilder();
             configureHost?.Invoke(hostBuilder);
             hostBuilder.ConfigureServices(services =>
@@ -81,19 +82,17 @@ namespace Discussion.Tests.Common
                     httpContextFactory.ConfigureFeatureWithContext((features, httpCtx) =>
                     {
                         features.Set<IHttpAuthenticationFeature>(new HttpAuthenticationFeature { User = testApp.User });
-                        features.Set<IServiceProvidersFeature>(new RequestServicesFeature(httpCtx, 
+                        features.Set<IServiceProvidersFeature>(new RequestServicesFeature(httpCtx,
                             testApp.ApplicationServices.GetService<IServiceScopeFactory>()));
                     });
                     return httpContextFactory;
                 });
             });
+
             var connectionStringEVKey = $"DOTNETCLUB_{ServiceExtensions.ConfigKeyConnectionString}";
-            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(connectionStringEVKey)))
-            {
-                Environment.SetEnvironmentVariable(connectionStringEVKey, " ");
-            }
+            Environment.SetEnvironmentVariable(connectionStringEVKey, $"Data Source=test-{StringUtility.Random(6)}-temp.db");
             Environment.SetEnvironmentVariable("DOTNETCLUB_Logging:Console:LogLevel:Default", "Warning");
-            
+
             WebHostConfiguration.Configure(hostBuilder);
             hostBuilder.ConfigureLogging(loggingBuilder =>
             {
@@ -104,14 +103,14 @@ namespace Discussion.Tests.Common
                 .UseContentRoot(TestEnv.WebProjectPath())
                 .UseEnvironment(environmentName)
                 .UseStartup<TStartup>();
-            
+
             testApp.Server = new TestServer(hostBuilder);
             testApp.ApplicationServices = testApp.Server.Host.Services;
             testApp._spOverrider = new ServiceProviderOverrider(testApp.ApplicationServices);
 
             return testApp;
         }
-        
+
         #region Disposing
 
         ~TestApplication()
@@ -132,7 +131,7 @@ namespace Discussion.Tests.Common
             }
 
             Reset();
-            
+
             ApplicationServices = null;
 
             if (LoggerProvider != null)

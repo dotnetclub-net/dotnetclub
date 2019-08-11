@@ -8,7 +8,7 @@ namespace Discussion.Core.Utilities
         public static string Random(int length = 8)
         {
             var sb = new StringBuilder();
-            var random = new Random();
+            var random = new Random(Guid.NewGuid().GetHashCode());
             
             do
             {
@@ -83,6 +83,17 @@ namespace Discussion.Core.Utilities
         public static string SafeSubstring(this string str, int startIndex)
         {
             return str?.SafeSubstring(startIndex, str.Length);
+        }
+
+        public static string ToPreferredUserName(this string username)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                return username;
+            }
+
+            var indexOfAt = username.LastIndexOf("@", StringComparison.Ordinal);
+            return indexOfAt < 0 ? username : username.Substring(0, indexOfAt);
         }
     }
 }
