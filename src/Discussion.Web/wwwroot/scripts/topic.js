@@ -1,5 +1,7 @@
+
+
 export function submitNewReply(editorSelector, postUrl) {
-    return function () {
+    return function() {
         var editor = $(editorSelector);
         var replyContent = editor.val();
         if (!$.trim(replyContent)) {
@@ -15,10 +17,10 @@ export function submitNewReply(editorSelector, postUrl) {
                 __RequestVerificationToken: window.__RequestVerificationToken
             },
             dataType: 'json',
-            success: function () {
+            success: function() {
                 location.reload();
             },
-            error: function (xhr) {
+            error: function(xhr) {
                 var errors = JSON.parse(xhr.responseText);
                 console.log(errors);
             }
@@ -26,9 +28,11 @@ export function submitNewReply(editorSelector, postUrl) {
     };
 }
 
-export function setupReplyPreview(selectors, previewApiUrl) {
+
+export function setupReplyPreview(selectors, previewApiUrl){
+
     $(selectors.tabPreview).on('shown.bs.tab',
-        function (e) {
+        function(e) {
             var editor = $(selectors.contentEditor);
             var replyContent = editor.val();
             if (!$.trim(replyContent)) {
@@ -41,26 +45,24 @@ export function setupReplyPreview(selectors, previewApiUrl) {
             $.ajax({
                 url: previewApiUrl,
                 method: 'POST',
-                data: {
-                    markdown: replyContent,
-                    forcedNewLine: true,
-                    __RequestVerificationToken: window.__RequestVerificationToken
-                },
-                success: function (res) {
+                data: { 
+                    markdown: replyContent, 
+                    __RequestVerificationToken: window.__RequestVerificationToken },
+                success: function(res) {
                     if (res.hasSucceeded) {
                         $(selectors.contentPreview).html(res.result.html);
                     } else {
                         $(selectors.contentPreview).html('<span style="color:red">' + res.errorMessage + '</span>');
                     }
                 },
-                error: function () {
+                error: function() {
                     $(selectors.contentPreview).html('<span style="color:red">暂时无法预览</span>');
                 }
             });
         });
 
     $(selectors.tabEditor).on('shown.bs.tab',
-        function () {
+        function() {
             $(selectors.contentEditor).focus();
             $(selectors.contentPreview).empty();
         });
