@@ -23,19 +23,26 @@
     <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="panel-heading">
             全部话题
-            @if(canCreateTopic)
-            {
-                <span class="pull-right">
-                    @Html.ActionLink("创建新话题", "Create", "Topic")
-                </span>
-            }
+            <span class="pull-right">
+                @if (canCreateTopic)
+                {
+                    if (user.VerifiedPhoneNumber == null || string.IsNullOrWhiteSpace(user.VerifiedPhoneNumber.PhoneNumber))
+                    {
+                        @Html.ActionLink("创建新话题", "Create", "Topic", null, new Dictionary<string, object> { { "title", "未验证手机号，无法创建新话题" }, { "href", "javascript:return false" }, { "style", "opacity: 0.2" } })
+                    }
+                    else
+                    {
+                        @Html.ActionLink("创建新话题", "Create", "Topic")
+                    }
+                }
+            </span>
         </div>
 
         <div class="panel-body no-padding">
             @foreach (var topicItem in Model.Items)
             {
                 <div class="topic-item">
-                    <img src="@AvatarUrlService.GetAvatarUrl(topicItem.CreatedByUser)" title="话题作者 @topicItem.CreatedByUser.DisplayName" class="topic-author-avatar"/>
+                    <img src="@AvatarUrlService.GetAvatarUrl(topicItem.CreatedByUser)" title="话题作者 @topicItem.CreatedByUser.DisplayName" class="topic-author-avatar" />
                     <div class="topic-meta-primary pull-left">
                         <span class="topic-type">@Html.DescribeTopicType(topicItem.Type)</span>
                     </div>
@@ -47,14 +54,14 @@
                         <div class="topic-meta-secondary pull-right hidden-xs">
                             @if (topicItem.LastRepliedAuthor != null)
                             {
-                                <img src="@AvatarUrlService.GetAvatarUrl(topicItem.LastRepliedAuthor)" title="最后回复来自 @topicItem.LastRepliedAuthor.DisplayName"  class="last-replied-user-avatar"/>
+                                <img src="@AvatarUrlService.GetAvatarUrl(topicItem.LastRepliedAuthor)" title="最后回复来自 @topicItem.LastRepliedAuthor.DisplayName" class="last-replied-user-avatar" />
                             }
                             <span class="last-replied-at" data-last-replied-at="@Html.Timestamp(topicItem.LastRepliedAt)"></span>
                         </div>
                     }
                 </div>
             }
-            
+
             @if (Model.Items.Length < 1)
             {
                 <div class="no-topics-notice">
@@ -69,7 +76,7 @@
                    class="btn btn-default @prevDisabled">
                     &lt; 前一页
                 </a>
-                
+
                 <a href="@Url.Action("List", "Topic", new {page = Model.Paging.CurrentPage + 1})"
                    class="btn btn-default @nextDisabled">
                     后一页 &gt;
@@ -83,7 +90,7 @@
 
 @section Tail{
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             window.DiscussionApp.utils.transformTimestampOn('.last-replied-at', 'data-last-replied-at');
         });
     </script>
