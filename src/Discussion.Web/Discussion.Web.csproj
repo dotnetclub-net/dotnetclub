@@ -46,6 +46,10 @@
     <ProjectReference Include="..\Discussion.Core\Discussion.Core.csproj" />
     <ProjectReference Include="..\Discussion.Migrations\Discussion.Migrations.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".aspnet\DataProtection-Keys\" />
+    <Folder Include="wwwroot\dist\" />
+  </ItemGroup>
   <!-- https://github.com/aspnet/Razor/issues/2398#issuecomment-397758749 -->
   <Target Name="FixStartupObjectIssue" BeforeTargets="RazorCoreCompile">
     <PropertyGroup>

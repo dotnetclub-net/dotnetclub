@@ -3,7 +3,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.ETag;
@@ -16,7 +15,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
-using Microsoft.Net.Http.Headers;
 
 namespace Discussion.Web.Controllers
 {
@@ -40,20 +38,15 @@ namespace Discussion.Web.Controllers
         }
 
         [HttpPost("md2html")]
-        public IActionResult RenderMarkdown([FromForm]string markdown, int maxHeadingLevel = 2, [FromForm]bool? forcedNewLine = false)
+        public object RenderMarkdown([FromForm]string markdown, int maxHeadingLevel = 2)
         {
-            if (string.IsNullOrWhiteSpace(markdown))
-            {
-                return Ok(new { Html = "" });
-            }
+            var htmlString = string.IsNullOrWhiteSpace(markdown)
+                 ? markdown
+                 : markdown.MdToHtml(maxHeadingLevel);
 
-            if (forcedNewLine == true)
-            {
-                markdown = Regex.Replace(markdown, "[(\\n|\\r)]+", Environment.NewLine + Environment.NewLine);
-            }
-
-            return Ok(new { Html = markdown.MdToHtml(maxHeadingLevel) });
+            return new { Html = htmlString };
         }
+
 
         [HttpPost("upload/{category}")]
         public async Task<ApiResponse> UploadFile(IFormFile file, string category)
@@ -79,6 +72,7 @@ namespace Discussion.Web.Controllers
                 await file.CopyToAsync(outputStream);
             }
 
+
             var fileRecord = new FileRecord
             {
                 UploadedBy = HttpContext.DiscussionUser().Id,
@@ -90,13 +84,14 @@ namespace Discussion.Web.Controllers
             };
             _fileRepo.Save(fileRecord);
 
+
             // ReSharper disable Mvc.ActionNotResolved
             // ReSharper disable Mvc.ControllerNotResolved
             var fileUrl = _fileSystem.SupportGeneratingPublicUrl
                 ? await storageFile.GetPublicUrlAsync(TimeSpan.MaxValue)
                 : Url.Action("DownloadFile", "Common", new { slug = fileRecord.Slug }, Request.Scheme);
 
-            _logger.LogInformation("上传文件成功：{@UploadedFile}", new { fileRecord.OriginalName, fileRecord.Size, fileRecord.StoragePath, fileRecord.Id });
+            _logger.LogInformation("上传文件成功：{@UploadedFile}", new {fileRecord.OriginalName, fileRecord.Size, fileRecord.StoragePath, fileRecord.Id});
             return ApiResponse.ActionResult(new
             {
                 FileId = fileRecord.Id,
@@ -118,27 +113,27 @@ namespace Discussion.Web.Controllers
             {
                 return NotFound();
             }
-
+            
             var shouldDownload = download.HasValue && download.Value;
-            var entityTag = _tagbuilder.EntityTagBuild(fileRecord.ModifiedAtUtc, file.GetSize());
+            var entityTag = _tagbuilder.EntityTagBuild(fileRecord.ModifiedAtUtc, file.GetSize()); 
             if (!shouldDownload)
             {
                 var modifiedSinceHeader = Request.Headers["If-Modified-Since"];
-                var modifiedSinceUtc = DateTimeOffset.MinValue;
-                var formatValid = modifiedSinceHeader.Any()
+                var modifiedSinceUtc = DateTimeOffset.MinValue; 
+                var formatValid = modifiedSinceHeader.Any() 
                                   && DateTimeOffset.TryParseExact(modifiedSinceHeader.ToString(), "R", CultureInfo.InvariantCulture, DateTimeStyles.None, out modifiedSinceUtc);
                 if (formatValid && modifiedSinceUtc.UtcDateTime >= fileRecord.ModifiedAtUtc)
                 {
                     return new StatusCodeResult(304);
                 }
-
+                
                 var etagHeader = Request.Headers["If-None-Match"];
                 if (etagHeader.Any() && entityTag.Tag.Value.Trim('\"').Equals(etagHeader.ToString().Trim('\"')))
                 {
                     return new StatusCodeResult(304);
                 }
             }
-
+            
             var buffered = new BufferedStream(await file.OpenReadAsync(), 8 * 1024);
             if (!_contentTypeProvider.TryGetContentType(fileRecord.OriginalName, out var contentType))
             {

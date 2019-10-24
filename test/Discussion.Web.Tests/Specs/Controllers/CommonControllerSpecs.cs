@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.ETag;
@@ -25,13 +24,14 @@ namespace Discussion.Web.Tests.Specs.Controllers
         private readonly IFileSystem _fs;
         private readonly ITagBuilder _tagBuilder;
 
+
         public CommonControllerSpecs(TestDiscussionWebApp app)
         {
             _app = app.Reset();
             _fileRepo = _app.GetService<IRepository<FileRecord>>();
             _fs = _app.GetService<IFileSystem>();
             _tagBuilder = _app.GetService<ITagBuilder>();
-
+            
             _app.DeleteAll<FileRecord>();
         }
 
@@ -42,14 +42,9 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var commonController = _app.CreateController<CommonController>();
 
             // Action
+            dynamic htmlFromMd = commonController.RenderMarkdown("# Title");
 
-            var result = commonController.RenderMarkdown("# Title");
-
-            Assert.True(result is OkObjectResult);
-
-            var okResult = result as OkObjectResult;
-
-            Assert.Equal("<h2>Title</h2>\n", ((dynamic)okResult.Value).Html);
+            Assert.Equal("<h2>Title</h2>\n", htmlFromMd.Html);
         }
 
         [Fact]
@@ -108,7 +103,7 @@ namespace Discussion.Web.Tests.Specs.Controllers
             Assert.True(downloadResult.LastModified.HasValue);
             Assert.Equal("2019-04-12", downloadResult.LastModified.Value.UtcDateTime.ToString("yyyy-MM-dd"));
         }
-
+       
         [Fact]
         public async Task should_down_file_server_with_if_non_match_etag()
         {
@@ -117,11 +112,11 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var commonController = _app.CreateController<CommonController>();
             commonController.Request.Headers.Add("If-None-Match", "\"1d4f0c2abf7000c\"");
             var downloadResult = await commonController.DownloadFile(file.Slug, download: false) as StatusCodeResult;
-
+            
             Assert.NotNull(downloadResult);
             Assert.Equal(304, downloadResult.StatusCode);
         }
-
+        
         [Fact]
         public async Task should_down_file_server_with_if_modified_since()
         {
@@ -130,21 +125,22 @@ namespace Discussion.Web.Tests.Specs.Controllers
             var commonController = _app.CreateController<CommonController>();
             commonController.Request.Headers["If-Modified-Since"] = new DateTime(2019, 4, 13).ToString("R");
             var downloadResult = await commonController.DownloadFile(file.Slug, download: false) as StatusCodeResult;
-
+            
             Assert.NotNull(downloadResult);
             Assert.Equal(304, downloadResult.StatusCode);
         }
 
         [Fact]
         public void should_build_etag()
-        {
+       {
             var fileModifiedAtUtc = DateTime.Parse("2002/2/13 0:00:00");
-
-            var etag = _tagBuilder.EntityTagBuild(fileModifiedAtUtc, 4166);
-
+            
+            var etag = _tagBuilder.EntityTagBuild(fileModifiedAtUtc,4166);
+            
             Assert.Equal("\"1c1b4216127d046\"", etag.Tag.ToString());
         }
-
+        
+        
         private async Task<FileRecord> CreateUploadedFileAsync(string fileContent)
         {
             var rand = StringUtility.Random(5);
@@ -197,5 +193,6 @@ namespace Discussion.Web.Tests.Specs.Controllers
             urlHelper.Setup(url => url.Action(It.IsAny<UrlActionContext>())).Returns(fileLink);
             return urlHelper.Object;
         }
+
     }
 }
