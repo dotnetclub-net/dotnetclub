@@ -28,8 +28,15 @@ export function setupEditor(userCanImport) {
         $('#topic-type-dropdown .selected-type').text(item.text());
     });
     $('#submit-create').on('click', function () {
+        var topicType = $('#topic-type-dropdown .topic-type-item[selected]>a').attr('attr-value');
+        if (!topicType) {
+<<<<<<< HEAD
+            alert("请先选择话题类型");
+=======
+            alert("请选择话题类型");
+>>>>>>> origin/master
+        }
         var button = $(this);
-
         var contentEditor = $('#content-editor').data('summernote');
         var htmlContent = contentEditor.code();
 
@@ -39,7 +46,6 @@ export function setupEditor(userCanImport) {
         var mdContent = MD.convertToMarkdown(element.html());
 
         var title = $('#new-topic-title').val();
-        var topicType = $('#topic-type-dropdown .topic-type-item[selected]>a').attr('attr-value');
         var newTopic = {
             title: title,
             content: mdContent,
