@@ -23,19 +23,6 @@
     <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="panel-heading">
             全部话题
-<<<<<<< HEAD
-            @if (canCreateTopic)
-            {
-                if (user.VerifiedPhoneNumber == null || string.IsNullOrWhiteSpace(user.VerifiedPhoneNumber.PhoneNumber))
-                {
-                    @Html.ActionLink("创建新话题", "Create", "Topic", null, new Dictionary<string, object> { { "title", "未验证手机号，无法创建新话题" }, { "href", "javascript:return false" }, { "style", "opacity: 0.2" } })
-                }
-                else
-                {
-                    @Html.ActionLink("创建新话题", "Create", "Topic")
-                }
-            }
-=======
             <span class="pull-right">
                 @if (canCreateTopic)
                 {
@@ -49,9 +36,7 @@
                     }
                 }
             </span>
->>>>>>> origin/master
         </div>
-
         <div class="panel-body no-padding">
             @foreach (var topicItem in Model.Items)
             {
