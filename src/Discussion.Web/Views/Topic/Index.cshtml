@@ -66,7 +66,12 @@
             app.utils.transformTimestampOn('.created-at-time', 'data-created-at');
             app.utils.transformTimestampOn('.replied-at', 'data-replied-at');
 
-            $("#submit-create").click(app.topic.submitNewReply("#content-editor", replyUrl));
+            $('#submit-create').click(app.topic.submitNewReply("#content-editor", replyUrl));
+            $('#content-editor').on('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && (e.keyCode === 13 || e.keyCode === 10)) {
+                    $('#submit-create').trigger('click');
+                }
+            });
             app.topic.setupReplyPreview(previewSelectors, previewApi);
         });
     </script>
