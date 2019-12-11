@@ -24,9 +24,11 @@ namespace Discussion.Web.Tests.Specs.Services
         public async Task should_deliver_emails()
         {
             MimeMessage sentMessage = null;
-            var emailDelivery = new SmtpEmailEmailDelivery(MockOptions().Object, new SpySmtpClient(msg => sentMessage = msg));
+            var emailDelivery = new SmtpEmailEmailDelivery(MockOptions().Object, 
+                new SpySmtpClient(msg => sentMessage = msg));
 
-            await emailDelivery.SendEmailAsync("user@dotnetclub.net", "激活邮件", "<html>content</html>");
+            await emailDelivery.SendEmailAsync("user@dotnetclub.net", 
+                "激活邮件", "<html>content</html>");
 
             Assert.NotNull(sentMessage);
             Assert.Equal("user@dotnetclub.net", (sentMessage.To.First() as MailboxAddress).Address);
