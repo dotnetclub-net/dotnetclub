@@ -37,12 +37,13 @@ export class MarkdownCodeViewModule {
     }
 }
 
-export function viewMarkdownButton(context) {
+export function viewMarkdownButton() {
     return $.summernote.ui.button({
         className: 'btn-codeview',
         contents: '<i class="btn-view-markdown fab fa-markdown"></i>',
         tooltip: '查看 Markdown 源码',
         click: function () {
+            var context = $(this).parents('.note-editor').prev().data('summernote');
             context.invoke('codeview.toggle');
         }
     }).render();
