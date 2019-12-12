@@ -60,9 +60,10 @@ namespace Discussion.Core
         private static void BuildApplicationConfiguration(WebHostBuilderContext hostingContext, IConfigurationBuilder config)
         {
             var env = hostingContext.HostingEnvironment;
+            var reloadOnChange = env.EnvironmentName == "Development";
             config.SetBasePath(env.ContentRootPath)
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: reloadOnChange)
+                    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: reloadOnChange)
                     .AddEnvironmentVariables(prefix: EVariablePrefixAppSettings);
         }
     }

@@ -71,6 +71,13 @@ export function setupEditor(userCanImport) {
             });
     });
     
+    $(document).on('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && (e.keyCode === 13 || e.keyCode === 10)) {
+            e.preventDefault();
+            $('#submit-create').trigger('click');
+        }
+    });
+    
     if(userCanImport){
         $.getJSON(window.loadChatySessionListUrl)
             .then(function (data) {
@@ -142,6 +149,10 @@ function defaultEditorOptions(){
                 if(patchedPre){
                     ev.preventDefault();
                     ev.stopPropagation();
+                }
+                
+                if(ev.ctrlKey || ev.metaKey){
+                    ev.preventDefault();
                 }
             },
             onPaste : function (ev) {
