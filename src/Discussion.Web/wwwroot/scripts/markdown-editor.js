@@ -30,11 +30,7 @@ export function setupEditor(userCanImport) {
     $('#submit-create').on('click', function () {
         var topicType = $('#topic-type-dropdown .topic-type-item[selected]>a').attr('attr-value');
         if (!topicType) {
-<<<<<<< HEAD
-            alert("请先选择话题类型");
-=======
             alert("请选择话题类型");
->>>>>>> origin/master
         }
         var button = $(this);
         var contentEditor = $('#content-editor').data('summernote');
