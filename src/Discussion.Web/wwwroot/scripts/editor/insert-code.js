@@ -1,10 +1,11 @@
 
-export function insertCodeButton(context) {
+export function insertCodeButton() {
     return $.summernote.ui.button({
         contents: '<i class="note-icon-code"/>',
         tooltip: '插入代码',
         click: function () {
             // invoke formatBlock method with 'PRE' on editor module.
+            var context = $(this).parents('.note-editor').prev().data('summernote');
             context.invoke('editor.formatBlock', 'PRE');
         }
     }).render();

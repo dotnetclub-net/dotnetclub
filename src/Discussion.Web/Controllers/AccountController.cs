@@ -188,11 +188,13 @@ namespace Discussion.Web.Controllers
             {
                 var errorMessage = string.Join(";", result.Errors.Select(err => err.Description));
                 ModelState.AddModelError("UserName", errorMessage);
-                _logger.LogWarning("用户注册失败：{@RegisterAttempt}", new {registerModel.UserName, Result = errorMessage});
+                _logger.LogWarning("用户注册失败：{@RegisterAttempt}", 
+                    new {registerModel.UserName, Result = errorMessage});
                 return View("Register");
             }
 
-            _logger.LogInformation("用户注册成功：{@RegisterAttempt}", new {registerModel.UserName, UserId = newUser.Id});
+            _logger.LogInformation("用户注册成功：{@RegisterAttempt}", 
+                new {registerModel.UserName, UserId = newUser.Id});
             await _signInManager.PasswordSignInAsync(
                 registerModel.UserName,
                 registerModel.Password,

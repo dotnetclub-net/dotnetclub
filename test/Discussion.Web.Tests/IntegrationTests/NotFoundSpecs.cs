@@ -47,12 +47,12 @@ namespace Discussion.Web.Tests.IntegrationTests
         [Fact]
         public async Task should_reject_post_request_without_valid_anti_forgery_token()
         {
-            // arrange
+            // Given
             var username = StringUtility.Random();
             var password = "11111a";
             var tokens = _app.GetAntiForgeryTokens();
             
-            // Act
+            // When
             var request = _app.Server.CreateRequest("/register")
                 .WithForm(new Dictionary<string, string>()
                 {
@@ -63,7 +63,7 @@ namespace Discussion.Web.Tests.IntegrationTests
                 .WithCookie(tokens.Cookie);
             var response = await request.PostAsync();
 
-            // assert
+            // Then
             response.StatusCode.ShouldEqual(HttpStatusCode.BadRequest);
             var isRegistered = _app.GetService<IRepository<User>>().All().Any(u => u.UserName == username);
             isRegistered.ShouldEqual(false);
