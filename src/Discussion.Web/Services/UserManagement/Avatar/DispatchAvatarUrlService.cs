@@ -22,5 +22,15 @@ namespace Discussion.Web.Services.UserManagement.Avatar
             var generateMethod = generator.GetType().GetMethod(nameof(DefaultAvatarUrlGenerator.GetUserAvatarUrl));
             return (string) generateMethod.Invoke(generator, new object[]{ one.GetAvatar() });
         }
+
+        public string GetTopics(int page)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetReplies(int page)
+        {
+            throw new NotImplementedException(); 
+        }
     }
 }
