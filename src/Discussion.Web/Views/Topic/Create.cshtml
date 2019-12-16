@@ -11,23 +11,21 @@
     <div class="row clearfix">
         <h3>创建新话题</h3>
         <div class="topic-title-container">
-            <input id="new-topic-title" type="text" placeholder="标题" autofocus maxlength="120"/>
+            <input id="new-topic-title" type="text" placeholder="标题" autofocus maxlength="120" />
         </div>
         <div class="topic-content-container">
             <div id="content-editor"></div>
         </div>
     </div>
-    
-    if (userCanImportFromWeChat)
-     {
-         <div class="row topic-import-chaty-section hide clearfix">
-             <h4>最近的微信对话</h4>
-             <ul class="importable-chats">
 
-             </ul>
-             <input type="hidden" name="import-chat-id" value=""/>
-         </div>
-     }
+    if (userCanImportFromWeChat)
+    {
+        <div class="row topic-import-chaty-section hide clearfix">
+            <h4>最近的微信对话</h4>
+            <ul class="importable-chats"></ul>
+            <input type="hidden" name="import-chat-id" value="" />
+        </div>
+    }
 
     <div class="row topic-submit-section clearfix">
         <button id="submit-create" class="btn btn-default submit-create-btn">创建</button>
@@ -58,7 +56,7 @@ else
         window.createTopicUrl = "@Url.Action("CreateTopic")";
         window.createWithImportingUrl = '@Url.Action("ImportFromWeChat")';
         window.uploadUrl = '@Url.Action("UploadFile", "Common", new {category = "topic"})';
-        
+
         window.DiscussionApp.mdeditor.setupEditor( @(userCanImportFromWeChat ? "true" : "false") );
     </script>
 }

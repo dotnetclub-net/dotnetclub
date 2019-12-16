@@ -28,8 +28,8 @@ namespace Discussion.Web.Controllers
         private readonly IRepository<WeChatAccount> _wechatAccountRepo;
         private readonly ChatyApiService _chatyApiService;
 
-        public TopicController(IRepository<Topic> topicRepo, 
-            ITopicService topicService, 
+        public TopicController(IRepository<Topic> topicRepo,
+            ITopicService topicService,
             ILogger<TopicController> logger, IChatHistoryImporter chatHistoryImporter,
             IRepository<Reply> replyRepo, IRepository<WeChatAccount> wechatAccountRepo,
             ChatyApiService chatyApiService)
@@ -47,16 +47,16 @@ namespace Discussion.Web.Controllers
         [HttpGet]
         [Route("/")]
         [Route("/topics")]
-        public ActionResult List([FromQuery]int? page = null)
+        public ActionResult List([FromQuery] int? page = null)
         {
             var pagedTopics = _topicRepo.All()
-                                        .Include(t => t.CreatedByUser)
-                                            .ThenInclude(u => u.AvatarFile)
-                                        .Include(t => t.LastRepliedByUser)
-                                            .ThenInclude(u => u.AvatarFile)
-                                        .Include(t => t.LastRepliedByWeChatAccount)
-                                        .OrderByDescending(topic => topic.CreatedAtUtc)
-                                        .Page(PageSize, page);
+                .Include(t => t.CreatedByUser)
+                .ThenInclude(u => u.AvatarFile)
+                .Include(t => t.LastRepliedByUser)
+                .ThenInclude(u => u.AvatarFile)
+                .Include(t => t.LastRepliedByWeChatAccount)
+                .OrderByDescending(topic => topic.CreatedAtUtc)
+                .Page(PageSize, page);
 
             return View(pagedTopics);
         }
@@ -79,8 +79,10 @@ namespace Discussion.Web.Controllers
         {
             var user = HttpContext.DiscussionUser();
             var chatySupported = _chatyApiService.IsChatySupported(user.UserName);
-            var weChatAccount = chatySupported ? _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id) : null;
-            
+            var weChatAccount = chatySupported
+                ? _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id)
+                : null;
+
             return View(weChatAccount != null);
         }
 
@@ -100,17 +102,19 @@ namespace Discussion.Web.Controllers
             try
             {
                 var topic = _topicService.CreateTopic(model);
-                _logger.LogInformation("创建话题成功：{@NewTopicAttempt}", new {topic.Title, topic.Id, UserId = user.Id, user.UserName });
+                _logger.LogInformation("创建话题成功：{@NewTopicAttempt}",
+                    new {topic.Title, topic.Id, UserId = user.Id, user.UserName});
                 // ReSharper disable once Mvc.ActionNotResolved
-                return RedirectToAction("Index", new { topic.Id });
+                return RedirectToAction("Index", new {topic.Id});
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning("创建话题失败：{@NewTopicAttempt}", new { UserId = user.Id, user.UserName, Result = ex.Message });
+                _logger.LogWarning("创建话题失败：{@NewTopicAttempt}",
+                    new {UserId = user.Id, user.UserName, Result = ex.Message});
                 return BadRequest();
             }
         }
-        
+
         [Authorize]
         [HttpPost]
         [Route("/topics/import-from-wechat")]
@@ -120,7 +124,7 @@ namespace Discussion.Web.Controllers
             var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id);
             if (weChatAccount == null)
             {
-                _logger.LogWarning("导入对话失败：{@ImportAttempt}", new { UserId = user.Id, user.UserName, Result = "未绑定微信号" });
+                _logger.LogWarning("导入对话失败：{@ImportAttempt}", new {UserId = user.Id, user.UserName, Result = "未绑定微信号"});
                 return BadRequest();
             }
 
@@ -129,7 +133,7 @@ namespace Discussion.Web.Controllers
             {
                 return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
             }
-            
+
             var replies = await _chatHistoryImporter.Import(messages);
             var actionResult = CreateTopic(model);
             if (!(actionResult is RedirectToActionResult redirectResult))
@@ -137,20 +141,21 @@ namespace Discussion.Web.Controllers
                 return actionResult;
             }
 
-            var topicId = (int)redirectResult.RouteValues["Id"];
+            var topicId = (int) redirectResult.RouteValues["Id"];
             var topic = _topicRepo.Get(topicId);
             replies.ForEach(r =>
             {
                 r.TopicId = topicId;
                 _replyRepo.Save(r);
             });
-            
+
             topic.ReplyCount = replies.Count;
             topic.LastRepliedByWeChatAccount = replies.Last().CreatedByWeChatAccount;
             topic.LastRepliedAt = replies.Last().CreatedAtUtc;
             _topicRepo.Update(topic);
-            
-            _logger.LogInformation("导入对话成功：{@ImportAttempt}", new {TopicId = topic.Id, model.ChatId, topic.ReplyCount, UserId = user.Id, user.UserName});
+
+            _logger.LogInformation("导入对话成功：{@ImportAttempt}",
+                new {TopicId = topic.Id, model.ChatId, topic.ReplyCount, UserId = user.Id, user.UserName});
             return redirectResult;
         }
 
@@ -162,14 +167,37 @@ namespace Discussion.Web.Controllers
             var weChatAccount = _wechatAccountRepo.All().FirstOrDefault(wxa => wxa.UserId == user.Id);
             if (weChatAccount == null)
             {
-                _logger.LogWarning("加载对话列表失败：{@ImportAttempt}", new { UserId = user.Id, user.UserName, Result = "未绑定微信号" });
+                _logger.LogWarning("加载对话列表失败：{@ImportAttempt}",
+                    new {UserId = user.Id, user.UserName, Result = "未绑定微信号"});
                 return ApiResponse.NoContent(HttpStatusCode.BadRequest);
             }
 
             var messageList = await _chatyApiService.GetMessageList(weChatAccount.WxId);
-            return messageList == null 
-                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError) 
+            return messageList == null
+                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError)
                 : ApiResponse.ActionResult(messageList);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("/topics/profiles")]
+        public ApiResponse GetTopicProfiles([FromQuery] int? page = null)
+        {
+            var user = HttpContext.DiscussionUser();
+            var tpoics = _topicRepo.All()
+                .Include(t => t.CreatedByUser)
+                .Where(t => t.CreatedByUser.Id == user.Id)
+                .Select(entity => new TopicProfileViewModel
+                {
+                    Id = entity.Id,
+                    Title = entity.Title,
+                    CreateTime = entity.CreatedAtUtc,
+                    ViewCount = entity.ViewCount,
+                    ReplyCount = entity.ReplyCount
+                }).Page(PageSize, page);
+            return tpoics == null
+                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError)
+                : ApiResponse.ActionResult(tpoics);
         }
     }
 }
