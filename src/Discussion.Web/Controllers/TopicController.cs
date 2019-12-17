@@ -181,7 +181,7 @@ namespace Discussion.Web.Controllers
         [Authorize]
         [HttpGet]
         [Route("/topics/profiles")]
-        public ApiResponse GetTopicProfiles([FromQuery] int? page = null)
+        public IActionResult Profile([FromQuery] int? page = null)
         {
             var user = HttpContext.DiscussionUser();
             var tpoics = _topicRepo.All()
@@ -191,13 +191,35 @@ namespace Discussion.Web.Controllers
                 {
                     Id = entity.Id,
                     Title = entity.Title,
+                    Type = entity.Type,
                     CreateTime = entity.CreatedAtUtc,
                     ViewCount = entity.ViewCount,
                     ReplyCount = entity.ReplyCount
                 }).Page(PageSize, page);
-            return tpoics == null
-                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError)
-                : ApiResponse.ActionResult(tpoics);
+            return View(tpoics);
         }
+        
+//        [Authorize]
+//        [HttpGet]
+//        [Route("/topics/profiles")]
+//        public ApiResponse GetTopicProfiles([FromQuery] int? page = null)
+//        {
+//            var user = HttpContext.DiscussionUser();
+//            var tpoics = _topicRepo.All()
+//                .Include(t => t.CreatedByUser)
+//                .Where(t => t.CreatedByUser.Id == user.Id)
+//                .Select(entity => new TopicProfileViewModel
+//                {
+//                    Id = entity.Id,
+//                    Title = entity.Title,
+//                    Type = entity.Type,
+//                    CreateTime = entity.CreatedAtUtc,
+//                    ViewCount = entity.ViewCount,
+//                    ReplyCount = entity.ReplyCount
+//                }).Page(PageSize, page);
+//            return tpoics == null
+//                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError)
+//                : ApiResponse.ActionResult(tpoics);
+//        }
     }
 }
