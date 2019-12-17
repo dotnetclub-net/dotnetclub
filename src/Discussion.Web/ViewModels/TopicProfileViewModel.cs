@@ -1,4 +1,5 @@
 ﻿using System;
+using Discussion.Core.Models;
 
 namespace Discussion.Web.ViewModels
 {
@@ -13,5 +14,7 @@ namespace Discussion.Web.ViewModels
         public int ViewCount { get; set; }
         
         public int ReplyCount { get; set; }
+        
+        public TopicType Type { get; set; }
     }
 }
