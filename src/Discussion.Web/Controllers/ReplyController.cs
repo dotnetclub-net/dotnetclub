@@ -1,18 +1,24 @@
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using Discussion.Core.Data;
 using Discussion.Core.Logging;
 using Discussion.Core.Models;
 using Discussion.Core.Mvc;
+using Discussion.Core.Pagination;
 using Discussion.Core.Time;
 using Discussion.Web.Services.UserManagement.Exceptions;
 using Discussion.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Discussion.Web.Controllers
 {
     public class ReplyController : Controller
     {
+        private const int PageSize = 20;
         private readonly IRepository<Reply> _replyRepo;
         private readonly IRepository<Topic> _topicRepo;
         private readonly SiteSettings _siteSettings;
@@ -79,6 +85,26 @@ namespace Discussion.Web.Controllers
             
             _logger.LogInformation("添加回复成功：{@ReplyAttempt}", new {TopicId = topic.Id, topic.ReplyCount, ReplyId = reply.Id, UserId = currentUser.Id, currentUser.UserName});
             return NoContent();
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("/topics/replies")]
+        public ApiResponse GetReplies([FromQuery] int? page = null)
+        {
+            var user = HttpContext.DiscussionUser();
+            var replies = _replyRepo.All()
+                .Include(t => t.CreatedByUser)
+                .Where(t => t.CreatedByUser.Id == user.Id)
+                .Select(entity => new ReplyProfileViewModel
+                {
+                    TopicId = entity.TopicId,
+                    ReplyContent = entity.Content,
+                    ReplyCreateTime = entity.CreatedAtUtc
+                }).Page(PageSize, page);
+            return replies == null
+                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError)
+                : ApiResponse.ActionResult(replies);
         }
     }
 }

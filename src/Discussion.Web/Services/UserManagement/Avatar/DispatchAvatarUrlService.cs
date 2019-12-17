@@ -12,25 +12,15 @@ namespace Discussion.Web.Services.UserManagement.Avatar
         {
             _services = services;
         }
-        
+
         public string GetAvatarUrl(IAuthor one)
         {
             var avatar = one.GetAvatar();
             var generatorType = typeof(IUserAvatarUrlGenerator<>).MakeGenericType(avatar.GetType());
-            
+
             var generator = _services.GetService(generatorType);
             var generateMethod = generator.GetType().GetMethod(nameof(DefaultAvatarUrlGenerator.GetUserAvatarUrl));
-            return (string) generateMethod.Invoke(generator, new object[]{ one.GetAvatar() });
-        }
-
-        public string GetTopics(int page)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetReplies(int page)
-        {
-            throw new NotImplementedException(); 
+            return (string) generateMethod.Invoke(generator, new object[] {one.GetAvatar()});
         }
     }
 }

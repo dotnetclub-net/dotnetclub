@@ -1,0 +1,63 @@
+﻿@model Discussion.Core.Pagination.Paged<TopicProfileViewModel>
+@using Discussion.Web.Services.UserManagement.Avatar
+@inject IAvatarUrlService AvatarUrlService
+
+@{
+    ViewData["Title"] = "我的话题";
+    var prevDisabled = Model.Paging.HasPreviousPage ? "" : "disabled";
+    var nextDisabled = Model.Paging.HasNextPage ? "" : "disabled";
+}
+
+<div class="row">
+    <div class="panel no-padding panel-topic-list col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel-heading">
+            我的话题
+        </div>
+        <div class="panel-body no-padding">
+            @foreach (var topicItem in Model.Items)
+            {
+                <div class="topic-item">
+                    <div class="topic-meta-primary pull-left">
+                        <span class="topic-type">@Html.DescribeTopicType(topicItem.Type)</span>
+                    </div>
+                    <a class="topic-title" href="@Url.Action("Index", "Topic", new {id = topicItem.Id})" title="@topicItem.Title">
+                        @topicItem.Title
+                    </a>
+                    <div>
+                        <span class="meta-item created-at">
+                            发布于 <span class="created-at-time" data-created-at="@Html.Timestamp(topicItem.CreateTime)"></span>
+                        </span>
+                        <span class="meta-item view-count">
+                            @topicItem.ViewCount 次浏览
+                        </span>
+                        <span class="meta-item view-count">
+                            @topicItem.ReplyCount 次回复
+                        </span>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Items.Length < 1)
+            {
+                <div class="no-topics-notice">
+                    没有话题
+                </div>
+            }
+        </div>
+        <div class="panel-footer">
+            @if (Model.Items.Length > 0)
+            {
+                <a href="@Url.Action("List", "Topic", new {page = Model.Paging.CurrentPage - 1})"
+                   class="btn btn-default @prevDisabled">
+                    &lt; 前一页
+                </a>
+
+                <a href="@Url.Action("List", "Topic", new {page = Model.Paging.CurrentPage + 1})"
+                   class="btn btn-default @nextDisabled">
+                    后一页 &gt;
+                </a>
+            }
+        </div>
+
+    </div>
+</div>
