@@ -90,7 +90,7 @@ namespace Discussion.Web.Controllers
         [Authorize]
         [HttpGet]
         [Route("/topics/replies")]
-        public ApiResponse GetReplies([FromQuery] int? page = null)
+        public IActionResult Replies([FromQuery] int? page = null)
         {
             var user = HttpContext.DiscussionUser();
             var replies = _replyRepo.All()
@@ -98,13 +98,12 @@ namespace Discussion.Web.Controllers
                 .Where(t => t.CreatedByUser.Id == user.Id)
                 .Select(entity => new ReplyProfileViewModel
                 {
+                    CreatedByUser = entity.CreatedByUser,
                     TopicId = entity.TopicId,
                     ReplyContent = entity.Content,
                     ReplyCreateTime = entity.CreatedAtUtc
                 }).Page(PageSize, page);
-            return replies == null
-                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError)
-                : ApiResponse.ActionResult(replies);
+            return View(replies);
         }
     }
 }

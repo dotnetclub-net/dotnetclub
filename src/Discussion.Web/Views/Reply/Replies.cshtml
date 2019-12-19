@@ -1,0 +1,59 @@
+@model Discussion.Core.Pagination.Paged<ReplyProfileViewModel>
+@using Discussion.Web.Services.UserManagement.Avatar
+@inject IAvatarUrlService AvatarUrlService
+@using Discussion.Core.Models
+
+@{
+    ViewData["Title"] = "我的话题";
+    var prevDisabled = Model.Paging.HasPreviousPage ? "" : "disabled";
+    var nextDisabled = Model.Paging.HasNextPage ? "" : "disabled";
+}
+
+<div class="row">
+
+    <div class="row">
+        <div class="panel no-padding panel-topic-replies col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="panel-heading">
+                共有 @Model.Paging.ItemCount 条回复
+            </div>
+
+            <div class="panel-body">
+                @foreach (var reply in Model.Items)
+                {
+                    <div class="reply-item">
+                        <dl class="reply-author">
+                            <dd>
+                                <img src="@AvatarUrlService.GetAvatarUrl(reply.CreatedByUser)" class="avatar"/>
+                                @if (reply.CreatedByUser is WeChatAccount)
+                                {
+                                    <a title="从微信对话导入的用户" class="imported-from-wechat-mark"></a>
+                                }
+                            </dd>
+                            <dd class="username">@reply.CreatedByUser.DisplayName</dd>
+                        </dl>
+                        <div class="reply-content">
+                            <div class="reply-content-body">@Html.RenderMarkdown(reply.ReplyContent, maxHeadingLevel: 3)</div>
+                            <div class="reply-content-related">
+                                回复于 <span class="replied-at" data-replied-at="@Html.Timestamp(reply.ReplyCreateTime)"></span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="panel-footer">
+        @if (Model.Items.Length > 0)
+        {
+            <a href="@Url.Action("List", "Topic", new {page = Model.Paging.CurrentPage - 1})"
+               class="btn btn-default @prevDisabled">
+                &lt; 前一页
+            </a>
+
+            <a href="@Url.Action("List", "Topic", new {page = Model.Paging.CurrentPage + 1})"
+               class="btn btn-default @nextDisabled">
+                后一页 &gt;
+            </a>
+        }
+    </div>
+</div>
