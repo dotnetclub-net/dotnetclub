@@ -221,5 +221,12 @@ namespace Discussion.Web.Controllers
 
             return ApiResponse.Error("不符合删除条件");
         }
+
+        [Route("api/topics/{id}")]
+        [HttpPatch]
+        public ApiResponse Update(int id)
+        {
+            return ApiResponse.NoContent();
+        }
     }
 }

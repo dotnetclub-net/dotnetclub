@@ -136,5 +136,12 @@ namespace Discussion.Web.Controllers
             _topicRepo.Update(topic);
             return ApiResponse.NoContent();
         }
+
+        [Route("api/topics/{id}")]
+        [HttpPatch]
+        public ApiResponse Update(int topicId, int replyId)
+        {
+            return ApiResponse.NoContent();
+        }
     }
 }
