@@ -198,28 +198,28 @@ namespace Discussion.Web.Controllers
                 }).Page(PageSize, page);
             return View(tpoics);
         }
-        
-//        [Authorize]
-//        [HttpGet]
-//        [Route("/topics/profiles")]
-//        public ApiResponse GetTopicProfiles([FromQuery] int? page = null)
-//        {
-//            var user = HttpContext.DiscussionUser();
-//            var tpoics = _topicRepo.All()
-//                .Include(t => t.CreatedByUser)
-//                .Where(t => t.CreatedByUser.Id == user.Id)
-//                .Select(entity => new TopicProfileViewModel
-//                {
-//                    Id = entity.Id,
-//                    Title = entity.Title,
-//                    Type = entity.Type,
-//                    CreateTime = entity.CreatedAtUtc,
-//                    ViewCount = entity.ViewCount,
-//                    ReplyCount = entity.ReplyCount
-//                }).Page(PageSize, page);
-//            return tpoics == null
-//                ? ApiResponse.NoContent(HttpStatusCode.InternalServerError)
-//                : ApiResponse.ActionResult(tpoics);
-//        }
+
+        [Route("api/topics/{id}")]
+        [HttpDelete]
+        public ApiResponse Delete(int id)
+        {
+            //todo  user validate
+            //var user = HttpContext.DiscussionUser();
+            var topic = _topicRepo.Get(id);
+            if (topic == null)
+            {
+                return ApiResponse.NoContent(HttpStatusCode.NotFound);
+            }
+
+            var replies = _replyRepo.All().Where(r => r.Id == id).ToList();
+            if (replies.Count < 5 && (replies.Select(t => t.CreatedByUser.Id).Distinct().Count() < 5))
+            {
+                _topicRepo.Delete(topic);
+                replies.ForEach(_replyRepo.Delete);
+                return ApiResponse.NoContent();
+            }
+
+            return ApiResponse.Error("不符合删除条件");
+        }
     }
 }

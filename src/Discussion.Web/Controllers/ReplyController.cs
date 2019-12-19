@@ -105,5 +105,36 @@ namespace Discussion.Web.Controllers
                 }).Page(PageSize, page);
             return View(replies);
         }
+        
+        [Route("api/topics/{topicId}/replies/{replyId}")]
+        [HttpDelete]
+        public ApiResponse Delete(int topicId, int replyId)
+        {
+            var topic = _topicRepo.Get(topicId);
+            if (topic == null)
+            {
+                return ApiResponse.NoContent(HttpStatusCode.NotFound);
+            }
+            
+            var reply = _replyRepo.All().FirstOrDefault(r => r.Id == replyId && r.TopicId == topicId);
+            if (reply == null)
+            {
+                return ApiResponse.NoContent(HttpStatusCode.NotFound); 
+            }
+            
+            _replyRepo.Delete(reply);
+
+
+            topic.ReplyCount = _replyRepo.All().Count(r => r.TopicId == topicId);
+            var latestReply = _replyRepo.All()
+                .Where(r => r.TopicId == topicId)
+                .OrderByDescending(r => r.CreatedAtUtc)
+                .FirstOrDefault();
+                
+            topic.LastRepliedBy = latestReply?.CreatedBy;
+            topic.LastRepliedAt = latestReply?.CreatedAtUtc;            
+            _topicRepo.Update(topic);
+            return ApiResponse.NoContent();
+        }
     }
 }
