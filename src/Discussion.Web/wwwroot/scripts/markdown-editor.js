@@ -19,7 +19,22 @@ import * as imageResizing from './editor/image-resize'
 export function setupEditor(userCanImport) {
     var editorOptions = defaultEditorOptions();
 
-    $('#content-editor').summernote(editorOptions);
+    var editor = $('#content-editor');
+    editor.summernote(editorOptions);
+
+    var contentEditor = editor.data('summernote');
+    var draft = localStorage.getItem('draft');
+    if(draft){
+        contentEditor.layoutInfo.editable.html(draft);
+        contentEditor.triggerEvent('change');
+    }
+
+    setInterval(function(){
+        var contentEditor = $('#content-editor').data('summernote');
+        var htmlContent = contentEditor.code();
+        localStorage.setItem('draft', htmlContent);
+    }, 5000);
+
     $('#topic-type-dropdown .topic-type-item').on('click', function (e) {
         var item = $(this);
         
@@ -60,6 +75,7 @@ export function setupEditor(userCanImport) {
         }
         $.post(url, newTopic)
             .done(function () {
+                localStorage.removeItem('draft');
                 location.replace("/");
             }).fail(function(){
                 console.error('error on creating new topic');
@@ -105,6 +121,7 @@ export function setupEditor(userCanImport) {
             });
     }
 }
+
 
 function defaultEditorOptions(){
     var options = $.extend({}, $.summernote.options, {
