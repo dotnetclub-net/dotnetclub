@@ -39,7 +39,7 @@
     "@delon/mock": "^2.0.0-beta.3",
     "@delon/theme": "^2.0.0-beta.3",
     "@delon/util": "^2.0.0-beta.3",
-    "ajv": "^6.4.0",
+    "ajv": "^6.12.3",
     "core-js": "^2.5.4",
     "editorconfig-tools": "^0.1.1",
     "husky": "^0.14.3",
